@@ -4,6 +4,8 @@
 
 Perfect for large codebases where traditional ESLint runs might crash or take too long. ESLint Chunker splits your files into manageable chunks and processes them sequentially, updating the cache after each successful chunk.
 
+![ChunkyLint](image.png)
+
 ## ✨ Features
 
 - **🔄 Incremental Cache Updates**: Updates ESLint cache after each successful chunk, preventing loss of progress on failures
@@ -28,22 +30,36 @@ Or use locally in your project:
 npm install --save-dev eslint-chunker
 ```
 
+You can also run it directly with npx without installation:
+
+```bash
+npx eslint-chunker   # Original command
+npx chunkylint       # Short alias
+npx chunky-lint      # Hyphenated alias
+```
+
 ## 🚀 Quick Start
 
 ### Command Line Usage
 
 ```bash
 # Basic usage with default settings (200 files per chunk)
+chunkylint
+
+# Or use the original command name
 eslint-chunker
 
+# Or use the hyphenated alias
+chunky-lint
+
 # Specify chunk size and enable fixing
-eslint-chunker --size 150 --fix
+chunkylint --size 150 --fix
 
 # Use custom cache location and enable verbose output
-eslint-chunker --cache-location .cache/.eslintcache --verbose
+chunkylint --cache-location .cache/.eslintcache --verbose
 
 # Include custom patterns and continue on errors
-eslint-chunker --include "**/*.{js,ts,tsx}" --continue-on-error
+chunkylint --include "**/*.{js,ts,tsx}" --continue-on-error
 ```
 
 ### Programmatic Usage
@@ -110,6 +126,38 @@ ESLint Chunker supports configuration files to avoid passing many command-line f
  "include": ["src/**/*.ts"],
  "ignore": ["**/*.test.ts"]
 }
+```
+
+```typescript
+// .chunkylint.ts - TypeScript config with full type safety
+import type { ChunkyLintConfig } from "eslint-chunker";
+
+const config: ChunkyLintConfig = {
+ size: 10,
+ concurrency: 2,
+ verbose: true,
+ cacheLocation: ".chunky-cache",
+ fix: false,
+ continueOnError: true,
+ include: ["src/**/*.ts"],
+ ignore: ["**/*.test.ts"],
+};
+
+export default config;
+```
+
+```javascript
+// .chunkylint.js - JavaScript config
+module.exports = {
+ size: 10,
+ concurrency: 2,
+ verbose: true,
+ cacheLocation: ".chunky-cache",
+ fix: false,
+ continueOnError: true,
+ include: ["src/**/*.ts"],
+ ignore: ["**/*.test.ts"],
+};
 ```
 
 **Supported config files (in order of precedence):**
@@ -197,7 +245,7 @@ interface ChunkingStats {
 Perfect for monorepos or large projects where ESLint might run out of memory or take too long:
 
 ```bash
-eslint-chunker --size 100 --max-workers auto --continue-on-error
+chunkylint --size 100 --max-workers auto --continue-on-error
 ```
 
 ### CI/CD Pipelines
@@ -205,7 +253,7 @@ eslint-chunker --size 100 --max-workers auto --continue-on-error
 Ideal for continuous integration where you want to ensure progress isn't lost:
 
 ```bash
-eslint-chunker --cache-location /tmp/.eslintcache --verbose --continue-on-error
+chunkylint --cache-location /tmp/.eslintcache --verbose --continue-on-error
 ```
 
 ### Development Workflows
@@ -213,7 +261,7 @@ eslint-chunker --cache-location /tmp/.eslintcache --verbose --continue-on-error
 Great for development with auto-fixing enabled:
 
 ```bash
-eslint-chunker --fix --fix-types problem,suggestion --size 50
+chunkylint --fix --fix-types problem,suggestion --size 50
 ```
 
 ### Gradual Migration
@@ -221,7 +269,7 @@ eslint-chunker --fix --fix-types problem,suggestion --size 50
 Useful when gradually fixing linting issues in legacy codebases:
 
 ```bash
-eslint-chunker --continue-on-error --fix --fix-types problem
+chunkylint --continue-on-error --fix --fix-types problem
 ```
 
 ## 🏗️ How It Works
@@ -252,8 +300,17 @@ npm run build
 # Run tests
 npm test
 
+# Run tests with coverage
+npm run test:coverage
+
 # Run linting
 npm run lint
+
+# Fix linting issues
+npm run lint:fix
+
+# Type checking
+npm run type-check
 ```
 
 ### Testing Your Changes
@@ -263,7 +320,10 @@ npm run lint
 npm run build
 node dist/bin/eslint-chunker.js --help
 
-# Run on a test project
+# Or use the development command (no build required)
+npm run dev -- --help
+
+# Test with different aliases
 npm run dev -- --size 50 --verbose
 ```
 

@@ -61,7 +61,6 @@ yarn-debug.log*
 yarn-error.log*
 
 # Build outputs
-dist/
 build/
 
 # Environment variables
@@ -100,3 +99,4 @@ pids/
 # Yarn Integrity file
 .yarn-integrity
 .github/instructions/
+.prettier-cache

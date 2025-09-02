@@ -1,0 +1,96 @@
+name: Release
+
+on:
+    release:
+        types: [published]
+
+jobs:
+    publish:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  # This ensures we get the full history for proper versioning
+                  fetch-depth: 0
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "20.x"
+                  cache: "npm"
+                  registry-url: "https://registry.npmjs.org"
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Run type checking
+              run: npm run type-check
+
+            - name: Run linting
+              run: npm run lint
+
+            - name: Run tests
+              run: npm test
+
+            - name: Build project
+              run: npm run build
+
+            - name: Verify build artifacts
+              run: |
+                  # Verify all required files exist
+                  ls -la dist/
+                  test -f dist/bin/eslint-chunker.js
+                  test -f dist/index.js
+                  test -f dist/index.d.ts
+
+                  # Test CLI functionality
+                  node dist/bin/eslint-chunker.js --help
+                  node dist/bin/eslint-chunker.js --version
+
+            - name: Update package version
+              run: |
+                  # Extract version from release tag (remove 'v' prefix if present)
+                  VERSION=${GITHUB_REF#refs/tags/}
+                  VERSION=${VERSION#v}
+                  echo "Publishing version: $VERSION"
+
+                  # Update package.json version
+                  npm version $VERSION --no-git-tag-version
+
+            - name: Publish to npm
+              run: npm publish --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+            - name: Create GitHub release comment
+              uses: actions/github-script@v7
+              with:
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+                  script: |
+                      const { owner, repo } = context.repo;
+                      const release = context.payload.release;
+
+                      const packageInfo = require('./package.json');
+                      const version = packageInfo.version;
+
+                      const comment = `🚀 **Successfully published to npm!**
+
+                      **Version:** \`${version}\`
+                      **Package:** \`${packageInfo.name}\`
+                      **Install:** \`npm install -g ${packageInfo.name}\`
+
+                      **NPX Commands:**
+                      - \`npx eslint-chunker\`
+                      - \`npx chunkylint\`
+                      - \`npx chunky-lint\`
+
+                      **View on npm:** https://www.npmjs.com/package/${packageInfo.name}`;
+
+                      await github.rest.issues.createComment({
+                        owner,
+                        repo,
+                        issue_number: release.number,
+                        body: comment
+                      });
