@@ -1,6 +1,6 @@
 {
   "name": "eslint-plugin-chunkylint",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "Auto-chunking ESLint runner that updates cache incrementally based on your ESLint config. Perfect for large codebases.",
   "type": "module",
   "main": "./dist/index.js",
@@ -13,7 +13,7 @@
     }
   },
   "bin": {
-  "eslint-plugin-chunkylint": "dist/bin/eslint-chunker.js",
+    "eslint-plugin-chunkylint": "dist/bin/eslint-chunker.js",
     "eslint-chunker": "dist/bin/eslint-chunker.js",
     "chunkylint": "dist/bin/eslint-chunker.js",
     "chunky-lint": "dist/bin/eslint-chunker.js"
@@ -33,9 +33,9 @@
     "lint:fix": "eslint src --ext .ts --fix",
     "type-check": "tsc --noEmit",
     "prepublishOnly": "npm run build",
-  "chmod": "shx chmod u+x ./dist/bin/eslint-chunker.js",
-  "pack:dry": "npm pack --dry-run",
-  "deprecate:old": "npm deprecate \"eslint-chunker@*\" \"Renamed to eslint-plugin-chunkylint. Please migrate.\""
+    "chmod": "shx chmod u+x ./dist/bin/eslint-chunker.js",
+    "pack:dry": "npm pack --dry-run",
+    "deprecate:old": "npm deprecate \"eslint-chunker@*\" \"Renamed to eslint-plugin-chunkylint. Please migrate.\""
   },
   "keywords": [
     "eslint",
