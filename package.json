@@ -13,9 +13,9 @@
     }
   },
   "bin": {
-    "eslint-chunker": "./dist/bin/eslint-chunker.js",
-    "chunkylint": "./dist/bin/eslint-chunker.js",
-    "chunky-lint": "./dist/bin/eslint-chunker.js"
+    "eslint-chunker": "dist/bin/eslint-chunker.js",
+    "chunkylint": "dist/bin/eslint-chunker.js",
+    "chunky-lint": "dist/bin/eslint-chunker.js"
   },
   "files": [
     "dist",
@@ -68,7 +68,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Nick2bad4u/eslint-plugin-chunkyLint.git"
+    "url": "git+https://github.com/Nick2bad4u/eslint-plugin-chunkyLint.git"
   },
   "bugs": {
     "url": "https://github.com/Nick2bad4u/eslint-plugin-chunkyLint/issues"

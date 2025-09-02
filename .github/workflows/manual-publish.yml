@@ -80,7 +80,7 @@ jobs:
                   echo "Publishing version: $NEW_VERSION"
 
             - name: Commit version change
-              if: ${{ !github.event.inputs.dry-run }}
+              if: ${{ github.event.inputs.dry-run != 'true' }}
               run: |
                   git add package.json
                   git commit -m "chore: bump version to ${{ steps.version.outputs.new-version }}"
@@ -89,13 +89,13 @@ jobs:
                   git push origin "v${{ steps.version.outputs.new-version }}"
 
             - name: Publish to npm (dry run)
-              if: ${{ github.event.inputs.dry-run }}
+              if: ${{ github.event.inputs.dry-run == 'true' }}
               run: |
                   echo "🔍 DRY RUN: Would publish version ${{ steps.version.outputs.new-version }}"
                   npm publish --dry-run --access public
 
             - name: Publish to npm
-              if: ${{ !github.event.inputs.dry-run }}
+              if: ${{ github.event.inputs.dry-run != 'true' }}
               run: npm publish --access public
               env:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
