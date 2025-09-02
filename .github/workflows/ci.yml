@@ -39,7 +39,7 @@ jobs:
             - name: Build project
               run: npm run build
 
-            - name: Test CLI functionality
+            - name: Test CLI functionality (legacy bin name retained for compatibility)
               run: |
                   # Test basic CLI functionality
                   node dist/bin/eslint-chunker.js --help

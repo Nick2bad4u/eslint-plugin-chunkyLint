@@ -1,4 +1,9 @@
-# ESLint Chunker
+# eslint-plugin-chunkyLint (formerly eslint-chunker)
+
+[![npm version](https://img.shields.io/npm/v/eslint-plugin-chunkylint.svg)](https://www.npmjs.com/package/eslint-plugin-chunkylint)
+[![npm downloads](https://img.shields.io/npm/dm/eslint-plugin-chunkylint.svg)](https://www.npmjs.com/package/eslint-plugin-chunkylint)
+[![CI](https://github.com/Nick2bad4u/eslint-plugin-chunkyLint/actions/workflows/ci.yml/badge.svg)](https://github.com/Nick2bad4u/eslint-plugin-chunkyLint/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 🚀 **Auto-chunking ESLint runner that updates cache incrementally based on your ESLint config.**
 
@@ -20,23 +25,37 @@ Perfect for large codebases where traditional ESLint runs might crash or take to
 
 ## 📦 Installation
 
+> Migrating from `eslint-chunker`? Just replace the package name. All old CLI commands still work via retained bin aliases.
+
 ```bash
-npm install -g eslint-chunker
+npm install -g eslint-plugin-chunkylint
 ```
 
 Or use locally in your project:
 
 ```bash
-npm install --save-dev eslint-chunker
+npm install --save-dev eslint-plugin-chunkylint
 ```
 
 You can also run it directly with npx without installation:
 
 ```bash
-npx eslint-chunker   # Original command
-npx chunkylint       # Short alias
-npx chunky-lint      # Hyphenated alias
+npx eslint-plugin-chunkylint   # New canonical package name
+npx chunkylint                 # Short alias (legacy bin retained)
+npx eslint-chunker             # Legacy package/command (will remain as alias)
+npx chunky-lint                # Hyphenated alias
 ```
+
+## 🔄 Migration from `eslint-chunker`
+
+| Action         | Old                                              | New                                                        |
+| -------------- | ------------------------------------------------ | ---------------------------------------------------------- |
+| Install (dev)  | `npm i -D eslint-chunker`                        | `npm i -D eslint-plugin-chunkylint`                        |
+| Global install | `npm i -g eslint-chunker`                        | `npm i -g eslint-plugin-chunkylint`                        |
+| Import         | `import { ESLintChunker } from 'eslint-chunker'` | `import { ESLintChunker } from 'eslint-plugin-chunkylint'` |
+| CLI run        | `npx eslint-chunker`                             | `npx eslint-plugin-chunkylint`                             |
+
+All previous commands (`eslint-chunker`, `chunkylint`, `chunky-lint`) remain functional. The old npm package will be deprecated with a pointer to this new name.
 
 ## 🚀 Quick Start
 
@@ -46,7 +65,7 @@ npx chunky-lint      # Hyphenated alias
 # Basic usage with default settings (200 files per chunk)
 chunkylint
 
-# Or use the original command name
+# Or use the legacy command name (still works)
 eslint-chunker
 
 # Or use the hyphenated alias
@@ -65,7 +84,7 @@ chunkylint --include "**/*.{js,ts,tsx}" --continue-on-error
 ### Programmatic Usage
 
 ```typescript
-import { ESLintChunker } from "eslint-chunker";
+import { ESLintChunker } from "eslint-plugin-chunkylint";
 
 const chunker = new ESLintChunker({
  size: 150,
@@ -130,7 +149,7 @@ ESLint Chunker supports configuration files to avoid passing many command-line f
 
 ```typescript
 // .chunkylint.ts - TypeScript config with full type safety
-import type { ChunkyLintConfig } from "eslint-chunker";
+import type { ChunkyLintConfig } from "eslint-plugin-chunkylint";
 
 const config: ChunkyLintConfig = {
  size: 10,

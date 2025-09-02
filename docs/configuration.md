@@ -66,7 +66,7 @@ interface ChunkyLintConfig {
 ### TypeScript Configuration (`.chunkylint.ts`)
 
 ```typescript
-import type { ChunkyLintConfig } from "eslint-chunker";
+import type { ChunkyLintConfig } from "eslint-plugin-chunkylint";
 
 const config: ChunkyLintConfig = {
  size: 15,
@@ -85,7 +85,7 @@ export default config;
 ### JavaScript Configuration (`.chunkylint.js`)
 
 ```javascript
-/** @type {import('eslint-chunker').ChunkyLintConfig} */
+/** @type {import('eslint-plugin-chunkylint').ChunkyLintConfig} */
 const config = {
  size: 8,
  concurrency: 2,
@@ -105,7 +105,7 @@ module.exports = config;
 You can also export a function that returns the configuration:
 
 ```typescript
-import type { ChunkyLintConfig } from "eslint-chunker";
+import type { ChunkyLintConfig } from "eslint-plugin-chunkylint";
 
 export default function (): ChunkyLintConfig {
  const isDevelopment = process.env.NODE_ENV === "development";

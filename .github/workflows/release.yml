@@ -77,6 +77,8 @@ jobs:
 
                       const comment = `🚀 **Successfully published to npm!**
 
+                      _Note: Package renamed from \`eslint-chunker\` to \`${packageInfo.name}\`. Legacy installs continue to work via bin aliases._
+
                       **Version:** \`${version}\`
                       **Package:** \`${packageInfo.name}\`
                       **Install:** \`npm install -g ${packageInfo.name}\`

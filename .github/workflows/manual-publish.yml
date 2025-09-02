@@ -114,7 +114,7 @@ jobs:
                   echo "" >> $GITHUB_STEP_SUMMARY
 
                   if [[ "${{ github.event.inputs.dry-run }}" == "false" ]]; then
-                    echo "**View on npm:** https://www.npmjs.com/package/eslint-chunker" >> $GITHUB_STEP_SUMMARY
+                    echo "**View on npm:** https://www.npmjs.com/package/eslint-plugin-chunkylint" >> $GITHUB_STEP_SUMMARY
                   else
                     echo "⚠️ This was a dry run - nothing was actually published" >> $GITHUB_STEP_SUMMARY
                   fi
