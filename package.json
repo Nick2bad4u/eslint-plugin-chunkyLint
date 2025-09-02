@@ -1,6 +1,6 @@
 {
   "name": "eslint-chunker",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Auto-chunking ESLint runner that updates cache incrementally based on your ESLint config. Perfect for large codebases.",
   "type": "module",
   "main": "./dist/index.js",
