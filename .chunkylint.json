@@ -1,0 +1,9 @@
+{
+    "size": 5,
+    "concurrency": 2,
+    "verbose": true,
+    "cacheLocation": ".chunky-cache",
+    "fix": false,
+    "continueOnError": true,
+    "include": ["src/**/*.ts"]
+}

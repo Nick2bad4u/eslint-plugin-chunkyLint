@@ -1,0 +1,97 @@
+{
+    "$schema": "https://www.schemastore.org/prettierrc.json",
+    "arrowParens": "always",
+    "bracketSameLine": false,
+    "bracketSpacing": true,
+    "checkIgnorePragma": false,
+    "embeddedLanguageFormatting": "auto",
+    "endOfLine": "auto",
+    "experimentalOperatorPosition": "end",
+    "experimentalTernaries": false,
+    "htmlWhitespaceSensitivity": "css",
+    "insertPragma": false,
+    "jsdocCapitalizeDescription": true,
+    "jsdocCommentLineStrategy": "keep",
+    "jsdocDescriptionTag": false,
+    "jsdocDescriptionWithDot": false,
+    "jsdocKeepUnParseAbleExampleIndent": true,
+    "jsdocPreferCodeFences": true,
+    "jsdocSeparateReturnsFromParam": true,
+    "jsdocSeparateTagGroups": true,
+    "jsdocSpaces": 1,
+    "jsdocVerticalAlignment": false,
+    "jsonRecursiveSort": false,
+    "jsonSortOrder": "{\"*\": \"numeric\"}",
+    "jsxSingleQuote": false,
+    "language": "sqlite",
+    "multilineArraysWrapThreshold": 2,
+    "objectWrap": "preserve",
+    "overrides": [
+        {
+            "files": "*.css",
+            "options": {
+                "printWidth": 80,
+                "multilineArraysWrapThreshold": 1
+            }
+        },
+        {
+            "files": "eslint.config.mjs",
+            "options": {
+                "multilineArraysWrapThreshold": 1
+            }
+        },
+        {
+            "files": "*.user.css",
+            "options": {
+                "printWidth": 80
+            }
+        },
+        {
+            "files": "*.styl",
+            "options": {
+                "parser": "stylus"
+            }
+        },
+        {
+            "files": "*.html",
+            "options": {
+                "printWidth": 80,
+                "singleAttributePerLine": true,
+                "htmlWhitespaceSensitivity": "strict"
+            }
+        },
+        {
+            "files": "*.user.js",
+            "options": {
+                "printWidth": 80
+            }
+        },
+        {
+            "files": "*.md",
+            "options": {
+                "tabWidth": 1
+            }
+        },
+        {
+            "files": ["**/package.json", "**/package-lock.json"],
+            "options": {
+                "requirePragma": true
+            }
+        }
+    ],
+    "printWidth": 80,
+    "proseWrap": "preserve",
+    "quoteProps": "as-needed",
+    "requirePragma": false,
+    "semi": true,
+    "singleAttributePerLine": false,
+    "singleQuote": false,
+    "tabWidth": 4,
+    "tailwindConfig": "./tailwind.config.mjs",
+    "tailwindFunctions": ["clsx", "cva"],
+    "tailwindStylesheet": "./src/index.css",
+    "trailingComma": "es5",
+    "tsdoc": true,
+    "useTabs": false,
+    "vueIndentScriptAndStyle": false
+}
