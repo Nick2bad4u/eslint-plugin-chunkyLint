@@ -5,10 +5,13 @@ import type { ChunkyLintConfig } from "../types/index.js";
  * @param cwd - Working directory to search for config files
  * @returns Configuration object or null if no config found
  */
-export declare function loadConfig(
-    configPath?: string,
-    cwd?: string
-): Promise<ChunkyLintConfig | null>;
+export declare function loadConfig(configPath?: string, cwd?: string): Promise<ChunkyLintConfig | null>;
+/**
+ * Load JavaScript/TypeScript config file
+ * @param filePath - Path to JS/TS config file
+ * @returns Parsed configuration
+ */
+export declare function loadJsConfig(filePath: string): Promise<ChunkyLintConfig>;
 /**
  * Merge configuration with CLI options
  * CLI options take precedence over config file options
@@ -16,8 +19,5 @@ export declare function loadConfig(
  * @param cliOptions - Options from CLI
  * @returns Merged configuration
  */
-export declare function mergeConfig(
-    config: ChunkyLintConfig,
-    cliOptions: Partial<ChunkyLintConfig>
-): ChunkyLintConfig;
+export declare function mergeConfig(config: ChunkyLintConfig, cliOptions: Partial<ChunkyLintConfig>): ChunkyLintConfig;
 //# sourceMappingURL=configLoader.d.ts.map

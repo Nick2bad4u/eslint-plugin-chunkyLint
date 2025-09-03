@@ -1,15 +1,12 @@
-# eslint-plugin-chunkyLint (formerly eslint-chunker)
+# eslint-plugin-chunkyLint
 
-[![npm version](https://img.shields.io/npm/v/eslint-plugin-chunkylint.svg)](https://www.npmjs.com/package/eslint-plugin-chunkylint)
-[![npm downloads](https://img.shields.io/npm/dm/eslint-plugin-chunkylint.svg)](https://www.npmjs.com/package/eslint-plugin-chunkylint)
-[![CI](https://github.com/Nick2bad4u/eslint-plugin-chunkyLint/actions/workflows/ci.yml/badge.svg)](https://github.com/Nick2bad4u/eslint-plugin-chunkyLint/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![npm version](https://img.shields.io/npm/v/eslint-plugin-chunkylint.svg)](https://www.npmjs.com/package/eslint-plugin-chunkylint) [![npm downloads](https://img.shields.io/npm/dm/eslint-plugin-chunkylint.svg)](https://www.npmjs.com/package/eslint-plugin-chunkylint) [![CI](https://github.com/Nick2bad4u/eslint-plugin-chunkyLint/actions/workflows/ci.yml/badge.svg)](https://github.com/Nick2bad4u/eslint-plugin-chunkyLint/actions/workflows/ci.yml) [![Coverage Status](https://codecov.io/gh/Nick2bad4u/eslint-plugin-chunkyLint/branch/main/graph/badge.svg)](https://codecov.io/gh/Nick2bad4u/eslint-plugin-chunkyLint) [![Code Quality](https://img.shields.io/badge/code%20quality-A+-brightgreen.svg)](https://github.com/Nick2bad4u/eslint-plugin-chunkyLint) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 🚀 **Auto-chunking ESLint runner that updates cache incrementally based on your ESLint config.**
 
-Perfect for large codebases where traditional ESLint runs might crash or take too long. ESLint Chunker splits your files into manageable chunks and processes them sequentially, updating the cache after each successful chunk.
-
-![ChunkyLint](image.png)
+<div align="center">
+  <img src="ChunkyLintMascot.png" alt="ChunkyLint">
+</div>
 
 ## ✨ Features
 
@@ -24,8 +21,6 @@ Perfect for large codebases where traditional ESLint runs might crash or take to
 - **⚙️ Highly Configurable**: Extensive configuration options for all use cases
 
 ## 📦 Installation
-
-> Migrating from `eslint-chunker`? Just replace the package name. All old CLI commands still work via retained bin aliases.
 
 ```bash
 npm install -g eslint-plugin-chunkylint
@@ -46,18 +41,14 @@ npx eslint-chunker             # Legacy package/command (will remain as alias)
 npx chunky-lint                # Hyphenated alias
 ```
 
-## 🔄 Migration from `eslint-chunker`
-
-| Action         | Old                                              | New                                                        |
-| -------------- | ------------------------------------------------ | ---------------------------------------------------------- |
-| Install (dev)  | `npm i -D eslint-chunker`                        | `npm i -D eslint-plugin-chunkylint`                        |
-| Global install | `npm i -g eslint-chunker`                        | `npm i -g eslint-plugin-chunkylint`                        |
-| Import         | `import { ESLintChunker } from 'eslint-chunker'` | `import { ESLintChunker } from 'eslint-plugin-chunkylint'` |
-| CLI run        | `npx eslint-chunker`                             | `npx eslint-plugin-chunkylint`                             |
-
-All previous commands (`eslint-chunker`, `chunkylint`, `chunky-lint`) remain functional. The old npm package will be deprecated with a pointer to this new name.
-
 ## 🚀 Quick Start
+
+| Action         | Command                                                     |
+| -------------- | ----------------------------------------------------------- |
+| Install (dev)  | `npm i -D eslint-plugin-chunkylint`                         |
+| Global install | `npm i -g eslint-plugin-chunkylint`                         |
+| Import         | `import { ESLintChunker } from 'eslint-plugin-chunkylint';` |
+| CLI run        | `npx eslint-plugin-chunkylint`
 
 ### Command Line Usage
 

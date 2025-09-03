@@ -1,5 +1,5 @@
+import { join, resolve } from "path";
 import { promises as fs } from "fs";
-import { resolve, join } from "path";
 import { pathToFileURL } from "url";
 /**
  * Possible config file names in order of preference
@@ -26,7 +26,8 @@ export async function loadConfig(configPath, cwd = process.cwd()) {
         if (configPath) {
             // Use explicit config path
             targetPath = resolve(cwd, configPath);
-        } else {
+        }
+        else {
             // Search for config files
             const foundPath = await findConfigFile(cwd);
             if (!foundPath) {
@@ -37,14 +38,16 @@ export async function loadConfig(configPath, cwd = process.cwd()) {
         // Check if file exists
         try {
             await fs.access(targetPath);
-        } catch {
+        }
+        catch {
             if (configPath) {
                 throw new Error(`Config file not found: ${targetPath}`);
             }
             return null;
         }
         return await loadConfigFile(targetPath);
-    } catch (error) {
+    }
+    catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         throw new Error(`Failed to load config: ${message}`);
     }
@@ -60,7 +63,8 @@ async function findConfigFile(cwd) {
         try {
             await fs.access(filePath);
             return filePath;
-        } catch {
+        }
+        catch {
             // File doesn't exist, continue searching
         }
     }
@@ -91,10 +95,10 @@ async function loadConfigFile(filePath) {
  */
 async function loadJsonConfig(filePath) {
     try {
-        const content = await fs.readFile(filePath, "utf-8");
-        const config = JSON.parse(content);
+        const content = await fs.readFile(filePath, "utf-8"), config = JSON.parse(content);
         return validateConfig(config);
-    } catch (error) {
+    }
+    catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         throw new Error(`Failed to parse JSON config: ${message}`);
     }
@@ -104,22 +108,22 @@ async function loadJsonConfig(filePath) {
  * @param filePath - Path to JS/TS config file
  * @returns Parsed configuration
  */
-async function loadJsConfig(filePath) {
+export async function loadJsConfig(filePath) {
     try {
         // Convert file path to file URL for dynamic import
-        const fileUrl = pathToFileURL(filePath).href;
+        const fileUrl = pathToFileURL(filePath).href, 
         // Dynamic import the config file
-        const module = await import(fileUrl);
+        module = await import(fileUrl), 
         // Get the default export or the config object
-        const config = module.default ?? module;
+        config = module.default ?? module;
         if (typeof config === "function") {
             // Config is a function, call it
             return validateConfig(await config());
-        } else {
-            // Config is an object
-            return validateConfig(config);
         }
-    } catch (error) {
+        // Config is an object
+        return validateConfig(config);
+    }
+    catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         throw new Error(`Failed to load JS/TS config: ${message}`);
     }
@@ -136,19 +140,15 @@ function validateConfig(config) {
     const normalizedConfig = config;
     // Validate size
     if (normalizedConfig.size !== undefined) {
-        if (
-            !Number.isInteger(normalizedConfig.size) ||
-            normalizedConfig.size < 1
-        ) {
+        if (!Number.isInteger(normalizedConfig.size) ||
+            normalizedConfig.size < 1) {
             throw new Error("size must be a positive integer");
         }
     }
     // Validate concurrency
     if (normalizedConfig.concurrency !== undefined) {
-        if (
-            !Number.isInteger(normalizedConfig.concurrency) ||
-            normalizedConfig.concurrency < 1
-        ) {
+        if (!Number.isInteger(normalizedConfig.concurrency) ||
+            normalizedConfig.concurrency < 1) {
             throw new Error("concurrency must be a positive integer");
         }
     }
@@ -171,11 +171,7 @@ function validateConfig(config) {
 export function mergeConfig(config, cliOptions) {
     return {
         ...config,
-        ...Object.fromEntries(
-            Object.entries(cliOptions).filter(
-                ([, value]) => value !== undefined
-            )
-        ),
+        ...Object.fromEntries(Object.entries(cliOptions).filter(([, value]) => value !== undefined)),
     };
 }
 //# sourceMappingURL=configLoader.js.map

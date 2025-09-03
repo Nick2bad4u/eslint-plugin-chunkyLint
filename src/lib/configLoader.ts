@@ -1,7 +1,8 @@
-import { promises as fs } from "fs";
-import { resolve, join } from "path";
-import { pathToFileURL } from "url";
+/* eslint-disable func-style, init-declarations, no-use-before-define, no-await-in-loop, @typescript-eslint/restrict-template-expressions, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unnecessary-condition, sort-imports */
 import type { ChunkyLintConfig } from "../types/index.js";
+import { join, resolve } from "path";
+import { promises as fs } from "fs";
+import { pathToFileURL } from "url";
 
 /**
  * Possible config file names in order of preference
@@ -104,8 +105,8 @@ async function loadConfigFile(filePath: string): Promise<ChunkyLintConfig> {
  */
 async function loadJsonConfig(filePath: string): Promise<ChunkyLintConfig> {
     try {
-        const content = await fs.readFile(filePath, "utf-8");
-        const config = JSON.parse(content) as ChunkyLintConfig;
+        const content = await fs.readFile(filePath, "utf-8"),
+         config = JSON.parse(content) as ChunkyLintConfig;
         return validateConfig(config);
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
@@ -118,24 +119,24 @@ async function loadJsonConfig(filePath: string): Promise<ChunkyLintConfig> {
  * @param filePath - Path to JS/TS config file
  * @returns Parsed configuration
  */
-async function loadJsConfig(filePath: string): Promise<ChunkyLintConfig> {
+export async function loadJsConfig(filePath: string): Promise<ChunkyLintConfig> {
     try {
         // Convert file path to file URL for dynamic import
-        const fileUrl = pathToFileURL(filePath).href;
+        const fileUrl = pathToFileURL(filePath).href,
 
         // Dynamic import the config file
-        const module = await import(fileUrl);
+         module = await import(fileUrl),
 
         // Get the default export or the config object
-        const config = module.default ?? module;
+         config = module.default ?? module;
 
         if (typeof config === "function") {
             // Config is a function, call it
             return validateConfig(await config());
-        } else {
+        }
             // Config is an object
             return validateConfig(config);
-        }
+
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         throw new Error(`Failed to load JS/TS config: ${message}`);

@@ -1,8 +1,4 @@
-import type {
-    ChunkerOptions,
-    ChunkingStats,
-    ProgressCallback,
-} from "../types/index.js";
+import type { ChunkerOptions, ChunkingStats, ProgressCallback } from "../types/index.js";
 /**
  * ESLint Chunker - Main orchestrator for chunked ESLint execution
  */

@@ -1,12 +1,13 @@
-import { describe, it, expect } from "vitest";
 import type {
+    ChunkResult,
     ChunkerOptions,
     ChunkingStats,
-    ChunkResult,
+    ChunkyLintConfig,
     FileDiscoveryOptions,
-    ProgressCallback,
     Logger,
+    ProgressCallback,
 } from "../types/index.js";
+import { describe, expect, it } from "vitest";
 
 describe("Types coverage test", () => {
     it("should import and use all types from types/index.ts", () => {
@@ -59,6 +60,7 @@ describe("Types coverage test", () => {
         callback(1, 10, result);
 
         // Test Logger interface
+        /* eslint-disable @typescript-eslint/no-empty-function */
         const logger: Logger = {
             info: () => {},
             warn: () => {},
@@ -66,6 +68,7 @@ describe("Types coverage test", () => {
             debug: () => {},
             verbose: () => {},
         };
+        /* eslint-enable @typescript-eslint/no-empty-function */
         expect(typeof logger.info).toBe("function");
 
         // All types are properly imported and usable
@@ -115,14 +118,40 @@ describe("Types coverage test", () => {
 
     it("should validate FixType union values", () => {
         // Test that FixType accepts correct values
-        const problemFix = "problem" as const;
-        const suggestionFix = "suggestion" as const;
-        const layoutFix = "layout" as const;
-        const directiveFix = "directive" as const;
+        const problemFix = "problem" as const,
+         suggestionFix = "suggestion" as const,
+         layoutFix = "layout" as const,
+         directiveFix = "directive" as const;
 
         expect(problemFix).toBe("problem");
         expect(suggestionFix).toBe("suggestion");
         expect(layoutFix).toBe("layout");
         expect(directiveFix).toBe("directive");
+    });
+
+    it("should handle ChunkyLintConfig interface", () => {
+        // Test minimal config
+        const minimalConfig: ChunkyLintConfig = {};
+        expect(minimalConfig).toBeDefined();
+
+        // Test full config
+        const fullConfig: ChunkyLintConfig = {
+            config: "eslint.config.js",
+            cwd: "/project",
+            include: ["src/**/*.ts"],
+            ignore: ["**/*.test.ts"],
+            followSymlinks: false,
+            size: 100,
+            concurrency: 4,
+            verbose: true,
+            cacheLocation: ".eslintcache",
+            fix: true,
+            continueOnError: false,
+        };
+        expect(fullConfig.size).toBe(100);
+        expect(fullConfig.concurrency).toBe(4);
+        expect(fullConfig.verbose).toBe(true);
+        expect(fullConfig.fix).toBe(true);
+        expect(fullConfig.continueOnError).toBe(false);
     });
 });

@@ -19,14 +19,7 @@
 export { ESLintChunker } from "./lib/chunker.js";
 export { FileScanner } from "./lib/fileScanner.js";
 export { ConsoleLogger } from "./lib/logger.js";
-export type {
-    ChunkerOptions,
-    ChunkingStats,
-    ChunkResult,
-    FileDiscoveryOptions,
-    ProgressCallback,
-    Logger,
-} from "./types/index.js";
+export type { ChunkerOptions, ChunkingStats, ChunkResult, FileDiscoveryOptions, ProgressCallback, Logger, } from "./types/index.js";
 /**
  * Default export for convenience
  */

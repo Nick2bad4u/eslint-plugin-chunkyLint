@@ -1,34 +1,37 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ConsoleLogger } from "../lib/logger.js";
 
-type ConsoleSpy = {
+/* eslint-disable init-declarations */
+interface ConsoleSpy {
     log: ReturnType<typeof vi.spyOn>;
     warn: ReturnType<typeof vi.spyOn>;
     error: ReturnType<typeof vi.spyOn>;
-};
+}
 
 // Mock chalk
 vi.mock("chalk", () => ({
     default: {
-        blue: vi.fn((text) => `blue(${text})`),
-        yellow: vi.fn((text) => `yellow(${text})`),
-        red: vi.fn((text) => `red(${text})`),
-        gray: vi.fn((text) => `gray(${text})`),
-        green: vi.fn((text) => `green(${text})`),
+        blue: vi.fn((text: string) => `blue(${text})`),
+        yellow: vi.fn((text: string) => `yellow(${text})`),
+        red: vi.fn((text: string) => `red(${text})`),
+        gray: vi.fn((text: string) => `gray(${text})`),
+        green: vi.fn((text: string) => `green(${text})`),
     },
 }));
 
 describe("ConsoleLogger", () => {
-    let logger: ConsoleLogger;
-    let consoleSpy: ConsoleSpy;
+    let consoleSpy!: ConsoleSpy,
+     logger: ConsoleLogger;
 
     beforeEach(() => {
         logger = new ConsoleLogger(false);
+        /* eslint-disable @typescript-eslint/no-empty-function */
         consoleSpy = {
             log: vi.spyOn(console, "log").mockImplementation(() => {}),
             warn: vi.spyOn(console, "warn").mockImplementation(() => {}),
             error: vi.spyOn(console, "error").mockImplementation(() => {}),
         };
+        /* eslint-enable @typescript-eslint/no-empty-function */
     });
 
     afterEach(() => {

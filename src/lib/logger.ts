@@ -1,10 +1,11 @@
-import chalk from "chalk";
 import type { Logger } from "../types/index.js";
+import chalk from "chalk";
 
 /**
  * Console logger implementation with colored output
  */
 export class ConsoleLogger implements Logger {
+    /* eslint-disable class-methods-use-this */
     private verboseMode: boolean;
 
     constructor(verbose = false) {

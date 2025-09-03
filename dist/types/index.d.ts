@@ -15,7 +15,7 @@ export interface ChunkerOptions {
     /** Apply fixes to files */
     fix?: boolean;
     /** Types of fixes to apply */
-    fixTypes?: Array<"directive" | "problem" | "suggestion" | "layout">;
+    fixTypes?: ("directive" | "problem" | "suggestion" | "layout")[];
     /** Show warnings for ignored files */
     warnIgnored?: boolean;
     /** Custom include patterns */
@@ -87,11 +87,7 @@ export interface FileDiscoveryOptions {
 /**
  * Progress callback function
  */
-export type ProgressCallback = (
-    processed: number,
-    total: number,
-    currentChunk: ChunkResult | null
-) => void;
+export type ProgressCallback = (processed: number, total: number, currentChunk: ChunkResult | null) => void;
 /**
  * Config file structure for chunkyLint
  */

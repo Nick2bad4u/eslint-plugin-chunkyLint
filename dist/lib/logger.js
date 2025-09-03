@@ -3,6 +3,7 @@ import chalk from "chalk";
  * Console logger implementation with colored output
  */
 export class ConsoleLogger {
+    /* eslint-disable class-methods-use-this */
     verboseMode;
     constructor(verbose = false) {
         this.verboseMode = verbose;

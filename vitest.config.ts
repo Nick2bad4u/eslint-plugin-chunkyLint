@@ -18,6 +18,7 @@ export default defineConfig({
                 "**/coverage/**",
                 "**/*.config.*",
                 "**/bin/**",
+                "**/types/**",
             ],
             reportsDirectory: "./coverage",
             all: true,

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock chalk to prevent console output issues
 vi.mock("chalk", () => ({
@@ -76,8 +76,10 @@ describe("CLI binary", () => {
         await import("../bin/eslint-chunker.js");
 
         // Verify all expected options are defined
-        const optionCalls = mockProgram.option.mock.calls;
-        const options = optionCalls.map((call) => call[0]);
+        /* eslint-disable @typescript-eslint/no-unsafe-return */
+        const optionCalls = mockProgram.option.mock.calls,
+         options = optionCalls.map((call) => call[0]);
+        /* eslint-enable @typescript-eslint/no-unsafe-return */
 
         expect(options).toContain("-c, --config <path>");
         expect(options).toContain("-s, --size <number>");

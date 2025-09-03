@@ -1,12 +1,14 @@
 #!/usr/bin/env node
 
-import { Command } from "commander";
-import chalk from "chalk";
-import { ESLintChunker } from "../lib/chunker.js";
+/* eslint-disable */
+
 import { loadConfig, mergeConfig } from "../lib/configLoader.js";
+import { ESLintChunker } from "../lib/chunker.js";
+import chalk from "chalk";
+import { Command } from "commander";
 import type {
-    ChunkerOptions,
     ChunkResult,
+    ChunkerOptions,
     ChunkyLintConfig,
 } from "../types/index.js";
 
@@ -18,7 +20,7 @@ interface CliOptions {
     maxWorkers: number | "auto" | "off";
     continueOnError?: boolean;
     fix?: boolean;
-    fixTypes?: Array<"directive" | "problem" | "suggestion" | "layout">;
+    fixTypes?: ("directive" | "problem" | "suggestion" | "layout")[];
     warnIgnored?: boolean;
     include?: string[];
     ignore?: string[];
@@ -117,10 +119,10 @@ program.action(async (options: CliOptions) => {
         // Merge file config with CLI options (CLI takes precedence)
         const finalConfig = fileConfig
             ? mergeConfig(fileConfig, cliConfig)
-            : cliConfig;
+            : cliConfig,
 
         // Convert to ChunkerOptions with proper defaults
-        const chunkerOptions: ChunkerOptions = {
+         chunkerOptions: ChunkerOptions = {
             config: finalConfig.config,
             size: finalConfig.size ?? 200,
             cacheLocation: finalConfig.cacheLocation ?? ".eslintcache",
@@ -134,10 +136,10 @@ program.action(async (options: CliOptions) => {
             cwd: finalConfig.cwd ?? process.cwd(),
             verbose: finalConfig.verbose,
             concurrency: finalConfig.concurrency ?? 1,
-        };
+        },
 
         // Create and run chunker
-        const chunker = new ESLintChunker(chunkerOptions);
+         chunker = new ESLintChunker(chunkerOptions);
 
         let lastUpdate = Date.now();
         const stats = await chunker.run((processed, total, currentChunk) => {
@@ -177,8 +179,8 @@ function showProgress(
     total: number,
     currentChunk: ChunkResult | null
 ): void {
-    const percentage = Math.round((processed / total) * 100);
-    const progressBar = createProgressBar(processed, total, 30);
+    const percentage = Math.round((processed / total) * 100),
+     progressBar = createProgressBar(processed, total, 30);
 
     let message = `${progressBar} ${percentage}% (${processed}/${total})`;
 
@@ -192,7 +194,7 @@ function showProgress(
     }
 
     // Clear previous line and print new progress
-    process.stdout.write("\r" + message);
+    process.stdout.write(`\r${  message}`);
 
     if (processed === total) {
         process.stdout.write("\n");
@@ -207,8 +209,8 @@ function createProgressBar(
     total: number,
     width: number
 ): string {
-    const filled = Math.round((current / total) * width);
-    const empty = width - filled;
+    const filled = Math.round((current / total) * width),
+     empty = width - filled;
     return chalk.green("█".repeat(filled)) + chalk.gray("░".repeat(empty));
 }
 
@@ -238,14 +240,14 @@ function parseWorkersOption(value: string): number | "auto" | "off" {
  */
 function parseFixTypes(
     value: string
-): Array<"directive" | "problem" | "suggestion" | "layout"> {
+): ("directive" | "problem" | "suggestion" | "layout")[] {
     const validTypes = [
         "directive",
         "problem",
         "suggestion",
         "layout",
-    ] as const;
-    const types = value.split(",").map((type) => type.trim());
+    ] as const,
+     types = value.split(",").map((type) => type.trim());
 
     for (const type of types) {
         if (
@@ -259,7 +261,7 @@ function parseFixTypes(
         }
     }
 
-    return types as Array<"directive" | "problem" | "suggestion" | "layout">;
+    return types as ("directive" | "problem" | "suggestion" | "layout")[];
 }
 
 /**

@@ -1,6 +1,9 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+/* eslint-disable sort-imports */
 import { FileScanner } from "../lib/fileScanner.js";
 import { ConsoleLogger } from "../lib/logger.js";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+/* eslint-disable init-declarations */
 
 // Mock fast-glob and eslint at the module level
 vi.mock("fast-glob", () => ({
@@ -30,8 +33,8 @@ vi.mock("eslint", () => ({
 }));
 
 describe("FileScanner", () => {
-    let fileScanner: FileScanner;
-    let mockLogger: ConsoleLogger;
+    let fileScanner: FileScanner,
+     mockLogger: ConsoleLogger;
 
     beforeEach(() => {
         mockLogger = new ConsoleLogger(false);
@@ -46,8 +49,8 @@ describe("FileScanner", () => {
                 "file3.js",
                 "file4.js",
                 "file5.js",
-            ];
-            const chunks = fileScanner.chunkFiles(files, 2);
+            ],
+             chunks = fileScanner.chunkFiles(files, 2);
 
             expect(chunks).toEqual([
                 ["file1.js", "file2.js"],
@@ -57,8 +60,8 @@ describe("FileScanner", () => {
         });
 
         it("should handle exact division", () => {
-            const files = ["file1.js", "file2.js", "file3.js", "file4.js"];
-            const chunks = fileScanner.chunkFiles(files, 2);
+            const files = ["file1.js", "file2.js", "file3.js", "file4.js"],
+             chunks = fileScanner.chunkFiles(files, 2);
 
             expect(chunks).toEqual([
                 ["file1.js", "file2.js"],
@@ -67,22 +70,22 @@ describe("FileScanner", () => {
         });
 
         it("should handle single file per chunk", () => {
-            const files = ["file1.js", "file2.js", "file3.js"];
-            const chunks = fileScanner.chunkFiles(files, 1);
+            const files = ["file1.js", "file2.js", "file3.js"],
+             chunks = fileScanner.chunkFiles(files, 1);
 
             expect(chunks).toEqual([["file1.js"], ["file2.js"], ["file3.js"]]);
         });
 
         it("should handle chunk size larger than file count", () => {
-            const files = ["file1.js", "file2.js"];
-            const chunks = fileScanner.chunkFiles(files, 10);
+            const files = ["file1.js", "file2.js"],
+             chunks = fileScanner.chunkFiles(files, 10);
 
             expect(chunks).toEqual([["file1.js", "file2.js"]]);
         });
 
         it("should handle empty file list", () => {
-            const files: string[] = [];
-            const chunks = fileScanner.chunkFiles(files, 5);
+            const files: string[] = [],
+             chunks = fileScanner.chunkFiles(files, 5);
 
             expect(chunks).toEqual([]);
         });
@@ -114,8 +117,8 @@ describe("FileScanner", () => {
         });
 
         it("should handle custom working directory", async () => {
-            const customCwd = "/custom/path";
-            const files = await fileScanner.scanFiles({
+            const customCwd = "/custom/path",
+             files = await fileScanner.scanFiles({
                 cwd: customCwd,
             });
             expect(Array.isArray(files)).toBe(true);
@@ -165,15 +168,34 @@ describe("FileScanner", () => {
             // Create a new mock that rejects
             const mockFg = vi
                 .fn()
-                .mockRejectedValue(new Error("File system error"));
+                .mockRejectedValue(new Error("File system error")),
 
             // Replace the original mock temporarily
-            const { default: fg } = await import("fast-glob");
-            const originalMock = vi.mocked(fg);
+             { default: fg } = await import("fast-glob"),
+             originalMock = vi.mocked(fg);
             vi.mocked(fg).mockImplementation(mockFg);
 
             await expect(fileScanner.scanFiles()).rejects.toThrow(
                 "File discovery failed: File system error"
+            );
+
+            // Restore original mock
+            vi.mocked(fg).mockImplementation(originalMock);
+        });
+
+        it("should handle non-Error objects in file discovery errors", async () => {
+            // Test the error instanceof Error ternary on line 112
+            const mockFg = vi
+                .fn()
+                .mockRejectedValue("String error, not Error object"),
+
+            // Replace the original mock temporarily
+             { default: fg } = await import("fast-glob"),
+             originalMock = vi.mocked(fg);
+            vi.mocked(fg).mockImplementation(mockFg);
+
+            await expect(fileScanner.scanFiles()).rejects.toThrow(
+                "File discovery failed: String error, not Error object"
             );
 
             // Restore original mock
