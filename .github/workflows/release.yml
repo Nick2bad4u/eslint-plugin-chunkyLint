@@ -9,14 +9,19 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
+            - name: Harden the runner (Audit all outbound calls)
+              uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
+              with:
+                egress-policy: audit
+
             - name: Checkout repository
-              uses: actions/checkout@v4
+              uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
               with:
                   # This ensures we get the full history for proper versioning
                   fetch-depth: 0
 
             - name: Setup Node.js
-              uses: actions/setup-node@v4
+              uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
               with:
                   node-version: "20.x"
                   cache: "npm"
@@ -65,7 +70,7 @@ jobs:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
             - name: Create GitHub release comment
-              uses: actions/github-script@v7
+              uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
               with:
                   github-token: ${{ secrets.GITHUB_TOKEN }}
                   script: |
