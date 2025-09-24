@@ -56,7 +56,7 @@ export async function loadConfig(
         return await loadConfigFile(targetPath);
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        throw new Error(`Failed to load config: ${message}`);
+        throw new Error(`Failed to load config: ${message}`, { cause: error });
     }
 }
 
@@ -106,11 +106,13 @@ async function loadConfigFile(filePath: string): Promise<ChunkyLintConfig> {
 async function loadJsonConfig(filePath: string): Promise<ChunkyLintConfig> {
     try {
         const content = await fs.readFile(filePath, "utf-8"),
-         config = JSON.parse(content) as ChunkyLintConfig;
+            config = JSON.parse(content) as ChunkyLintConfig;
         return validateConfig(config);
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        throw new Error(`Failed to parse JSON config: ${message}`);
+        throw new Error(`Failed to parse JSON config: ${message}`, {
+            cause: error,
+        });
     }
 }
 
@@ -119,27 +121,28 @@ async function loadJsonConfig(filePath: string): Promise<ChunkyLintConfig> {
  * @param filePath - Path to JS/TS config file
  * @returns Parsed configuration
  */
-export async function loadJsConfig(filePath: string): Promise<ChunkyLintConfig> {
+export async function loadJsConfig(
+    filePath: string
+): Promise<ChunkyLintConfig> {
     try {
         // Convert file path to file URL for dynamic import
         const fileUrl = pathToFileURL(filePath).href,
-
-        // Dynamic import the config file
-         module = await import(fileUrl),
-
-        // Get the default export or the config object
-         config = module.default ?? module;
+            // Dynamic import the config file
+            module = await import(fileUrl),
+            // Get the default export or the config object
+            config = module.default ?? module;
 
         if (typeof config === "function") {
             // Config is a function, call it
             return validateConfig(await config());
         }
-            // Config is an object
-            return validateConfig(config);
-
+        // Config is an object
+        return validateConfig(config);
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        throw new Error(`Failed to load JS/TS config: ${message}`);
+        throw new Error(`Failed to load JS/TS config: ${message}`, {
+            cause: error,
+        });
     }
 }
 

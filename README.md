@@ -1,6 +1,6 @@
 # eslint-plugin-chunkyLint
 
-[![npm version](https://img.shields.io/npm/v/eslint-plugin-chunkylint.svg)](https://www.npmjs.com/package/eslint-plugin-chunkylint) [![npm downloads](https://img.shields.io/npm/dm/eslint-plugin-chunkylint.svg)](https://www.npmjs.com/package/eslint-plugin-chunkylint) [![CI](https://github.com/Nick2bad4u/eslint-plugin-chunkyLint/actions/workflows/ci.yml/badge.svg)](https://github.com/Nick2bad4u/eslint-plugin-chunkyLint/actions/workflows/ci.yml) [![Coverage Status](https://codecov.io/gh/Nick2bad4u/eslint-plugin-chunkyLint/branch/main/graph/badge.svg)](https://codecov.io/gh/Nick2bad4u/eslint-plugin-chunkyLint) [![Code Quality](https://img.shields.io/badge/code%20quality-A+-brightgreen.svg)](https://github.com/Nick2bad4u/eslint-plugin-chunkyLint) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![npm version](https://img.shields.io/npm/v/eslint-plugin-chunkylint.svg)](https://www.npmjs.com/package/eslint-plugin-chunkylint) [![npm downloads](https://img.shields.io/npm/dm/eslint-plugin-chunkylint.svg)](https://www.npmjs.com/package/eslint-plugin-chunkylint) [![CI](https://github.com/Nick2bad4u/eslint-plugin-chunkyLint/actions/workflows/ci.yml/badge.svg)](https://github.com/Nick2bad4u/eslint-plugin-chunkyLint/actions/workflows/ci.yml) [![codecov](https://codecov.io/gh/Nick2bad4u/eslint-plugin-chunkyLint/branch/main/graph/badge.svg)](https://app.codecov.io/gh/Nick2bad4u/eslint-plugin-chunkyLint) [![Code Quality](https://img.shields.io/badge/code%20quality-A+-brightgreen.svg)](https://github.com/Nick2bad4u/eslint-plugin-chunkyLint) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 🚀 **Auto-chunking ESLint runner that updates cache incrementally based on your ESLint config.**
 
@@ -48,7 +48,7 @@ npx chunky-lint                # Hyphenated alias
 | Install (dev)  | `npm i -D eslint-plugin-chunkylint`                         |
 | Global install | `npm i -g eslint-plugin-chunkylint`                         |
 | Import         | `import { ESLintChunker } from 'eslint-plugin-chunkylint';` |
-| CLI run        | `npx eslint-plugin-chunkylint`
+| CLI run        | `npx eslint-plugin-chunkylint`                              |
 
 ### Command Line Usage
 

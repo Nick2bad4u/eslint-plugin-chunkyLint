@@ -7,27 +7,26 @@ import { resolve } from "path";
  * Default include patterns for common file extensions
  */
 const DEFAULT_INCLUDE_PATTERNS = [
-    "**/*.js",
-    "**/*.jsx",
-    "**/*.ts",
-    "**/*.tsx",
-    "**/*.mjs",
-    "**/*.cjs",
-    "**/*.vue",
-],
-
-/**
- * Default ignore patterns
- */
- DEFAULT_IGNORE_PATTERNS = [
-    "node_modules/**",
-    "dist/**",
-    "build/**",
-    "coverage/**",
-    ".git/**",
-    "**/*.min.js",
-    "**/*.bundle.js",
-];
+        "**/*.js",
+        "**/*.jsx",
+        "**/*.ts",
+        "**/*.tsx",
+        "**/*.mjs",
+        "**/*.cjs",
+        "**/*.vue",
+    ],
+    /**
+     * Default ignore patterns
+     */
+    DEFAULT_IGNORE_PATTERNS = [
+        "node_modules/**",
+        "dist/**",
+        "build/**",
+        "coverage/**",
+        ".git/**",
+        "**/*.min.js",
+        "**/*.bundle.js",
+    ];
 
 /**
  * File scanner that discovers files to lint based on ESLint configuration
@@ -72,36 +71,34 @@ export class FileScanner {
             }
 
             const eslint = new ESLint(eslintOptions),
-
-            // Get ignore patterns from ESLint configuration
-             eslintIgnorePatterns = await this.getESLintIgnorePatterns(
-                eslint,
-                cwd
-            ),
-
-            // Combine ignore patterns
-             allIgnorePatterns = [
-                ...ignore,
-                ...eslintIgnorePatterns,
-            ].filter(Boolean);
+                // Get ignore patterns from ESLint configuration
+                eslintIgnorePatterns = await this.getESLintIgnorePatterns(
+                    eslint,
+                    cwd
+                ),
+                // Combine ignore patterns
+                allIgnorePatterns = [...ignore, ...eslintIgnorePatterns].filter(
+                    Boolean
+                );
 
             this.logger.debug("Combined ignore patterns:", allIgnorePatterns);
 
             // Use fast-glob to find files
             const files = await fg(include, {
-                cwd,
-                absolute: true,
-                ignore: allIgnorePatterns,
-                followSymbolicLinks: followSymlinks,
-                onlyFiles: true,
-                suppressErrors: false,
-            }),
-
-            // Filter out files that ESLint would ignore
-             filteredFiles = await this.filterIgnoredFiles(eslint, files);
+                    cwd,
+                    absolute: true,
+                    ignore: allIgnorePatterns,
+                    followSymbolicLinks: followSymlinks,
+                    onlyFiles: true,
+                    suppressErrors: false,
+                }),
+                // Filter out files that ESLint would ignore
+                filteredFiles = await this.filterIgnoredFiles(eslint, files);
 
             this.logger.info(
-                `Discovered ${filteredFiles.length.toString()} files to lint (${(files.length - filteredFiles.length).toString()} ignored)`
+                `Discovered ${filteredFiles.length.toString()} files to lint (${(
+                    files.length - filteredFiles.length
+                ).toString()} ignored)`
             );
             this.logger.verbose("Files found:", filteredFiles);
 
@@ -109,7 +106,10 @@ export class FileScanner {
         } catch (error) {
             this.logger.error("Error during file discovery:", error);
             throw new Error(
-                `File discovery failed: ${error instanceof Error ? error.message : String(error)}`
+                `File discovery failed: ${
+                    error instanceof Error ? error.message : String(error)
+                }`,
+                { cause: error }
             );
         }
     }

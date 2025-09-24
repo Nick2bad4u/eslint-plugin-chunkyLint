@@ -15,7 +15,7 @@ export default [
     // Global TypeScript config for all .ts/.tsx files
     {
         files: ["**/*.ts", "**/*.tsx"],
-        ignores: ["node_modules/**", "dist/**", "coverage/**"],
+        ignores: ["node_modules/**", "dist/**", "coverage/**", ".github/chatmodes/**"],
         languageOptions: {
             parser: tseslint.parser,
             parserOptions: {
