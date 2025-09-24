@@ -59,10 +59,7 @@ export class FileScanner {
             // Get ignore patterns from ESLint configuration
             eslintIgnorePatterns = await this.getESLintIgnorePatterns(eslint, cwd), 
             // Combine ignore patterns
-            allIgnorePatterns = [
-                ...ignore,
-                ...eslintIgnorePatterns,
-            ].filter(Boolean);
+            allIgnorePatterns = [...ignore, ...eslintIgnorePatterns].filter(Boolean);
             this.logger.debug("Combined ignore patterns:", allIgnorePatterns);
             // Use fast-glob to find files
             const files = await fg(include, {
@@ -81,7 +78,7 @@ export class FileScanner {
         }
         catch (error) {
             this.logger.error("Error during file discovery:", error);
-            throw new Error(`File discovery failed: ${error instanceof Error ? error.message : String(error)}`);
+            throw new Error(`File discovery failed: ${error instanceof Error ? error.message : String(error)}`, { cause: error });
         }
     }
     /**

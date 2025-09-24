@@ -49,7 +49,7 @@ export async function loadConfig(configPath, cwd = process.cwd()) {
     }
     catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        throw new Error(`Failed to load config: ${message}`);
+        throw new Error(`Failed to load config: ${message}`, { cause: error });
     }
 }
 /**
@@ -100,7 +100,9 @@ async function loadJsonConfig(filePath) {
     }
     catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        throw new Error(`Failed to parse JSON config: ${message}`);
+        throw new Error(`Failed to parse JSON config: ${message}`, {
+            cause: error,
+        });
     }
 }
 /**
@@ -125,7 +127,9 @@ export async function loadJsConfig(filePath) {
     }
     catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        throw new Error(`Failed to load JS/TS config: ${message}`);
+        throw new Error(`Failed to load JS/TS config: ${message}`, {
+            cause: error,
+        });
     }
 }
 /**
