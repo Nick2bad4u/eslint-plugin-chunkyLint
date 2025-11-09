@@ -1,4 +1,8 @@
-import ESLintChunker, { ConsoleLogger, FileScanner, ESLintChunker as NamedESLintChunker, } from "../index.js";
+import ESLintChunker, {
+    ConsoleLogger,
+    FileScanner,
+    ESLintChunker as NamedESLintChunker,
+} from "../index.js";
 import { describe, expect, it } from "vitest";
 describe("Index exports", () => {
     it("should export ESLintChunker as default export", () => {
@@ -29,7 +33,8 @@ describe("Index exports", () => {
         expect(chunker).toBeInstanceOf(NamedESLintChunker);
     });
     it("should be able to instantiate FileScanner", () => {
-        const logger = new ConsoleLogger(false), scanner = new FileScanner(logger);
+        const logger = new ConsoleLogger(false),
+            scanner = new FileScanner(logger);
         expect(scanner).toBeInstanceOf(FileScanner);
     });
     it("should be able to instantiate ConsoleLogger", () => {

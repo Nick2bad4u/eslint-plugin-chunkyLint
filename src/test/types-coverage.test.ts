@@ -119,9 +119,9 @@ describe("Types coverage test", () => {
     it("should validate FixType union values", () => {
         // Test that FixType accepts correct values
         const problemFix = "problem" as const,
-         suggestionFix = "suggestion" as const,
-         layoutFix = "layout" as const,
-         directiveFix = "directive" as const;
+            suggestionFix = "suggestion" as const,
+            layoutFix = "layout" as const,
+            directiveFix = "directive" as const;
 
         expect(problemFix).toBe("problem");
         expect(suggestionFix).toBe("suggestion");

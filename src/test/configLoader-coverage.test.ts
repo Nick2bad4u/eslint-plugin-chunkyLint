@@ -23,8 +23,10 @@ describe("ConfigLoader Coverage Tests - Missing Lines", () => {
     };
 
     const cleanDir = async (): Promise<void> => {
-    const entries = await fs.readdir(projectDir).catch(() => [] as string[]);
-    if (entries.length === 0) return;
+        const entries = await fs
+            .readdir(projectDir)
+            .catch(() => [] as string[]);
+        if (entries.length === 0) return;
         await Promise.all(
             entries.map(async (entry) => {
                 const fp = path.join(projectDir, entry);
@@ -80,9 +82,9 @@ describe("ConfigLoader Coverage Tests - Missing Lines", () => {
             "export default async () => ({ size: 'invalid' });\n",
             "utf-8"
         );
-        await expect(loadConfig("invalidConfig.mjs", projectDir)).rejects.toThrow(
-            /size must be a positive integer/u
-        );
+        await expect(
+            loadConfig("invalidConfig.mjs", projectDir)
+        ).rejects.toThrow(/size must be a positive integer/u);
     });
 
     it("loads plain object default export (objectConfig.mjs)", async () => {

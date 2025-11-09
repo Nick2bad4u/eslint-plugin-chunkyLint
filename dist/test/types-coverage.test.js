@@ -46,11 +46,11 @@ describe("Types coverage test", () => {
         // Test Logger interface
         /* eslint-disable @typescript-eslint/no-empty-function */
         const logger = {
-            info: () => { },
-            warn: () => { },
-            error: () => { },
-            debug: () => { },
-            verbose: () => { },
+            info: () => {},
+            warn: () => {},
+            error: () => {},
+            debug: () => {},
+            verbose: () => {},
         };
         /* eslint-enable @typescript-eslint/no-empty-function */
         expect(typeof logger.info).toBe("function");
@@ -97,7 +97,10 @@ describe("Types coverage test", () => {
     });
     it("should validate FixType union values", () => {
         // Test that FixType accepts correct values
-        const problemFix = "problem", suggestionFix = "suggestion", layoutFix = "layout", directiveFix = "directive";
+        const problemFix = "problem",
+            suggestionFix = "suggestion",
+            layoutFix = "layout",
+            directiveFix = "directive";
         expect(problemFix).toBe("problem");
         expect(suggestionFix).toBe("suggestion");
         expect(layoutFix).toBe("layout");

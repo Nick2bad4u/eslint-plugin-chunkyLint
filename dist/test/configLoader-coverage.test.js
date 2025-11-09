@@ -21,17 +21,17 @@ describe("ConfigLoader Coverage Tests - Missing Lines", () => {
     };
     const cleanDir = async () => {
         const entries = await fs.readdir(projectDir).catch(() => []);
-        if (entries.length === 0)
-            return;
-        await Promise.all(entries.map(async (entry) => {
-            const fp = path.join(projectDir, entry);
-            try {
-                await fs.unlink(fp);
-            }
-            catch {
-                // Ignore
-            }
-        }));
+        if (entries.length === 0) return;
+        await Promise.all(
+            entries.map(async (entry) => {
+                const fp = path.join(projectDir, entry);
+                try {
+                    await fs.unlink(fp);
+                } catch {
+                    // Ignore
+                }
+            })
+        );
     };
     beforeAll(async () => {
         await ensureDir();
@@ -45,23 +45,43 @@ describe("ConfigLoader Coverage Tests - Missing Lines", () => {
     });
     it("loads async function config (.chunkylint.js)", async () => {
         const file = path.join(projectDir, ".chunkylint.js");
-        await fs.writeFile(file, "export default async () => ({ size: 100, verbose: true });\n", "utf-8");
+        await fs.writeFile(
+            file,
+            "export default async () => ({ size: 100, verbose: true });\n",
+            "utf-8"
+        );
         const result = await loadConfig(undefined, projectDir);
         expect(result).toMatchObject({ size: 100, verbose: true });
     });
     it("propagates error from throwing function (throwConfig.js)", async () => {
         const file = path.join(projectDir, "throwConfig.js");
-        await fs.writeFile(file, "export default () => { throw new Error('Config function failed'); };\n", "utf-8");
-        await expect(loadConfig("throwConfig.js", projectDir)).rejects.toThrow(/Config function failed/u);
+        await fs.writeFile(
+            file,
+            "export default () => { throw new Error('Config function failed'); };\n",
+            "utf-8"
+        );
+        await expect(loadConfig("throwConfig.js", projectDir)).rejects.toThrow(
+            /Config function failed/u
+        );
     });
     it("rejects invalid function return (invalidConfig.mjs)", async () => {
         const file = path.join(projectDir, "invalidConfig.mjs");
-        await fs.writeFile(file, "export default async () => ({ size: 'invalid' });\n", "utf-8");
-        await expect(loadConfig("invalidConfig.mjs", projectDir)).rejects.toThrow(/size must be a positive integer/u);
+        await fs.writeFile(
+            file,
+            "export default async () => ({ size: 'invalid' });\n",
+            "utf-8"
+        );
+        await expect(
+            loadConfig("invalidConfig.mjs", projectDir)
+        ).rejects.toThrow(/size must be a positive integer/u);
     });
     it("loads plain object default export (objectConfig.mjs)", async () => {
         const file = path.join(projectDir, "objectConfig.mjs");
-        await fs.writeFile(file, "export default { size: 50, concurrency: 2 };\n", "utf-8");
+        await fs.writeFile(
+            file,
+            "export default { size: 50, concurrency: 2 };\n",
+            "utf-8"
+        );
         const result = await loadConfig("objectConfig.mjs", projectDir);
         expect(result).toMatchObject({ size: 50, concurrency: 2 });
     });
@@ -69,7 +89,11 @@ describe("ConfigLoader Coverage Tests - Missing Lines", () => {
         // Ensure any earlier file removed
         await cleanDir();
         const file = path.join(projectDir, "namedOnly.js");
-        await fs.writeFile(file, "export const size = 75; export const verbose = false;\n", "utf-8");
+        await fs.writeFile(
+            file,
+            "export const size = 75; export const verbose = false;\n",
+            "utf-8"
+        );
         const result = await loadConfig("namedOnly.js", projectDir);
         expect(result).toMatchObject({ size: 75, verbose: false });
     });

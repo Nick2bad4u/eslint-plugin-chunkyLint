@@ -118,28 +118,26 @@ program.action(async (options: CliOptions) => {
 
         // Merge file config with CLI options (CLI takes precedence)
         const finalConfig = fileConfig
-            ? mergeConfig(fileConfig, cliConfig)
-            : cliConfig,
-
-        // Convert to ChunkerOptions with proper defaults
-         chunkerOptions: ChunkerOptions = {
-            config: finalConfig.config,
-            size: finalConfig.size ?? 200,
-            cacheLocation: finalConfig.cacheLocation ?? ".eslintcache",
-            maxWorkers: options.maxWorkers ?? "off",
-            continueOnError: finalConfig.continueOnError,
-            fix: finalConfig.fix,
-            fixTypes: options.fixTypes,
-            warnIgnored: options.warnIgnored,
-            include: finalConfig.include,
-            ignore: finalConfig.ignore,
-            cwd: finalConfig.cwd ?? process.cwd(),
-            verbose: finalConfig.verbose,
-            concurrency: finalConfig.concurrency ?? 1,
-        },
-
-        // Create and run chunker
-         chunker = new ESLintChunker(chunkerOptions);
+                ? mergeConfig(fileConfig, cliConfig)
+                : cliConfig,
+            // Convert to ChunkerOptions with proper defaults
+            chunkerOptions: ChunkerOptions = {
+                config: finalConfig.config,
+                size: finalConfig.size ?? 200,
+                cacheLocation: finalConfig.cacheLocation ?? ".eslintcache",
+                maxWorkers: options.maxWorkers ?? "off",
+                continueOnError: finalConfig.continueOnError,
+                fix: finalConfig.fix,
+                fixTypes: options.fixTypes,
+                warnIgnored: options.warnIgnored,
+                include: finalConfig.include,
+                ignore: finalConfig.ignore,
+                cwd: finalConfig.cwd ?? process.cwd(),
+                verbose: finalConfig.verbose,
+                concurrency: finalConfig.concurrency ?? 1,
+            },
+            // Create and run chunker
+            chunker = new ESLintChunker(chunkerOptions);
 
         let lastUpdate = Date.now();
         const stats = await chunker.run((processed, total, currentChunk) => {
@@ -180,7 +178,7 @@ function showProgress(
     currentChunk: ChunkResult | null
 ): void {
     const percentage = Math.round((processed / total) * 100),
-     progressBar = createProgressBar(processed, total, 30);
+        progressBar = createProgressBar(processed, total, 30);
 
     let message = `${progressBar} ${percentage}% (${processed}/${total})`;
 
@@ -194,7 +192,7 @@ function showProgress(
     }
 
     // Clear previous line and print new progress
-    process.stdout.write(`\r${  message}`);
+    process.stdout.write(`\r${message}`);
 
     if (processed === total) {
         process.stdout.write("\n");
@@ -210,7 +208,7 @@ function createProgressBar(
     width: number
 ): string {
     const filled = Math.round((current / total) * width),
-     empty = width - filled;
+        empty = width - filled;
     return chalk.green("█".repeat(filled)) + chalk.gray("░".repeat(empty));
 }
 
@@ -242,12 +240,12 @@ function parseFixTypes(
     value: string
 ): ("directive" | "problem" | "suggestion" | "layout")[] {
     const validTypes = [
-        "directive",
-        "problem",
-        "suggestion",
-        "layout",
-    ] as const,
-     types = value.split(",").map((type) => type.trim());
+            "directive",
+            "problem",
+            "suggestion",
+            "layout",
+        ] as const,
+        types = value.split(",").map((type) => type.trim());
 
     for (const type of types) {
         if (

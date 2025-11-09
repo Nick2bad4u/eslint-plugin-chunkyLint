@@ -59,16 +59,15 @@ export class ESLintChunker {
 
             // Process chunks
             const chunkResults = await this.processChunks(
-                chunks,
-                progressCallback
-            ),
-
-             endTime = performance.now(),
-             stats = this.createStats(
-                chunkResults,
-                files.length,
-                endTime - startTime
-            );
+                    chunks,
+                    progressCallback
+                ),
+                endTime = performance.now(),
+                stats = this.createStats(
+                    chunkResults,
+                    files.length,
+                    endTime - startTime
+                );
 
             this.logFinalStats(stats);
             return stats;
@@ -86,12 +85,11 @@ export class ESLintChunker {
         progressCallback?: ProgressCallback
     ): Promise<ChunkResult[]> {
         const results: ChunkResult[] = [],
-         limit = pLimit(this.options.concurrency),
-
-        // Process chunks with controlled concurrency
-         chunkPromises = chunks.map((chunk, index) =>
-            limit(() => this.processChunk(chunk, index))
-        );
+            limit = pLimit(this.options.concurrency),
+            // Process chunks with controlled concurrency
+            chunkPromises = chunks.map((chunk, index) =>
+                limit(() => this.processChunk(chunk, index))
+            );
 
         for (let i = 0; i < chunkPromises.length; i++) {
             try {
@@ -149,18 +147,17 @@ export class ESLintChunker {
         try {
             // Create ESLint instance for this chunk
             const eslint = new ESLint({
-                cwd: this.options.cwd,
-                overrideConfigFile: this.options.config || true,
-                cache: true,
-                cacheLocation: this.options.cacheLocation,
-                concurrency: this.options.maxWorkers,
-                fix: this.options.fix,
-                fixTypes: this.options.fixTypes,
-                warnIgnored: this.options.warnIgnored,
-            }),
-
-            // Lint files in this chunk
-             results = await eslint.lintFiles(files);
+                    cwd: this.options.cwd,
+                    overrideConfigFile: this.options.config || true,
+                    cache: true,
+                    cacheLocation: this.options.cacheLocation,
+                    concurrency: this.options.maxWorkers,
+                    fix: this.options.fix,
+                    fixTypes: this.options.fixTypes,
+                    warnIgnored: this.options.warnIgnored,
+                }),
+                // Lint files in this chunk
+                results = await eslint.lintFiles(files);
 
             // Apply fixes if enabled
             if (this.options.fix) {
@@ -169,19 +166,18 @@ export class ESLintChunker {
 
             // Calculate statistics for this chunk
             const errorCount = results.reduce(
-                (sum, result) => sum + result.errorCount,
-                0
-            ),
-             warningCount = results.reduce(
-                (sum, result) => sum + result.warningCount,
-                0
-            ),
-             fixedCount = results.reduce(
-                (sum, result) => sum + (result.output ? 1 : 0),
-                0
-            ),
-
-             processingTime = performance.now() - startTime;
+                    (sum, result) => sum + result.errorCount,
+                    0
+                ),
+                warningCount = results.reduce(
+                    (sum, result) => sum + result.warningCount,
+                    0
+                ),
+                fixedCount = results.reduce(
+                    (sum, result) => sum + (result.output ? 1 : 0),
+                    0
+                ),
+                processingTime = performance.now() - startTime;
 
             return {
                 chunkIndex,
@@ -217,22 +213,22 @@ export class ESLintChunker {
         totalTime: number
     ): ChunkingStats {
         const filesWithErrors = chunkResults.reduce(
-            (sum, chunk) =>
-                sum + (chunk.errorCount > 0 ? chunk.files.length : 0),
-            0
-        ),
-         filesWithWarnings = chunkResults.reduce(
-            (sum, chunk) =>
-                sum + (chunk.warningCount > 0 ? chunk.files.length : 0),
-            0
-        ),
-         filesFixed = chunkResults.reduce(
-            (sum, chunk) => sum + chunk.fixedCount,
-            0
-        ),
-         failedChunks = chunkResults.filter(
-            (chunk) => !chunk.success
-        ).length;
+                (sum, chunk) =>
+                    sum + (chunk.errorCount > 0 ? chunk.files.length : 0),
+                0
+            ),
+            filesWithWarnings = chunkResults.reduce(
+                (sum, chunk) =>
+                    sum + (chunk.warningCount > 0 ? chunk.files.length : 0),
+                0
+            ),
+            filesFixed = chunkResults.reduce(
+                (sum, chunk) => sum + chunk.fixedCount,
+                0
+            ),
+            failedChunks = chunkResults.filter(
+                (chunk) => !chunk.success
+            ).length;
 
         return {
             totalFiles,
@@ -254,7 +250,7 @@ export class ESLintChunker {
         total: number
     ): void {
         const progress = Math.round((completed / total) * 100),
-         statusIcon = result.success ? "✅" : "❌";
+            statusIcon = result.success ? "✅" : "❌";
 
         let message = `${statusIcon} Chunk ${completed}/${total} (${progress}%)`;
 
@@ -283,7 +279,7 @@ export class ESLintChunker {
      */
     private logFinalStats(stats: ChunkingStats): void {
         const totalTime = Math.round(stats.totalTime),
-         avgTimePerFile = Math.round(stats.totalTime / stats.totalFiles);
+            avgTimePerFile = Math.round(stats.totalTime / stats.totalFiles);
 
         this.logger.info("");
         this.logger.info(chalk.green("✅ ESLint chunker completed!"));

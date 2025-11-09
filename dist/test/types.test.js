@@ -82,7 +82,10 @@ describe("Type definitions", () => {
     });
     it("should define ProgressCallback type correctly", () => {
         const callback = (processed, total, currentChunk) => {
-            console.log(`Progress: ${processed.toString()}/${total.toString()}`, currentChunk);
+            console.log(
+                `Progress: ${processed.toString()}/${total.toString()}`,
+                currentChunk
+            );
         };
         expect(typeof callback).toBe("function");
         // Test that the callback can be called with expected parameters
@@ -95,16 +98,30 @@ describe("Type definitions", () => {
             warningCount: 0,
             fixedCount: 0,
         };
-        expect(() => { callback(1, 10, mockChunk); }).not.toThrow();
-        expect(() => { callback(1, 10, null); }).not.toThrow();
+        expect(() => {
+            callback(1, 10, mockChunk);
+        }).not.toThrow();
+        expect(() => {
+            callback(1, 10, null);
+        }).not.toThrow();
     });
     it("should define Logger interface correctly", () => {
         const logger = {
-            info: (...args) => { console.log(...args); },
-            warn: (...args) => { console.warn(...args); },
-            error: (...args) => { console.error(...args); },
-            debug: (...args) => { console.debug(...args); },
-            verbose: (...args) => { console.log(...args); },
+            info: (...args) => {
+                console.log(...args);
+            },
+            warn: (...args) => {
+                console.warn(...args);
+            },
+            error: (...args) => {
+                console.error(...args);
+            },
+            debug: (...args) => {
+                console.debug(...args);
+            },
+            verbose: (...args) => {
+                console.log(...args);
+            },
         };
         expect(typeof logger.info).toBe("function");
         expect(typeof logger.warn).toBe("function");
@@ -112,11 +129,21 @@ describe("Type definitions", () => {
         expect(typeof logger.debug).toBe("function");
         expect(typeof logger.verbose).toBe("function");
         // Test that the logger methods can be called
-        expect(() => { logger.info("test"); }).not.toThrow();
-        expect(() => { logger.warn("test"); }).not.toThrow();
-        expect(() => { logger.error("test"); }).not.toThrow();
-        expect(() => { logger.debug("test"); }).not.toThrow();
-        expect(() => { logger.verbose("test"); }).not.toThrow();
+        expect(() => {
+            logger.info("test");
+        }).not.toThrow();
+        expect(() => {
+            logger.warn("test");
+        }).not.toThrow();
+        expect(() => {
+            logger.error("test");
+        }).not.toThrow();
+        expect(() => {
+            logger.debug("test");
+        }).not.toThrow();
+        expect(() => {
+            logger.verbose("test");
+        }).not.toThrow();
     });
     it("should allow partial ChunkerOptions", () => {
         const partialOptions = {
@@ -126,7 +153,8 @@ describe("Type definitions", () => {
         expect(partialOptions.config).toBeUndefined();
     });
     it("should allow maxWorkers as string values", () => {
-        const optionsAuto = { maxWorkers: "auto" }, optionsOff = { maxWorkers: "off" };
+        const optionsAuto = { maxWorkers: "auto" },
+            optionsOff = { maxWorkers: "off" };
         expect(optionsAuto.maxWorkers).toBe("auto");
         expect(optionsOff.maxWorkers).toBe("off");
     });

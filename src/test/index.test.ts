@@ -42,7 +42,7 @@ describe("Index exports", () => {
 
     it("should be able to instantiate FileScanner", () => {
         const logger = new ConsoleLogger(false),
-         scanner = new FileScanner(logger);
+            scanner = new FileScanner(logger);
         expect(scanner).toBeInstanceOf(FileScanner);
     });
 

@@ -20,8 +20,7 @@ vi.mock("chalk", () => ({
 }));
 
 describe("ConsoleLogger", () => {
-    let consoleSpy!: ConsoleSpy,
-     logger: ConsoleLogger;
+    let consoleSpy!: ConsoleSpy, logger: ConsoleLogger;
 
     beforeEach(() => {
         logger = new ConsoleLogger(false);

@@ -65,7 +65,8 @@ describe("CLI binary", () => {
         await import("../bin/eslint-chunker.js");
         // Verify all expected options are defined
         /* eslint-disable @typescript-eslint/no-unsafe-return */
-        const optionCalls = mockProgram.option.mock.calls, options = optionCalls.map((call) => call[0]);
+        const optionCalls = mockProgram.option.mock.calls,
+            options = optionCalls.map((call) => call[0]);
         /* eslint-enable @typescript-eslint/no-unsafe-return */
         expect(options).toContain("-c, --config <path>");
         expect(options).toContain("-s, --size <number>");
@@ -86,7 +87,11 @@ describe("CLI binary", () => {
         await import("../bin/eslint-chunker.js");
         // Test the parseFixTypes function indirectly by checking if it's used
         // The actual function is internal but we can verify the option setup
-        expect(mockProgram.option).toHaveBeenCalledWith("--fix-types <types>", expect.stringContaining("Types of fixes to apply"), expect.any(Function));
+        expect(mockProgram.option).toHaveBeenCalledWith(
+            "--fix-types <types>",
+            expect.stringContaining("Types of fixes to apply"),
+            expect.any(Function)
+        );
     });
 });
 //# sourceMappingURL=cli.test.js.map

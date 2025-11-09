@@ -78,7 +78,7 @@ describe("CLI binary", () => {
         // Verify all expected options are defined
         /* eslint-disable @typescript-eslint/no-unsafe-return */
         const optionCalls = mockProgram.option.mock.calls,
-         options = optionCalls.map((call) => call[0]);
+            options = optionCalls.map((call) => call[0]);
         /* eslint-enable @typescript-eslint/no-unsafe-return */
 
         expect(options).toContain("-c, --config <path>");
