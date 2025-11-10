@@ -100,3 +100,4 @@ pids/
 .yarn-integrity
 .github/instructions/
 .prettier-cache
+tsconfig.tsbuildinfo
