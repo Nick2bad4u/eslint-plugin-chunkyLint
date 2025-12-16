@@ -17,7 +17,7 @@ updates:
       open-pull-requests-limit: 5
       directory: /
       schedule:
-          interval: weekly
+          interval: quarterly
           time: "05:30"
           timezone: "America/Detroit"
       assignees: ["Nick2bad4u"]
@@ -45,7 +45,7 @@ updates:
       open-pull-requests-limit: 5
       directory: /
       schedule:
-          interval: weekly
+          interval: quarterly
       assignees: ["Nick2bad4u"]
       rebase-strategy: auto
       versioning-strategy: increase
