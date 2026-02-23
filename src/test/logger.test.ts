@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ConsoleLogger } from "../lib/logger.js";
 
 /* eslint-disable init-declarations */
+/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access -- Vitest spy return typing is too broad for strict lint mode */
 interface ConsoleSpy {
     log: ReturnType<typeof vi.spyOn>;
     warn: ReturnType<typeof vi.spyOn>;

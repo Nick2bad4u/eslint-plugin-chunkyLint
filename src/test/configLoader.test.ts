@@ -19,7 +19,7 @@ import { promises as fs } from "fs";
 
 // Mock the fs module – expose real write/mkdir helpers for temp file tests
 vi.mock("fs", async () => {
-    const actualFs: typeof import("fs") = await import("fs");
+    const actualFs = await vi.importActual<typeof import("fs")>("fs");
     return {
         promises: {
             access: vi.fn(), // Spied in tests

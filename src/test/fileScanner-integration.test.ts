@@ -2,6 +2,8 @@
 import { ConsoleLogger } from "../lib/logger.js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+/* eslint-disable prefer-arrow-callback -- Vitest constructor mocks require function/class implementations */
+
 /* eslint-disable init-declarations */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
@@ -116,15 +118,14 @@ describe("FileScanner Coverage Integration Tests", () => {
     it("should process ESLint ignore patterns when found (covers lines 138-143)", async () => {
         // Mock ESLint module with ignore patterns
         vi.doMock("eslint", () => ({
-            ESLint: vi
-                .fn()
-                .mockImplementation(() => createMockESLintWithIgnorePatterns()),
+            ESLint: vi.fn().mockImplementation(function MockESLint() {
+                return createMockESLintWithIgnorePatterns();
+            }),
         }));
 
         // Re-import to get fresh module with new mock
-        const { FileScanner: FreshFileScanner } = await import(
-                "../lib/fileScanner.js"
-            ),
+        const { FileScanner: FreshFileScanner } =
+                await import("../lib/fileScanner.js"),
             freshScanner = new FreshFileScanner(mockLogger),
             files = await freshScanner.scanFiles({
                 config: "./eslint.config.js",
@@ -139,15 +140,14 @@ describe("FileScanner Coverage Integration Tests", () => {
     it("should handle config calculation errors (covers lines 147-152)", async () => {
         // Mock ESLint module with config error
         vi.doMock("eslint", () => ({
-            ESLint: vi
-                .fn()
-                .mockImplementation(() => createMockESLintWithConfigError()),
+            ESLint: vi.fn().mockImplementation(function MockESLint() {
+                return createMockESLintWithConfigError();
+            }),
         }));
 
         // Re-import to get fresh module with new mock
-        const { FileScanner: FreshFileScanner } = await import(
-                "../lib/fileScanner.js"
-            ),
+        const { FileScanner: FreshFileScanner } =
+                await import("../lib/fileScanner.js"),
             freshScanner = new FreshFileScanner(mockLogger),
             files = await freshScanner.scanFiles({
                 config: "./eslint.config.js",
@@ -162,15 +162,14 @@ describe("FileScanner Coverage Integration Tests", () => {
     it("should handle files ignored by ESLint (covers lines 170-171)", async () => {
         // Mock ESLint module with ignored files
         vi.doMock("eslint", () => ({
-            ESLint: vi
-                .fn()
-                .mockImplementation(() => createMockESLintWithIgnoredFiles()),
+            ESLint: vi.fn().mockImplementation(function MockESLint() {
+                return createMockESLintWithIgnoredFiles();
+            }),
         }));
 
         // Re-import to get fresh module with new mock
-        const { FileScanner: FreshFileScanner } = await import(
-                "../lib/fileScanner.js"
-            ),
+        const { FileScanner: FreshFileScanner } =
+                await import("../lib/fileScanner.js"),
             freshScanner = new FreshFileScanner(mockLogger),
             files = await freshScanner.scanFiles({
                 config: "./eslint.config.js",
@@ -185,15 +184,14 @@ describe("FileScanner Coverage Integration Tests", () => {
     it("should handle path check errors (covers lines 174-179)", async () => {
         // Mock ESLint module with path check error
         vi.doMock("eslint", () => ({
-            ESLint: vi
-                .fn()
-                .mockImplementation(() => createMockESLintWithPathError()),
+            ESLint: vi.fn().mockImplementation(function MockESLint() {
+                return createMockESLintWithPathError();
+            }),
         }));
 
         // Re-import to get fresh module with new mock
-        const { FileScanner: FreshFileScanner } = await import(
-                "../lib/fileScanner.js"
-            ),
+        const { FileScanner: FreshFileScanner } =
+                await import("../lib/fileScanner.js"),
             freshScanner = new FreshFileScanner(mockLogger),
             files = await freshScanner.scanFiles({
                 config: "./eslint.config.js",

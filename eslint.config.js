@@ -3,14 +3,11 @@ import tseslint from "typescript-eslint";
 import prettierRecommended from "eslint-config-prettier";
 import path from "path";
 import { fileURLToPath } from "url";
-import { createTypeScriptImportResolver } from "eslint-import-resolver-typescript";
-import { importX } from "eslint-plugin-import-x";
 
 export default [
     eslint.configs.all,
     ...tseslint.configs.strictTypeChecked,
     ...tseslint.configs.stylisticTypeChecked,
-    importX.flatConfigs.typescript,
     prettierRecommended,
     // Global TypeScript config for all .ts/.tsx files
     {
@@ -35,40 +32,6 @@ export default [
         },
     },
     {
-        settings: {
-            "import-x/resolver": {
-                node: true,
-            },
-            "import-x/resolver-next": [
-                createTypeScriptImportResolver({
-                    alwaysTryTypes: true, // Always try to resolve types under `<root>@types` directory even if it doesn't contain any source code, like `@types/unist`
-                    bun: true, // Resolve Bun modules (https://github.com/import-js/eslint-import-resolver-typescript#bun)
-                    noWarnOnMultipleProjects: true, // Don't warn about multiple projects
-                    // Use an array
-                    project: "tsconfig.json",
-                }),
-            ],
-            react: { version: "19" },
-        },
-    },
-    {
-        settings: {
-            "import-x/resolver": {
-                node: true,
-                project: ["tsconfig.json", "tsconfig.test.json"],
-                // You will also need to install and configure the TypeScript resolver
-                // See also https://github.com/import-js/eslint-import-resolver-typescript#configuration
-                typescript: true,
-            },
-            "import/resolver": {
-                // You will also need to install and configure the TypeScript resolver
-                // See also https://github.com/import-js/eslint-import-resolver-typescript#configuration
-                typescript: {
-                    alwaysTryTypes: true, // Always try to resolve types under `<root>@types` directory even if it doesn't contain any source code, like `@types/unist`
-                    project: ["tsconfig.json", "tsconfig.test.json"],
-                },
-            },
-        },
         files: ["src/**/*.ts"],
         ignores: ["src/**/*.test.ts", "src/**/*.spec.ts"],
         languageOptions: {

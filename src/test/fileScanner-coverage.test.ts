@@ -1,6 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ConsoleLogger } from "../lib/logger.js";
 
+/* eslint-disable prefer-arrow-callback -- Vitest constructor mocks require function/class implementations */
+
 /* eslint-disable init-declarations */
 
 // Mock fast-glob at the top level (the actual module used by FileScanner)
@@ -53,7 +55,9 @@ describe("FileScanner Coverage Tests - Targeting Specific Uncovered Lines", () =
 
         // Mock the ESLint constructor
         vi.doMock("eslint", () => ({
-            ESLint: vi.fn().mockImplementation(() => mockESLint),
+            ESLint: vi.fn().mockImplementation(function MockESLint() {
+                return mockESLint;
+            }),
         }));
 
         // Import FileScanner after mocking
@@ -95,7 +99,9 @@ describe("FileScanner Coverage Tests - Targeting Specific Uncovered Lines", () =
 
         // Mock the ESLint constructor
         vi.doMock("eslint", () => ({
-            ESLint: vi.fn().mockImplementation(() => mockESLint),
+            ESLint: vi.fn().mockImplementation(function MockESLint() {
+                return mockESLint;
+            }),
         }));
 
         // Import FileScanner after mocking
@@ -137,7 +143,9 @@ describe("FileScanner Coverage Tests - Targeting Specific Uncovered Lines", () =
 
         // Mock the ESLint constructor
         vi.doMock("eslint", () => ({
-            ESLint: vi.fn().mockImplementation(() => mockESLint),
+            ESLint: vi.fn().mockImplementation(function MockESLint() {
+                return mockESLint;
+            }),
         }));
 
         // Import FileScanner after mocking
@@ -177,7 +185,9 @@ describe("FileScanner Coverage Tests - Targeting Specific Uncovered Lines", () =
 
         // Mock the ESLint constructor
         vi.doMock("eslint", () => ({
-            ESLint: vi.fn().mockImplementation(() => mockESLint),
+            ESLint: vi.fn().mockImplementation(function MockESLint() {
+                return mockESLint;
+            }),
         }));
 
         // Import FileScanner after mocking

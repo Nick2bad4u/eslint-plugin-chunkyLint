@@ -3,6 +3,8 @@ import { FileScanner } from "../lib/fileScanner.js";
 import { ConsoleLogger } from "../lib/logger.js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+/* eslint-disable prefer-arrow-callback -- Vitest constructor mocks require function/class implementations */
+
 /* eslint-disable init-declarations */
 
 // Mock fast-glob and eslint at the module level
@@ -17,19 +19,21 @@ vi.mock("fast-glob", () => ({
 }));
 
 vi.mock("eslint", () => ({
-    ESLint: vi.fn().mockImplementation(() => ({
-        getConfigForFile: vi.fn().mockResolvedValue({}),
-        isPathIgnored: vi.fn().mockResolvedValue(false),
-        lintFiles: vi.fn(),
-        calculateConfigForFile: vi.fn(),
-        executeOnFiles: vi.fn(),
-        outputFixes: vi.fn(),
-        getFormatter: vi.fn(),
-        getErrorResults: vi.fn(),
-        getRulesMetaForResults: vi.fn(),
-        hasFlag: vi.fn(),
-        version: "8.0.0",
-    })),
+    ESLint: vi.fn().mockImplementation(function MockESLint() {
+        return {
+            getConfigForFile: vi.fn().mockResolvedValue({}),
+            isPathIgnored: vi.fn().mockResolvedValue(false),
+            lintFiles: vi.fn(),
+            calculateConfigForFile: vi.fn(),
+            executeOnFiles: vi.fn(),
+            outputFixes: vi.fn(),
+            getFormatter: vi.fn(),
+            getErrorResults: vi.fn(),
+            getRulesMetaForResults: vi.fn(),
+            hasFlag: vi.fn(),
+            version: "8.0.0",
+        };
+    }),
 }));
 
 describe("FileScanner", () => {

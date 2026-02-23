@@ -1,6 +1,6 @@
 {
   "name": "eslint-plugin-chunkylint",
-  "version": "1.6.1",
+  "version": "1.6.2",
   "description": "Auto-chunking ESLint runner that updates cache incrementally based on your ESLint config. Perfect for large codebases.",
   "type": "module",
   "main": "./dist/index.js",
@@ -60,11 +60,10 @@
     "p-limit": "^7.3.0"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/node": "^25.3.0",
     "@vitest/coverage-v8": "^4.0.18",
     "eslint-config-prettier": "^10.1.8",
-    "eslint-import-resolver-typescript": "^4.4.4",
-    "eslint-plugin-import-x": "^4.16.1",
     "shx": "^0.4.0",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",

@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+/* eslint-disable prefer-arrow-callback -- Vitest constructor mocks require function/class implementations */
+
 // Mock chalk to prevent console output issues
 vi.mock("chalk", () => ({
     default: {
@@ -21,7 +23,9 @@ const mockProgram = {
 };
 
 vi.mock("commander", () => ({
-    Command: vi.fn().mockImplementation(() => mockProgram),
+    Command: vi.fn().mockImplementation(function MockCommand() {
+        return mockProgram;
+    }),
 }));
 
 // Mock ESLintChunker
@@ -38,7 +42,9 @@ const mockChunker = {
 };
 
 vi.mock("../lib/chunker.js", () => ({
-    ESLintChunker: vi.fn().mockImplementation(() => mockChunker),
+    ESLintChunker: vi.fn().mockImplementation(function MockESLintChunker() {
+        return mockChunker;
+    }),
 }));
 
 describe("CLI binary", () => {
