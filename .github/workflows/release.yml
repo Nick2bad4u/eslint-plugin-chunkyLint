@@ -55,16 +55,22 @@ jobs:
                   node dist/bin/eslint-chunker.js --help
                   node dist/bin/eslint-chunker.js --version
 
-            - name: Update package version
+            - name: Align package version with release tag
               run: |
                   # Extract version from release tag (remove 'v' prefix if present)
                   VERSION=${GITHUB_REF#refs/tags/}
                   VERSION=${VERSION#v}
-                  echo "Publishing version: $VERSION"
+                  CURRENT_VERSION=$(node -p "require('./package.json').version")
 
-                  # Update package.json version
-                  npm version $VERSION --no-git-tag-version
-              continue-on-error: true
+                  echo "Release tag version: $VERSION"
+                  echo "Current package.json version: $CURRENT_VERSION"
+
+                  # Update package.json only when needed
+                  if [[ "$CURRENT_VERSION" == "$VERSION" ]]; then
+                    echo "package.json already matches release tag; skipping npm version"
+                  else
+                    npm version "$VERSION" --no-git-tag-version
+                  fi
 
             - name: Publish to npm
               run: npm publish --access public

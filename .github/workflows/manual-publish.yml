@@ -76,10 +76,18 @@ jobs:
             - name: Update version
               id: version
               run: |
+                  CURRENT_VERSION=$(node -p "require('./package.json').version")
+
                   if [[ "${{ github.event.inputs.version }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
                     # Explicit version provided
                     NEW_VERSION="${{ github.event.inputs.version }}"
-                    npm version $NEW_VERSION --no-git-tag-version
+
+                    if [[ "$NEW_VERSION" == "$CURRENT_VERSION" ]]; then
+                      echo "::error::Requested version ($NEW_VERSION) is already the current package.json version. Choose a new version or use patch/minor/major."
+                      exit 1
+                    fi
+
+                    npm version "$NEW_VERSION" --no-git-tag-version
                   else
                     # Semantic version bump (patch, minor, major)
                     NEW_VERSION=$(npm version ${{ github.event.inputs.version }} --no-git-tag-version)
