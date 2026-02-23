@@ -64,6 +64,7 @@ jobs:
 
                   # Update package.json version
                   npm version $VERSION --no-git-tag-version
+              continue-on-error: true
 
             - name: Publish to npm
               run: npm publish --access public
