@@ -1,6 +1,6 @@
 {
   "name": "eslint-plugin-chunkylint",
-  "version": "1.6.8",
+  "version": "1.6.9",
   "description": "Auto-chunking ESLint runner that updates cache incrementally based on your ESLint config. Perfect for large codebases.",
   "type": "module",
   "main": "./dist/index.js",
