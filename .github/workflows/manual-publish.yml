@@ -56,7 +56,7 @@ jobs:
               run: npm run lint
 
             - name: Run tests
-              run: npm test
+              run: npm run test -- --run
 
             - name: Build project
               run: npm run build
@@ -68,6 +68,12 @@ jobs:
                   test -f dist/bin/eslint-chunker.js
                   test -f dist/index.js
                   test -f dist/index.d.ts
+
+                  # Ensure test artifacts are not shipped
+                  if [ -d "dist/test" ]; then
+                    echo "::error::dist/test should not exist in published artifacts"
+                    exit 1
+                  fi
 
                   # Test CLI functionality
                   node dist/bin/eslint-chunker.js --help
@@ -100,7 +106,7 @@ jobs:
             - name: Commit version change
               if: ${{ github.event.inputs.dry-run != 'true' }}
               run: |
-                  git add package.json
+                  git add package.json package-lock.json
                   git commit -m "chore: bump version to ${{ steps.version.outputs.new-version }}"
                   git tag "v${{ steps.version.outputs.new-version }}"
                   git push origin main

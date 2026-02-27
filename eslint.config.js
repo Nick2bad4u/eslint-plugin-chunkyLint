@@ -1,14 +1,15 @@
 import eslint from "@eslint/js";
+import { defineConfig, globalIgnores } from "@eslint/config-helpers";
 import tseslint from "typescript-eslint";
-import prettierRecommended from "eslint-config-prettier";
+import prettierEslintDisables from "eslint-config-prettier";
 import path from "path";
 import { fileURLToPath } from "url";
 
-export default [
+export default defineConfig([
+    globalIgnores(["**/CHANGELOG.md"]),
     eslint.configs.all,
     ...tseslint.configs.strictTypeChecked,
     ...tseslint.configs.stylisticTypeChecked,
-    prettierRecommended,
     // Global TypeScript config for all .ts/.tsx files
     {
         files: ["**/*.ts", "**/*.tsx"],
@@ -115,4 +116,5 @@ export default [
     {
         ignores: ["dist/**", "node_modules/**", "*.js", "*.mjs", "examples/**"],
     },
-];
+    prettierEslintDisables,
+]);

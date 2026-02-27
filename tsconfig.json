@@ -33,5 +33,11 @@
         "verbatimModuleSyntax": true
     },
     "include": ["src/**/*"],
-    "exclude": ["node_modules", "dist", "src/**/*.test.ts", "src/**/*.spec.ts"]
+    "exclude": [
+        "node_modules",
+        "dist",
+        "src/test/**",
+        "src/**/*.test.ts",
+        "src/**/*.spec.ts"
+    ]
 }

@@ -7,9 +7,9 @@ import type {
     ProgressCallback,
 } from "../types/index.js";
 import { FileScanner } from "./fileScanner.js";
+import { loadESLintModule } from "./eslintLoader.js";
 import { ConsoleLogger } from "./logger.js";
 import chalk from "chalk";
-import { ESLint } from "eslint";
 import pLimit from "p-limit";
 import { performance } from "perf_hooks";
 
@@ -145,6 +145,8 @@ export class ESLintChunker {
         );
 
         try {
+            const { ESLint } = await loadESLintModule();
+
             // Create ESLint instance for this chunk
             const eslint = new ESLint({
                     cwd: this.options.cwd,

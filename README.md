@@ -22,6 +22,8 @@
 
 ## 📦 Installation
 
+> **Runtime requirement:** Node.js **20+**
+
 ```bash
 npm install -g eslint-plugin-chunkylint
 ```

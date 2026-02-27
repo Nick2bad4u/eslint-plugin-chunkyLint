@@ -30,14 +30,9 @@ Or use script:
 npm run deprecate:old
 ```
 
-## Release Workflow (GitHub Release Trigger)
-
-1. Tag and create a release: `v1.1.0` (or newer)
-2. The `release.yml` workflow updates version and publishes automatically.
-
 ## Manual Publish Workflow
 
-Use GitHub Actions > Manual Publish to bump `patch`/`minor`/`major` or specify exact version, with optional dry run.
+Use GitHub Actions > Manual Publish to bump `patch`/`minor`/`major` or specify exact version, with optional dry run. The workflow runs type-check, lint, tests, then build before publishing.
 
 ## Post-Publish Validation Checklist
 

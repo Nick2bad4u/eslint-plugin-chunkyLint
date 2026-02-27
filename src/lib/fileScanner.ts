@@ -1,7 +1,9 @@
+/* eslint-disable sort-imports -- keeping grouped type/runtime imports for clarity with strict module boundaries */
 import type { FileDiscoveryOptions, Logger } from "../types/index.js";
-import { ESLint } from "eslint";
+import type { ESLint } from "eslint";
 import fg from "fast-glob";
 import { resolve } from "path";
+import { loadESLintModule } from "./eslintLoader.js";
 
 /**
  * Default include patterns for common file extensions
@@ -59,6 +61,8 @@ export class FileScanner {
         });
 
         try {
+            const { ESLint } = await loadESLintModule();
+
             // Create ESLint instance to get configuration
             const eslintOptions: ESLint.Options = {
                 cwd,
