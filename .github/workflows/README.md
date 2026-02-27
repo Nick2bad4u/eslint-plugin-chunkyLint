@@ -30,7 +30,7 @@ To use the automated publishing workflows, you need to configure the following s
 ### 2. Manual Publish Workflow (`.github/workflows/manual-publish.yml`)
 
 - **Triggers:** Manual dispatch from GitHub Actions tab
-- **Actions:** Version bump + publish or dry run
+- **Actions:** Version bump + quality gates + publish + GitHub release (notes generated via git-cliff)
 - **Options:**
   - Version: `1.0.0` (explicit) or `patch`/`minor`/`major` (semantic)
   - Dry run: Test without actually publishing
