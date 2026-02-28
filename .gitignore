@@ -102,3 +102,4 @@ pids/
 .github/instructions/
 .prettier-cache
 tsconfig.tsbuildinfo
+.chunky-cache-ts

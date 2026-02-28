@@ -54,7 +54,7 @@ export class FileScanner {
 
         this.logger.verbose("Starting file discovery...");
         this.logger.debug("Discovery options:", {
-            config,
+            config: config ?? "auto-detect (ESLint default)",
             cwd,
             include,
             ignore,

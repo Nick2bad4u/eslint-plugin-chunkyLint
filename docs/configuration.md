@@ -37,6 +37,10 @@ interface ChunkyLintConfig {
  concurrency?: number;
  /** Enable verbose logging */
  verbose?: boolean;
+ /** Suppress all non-final output */
+ quiet?: boolean;
+ /** Show per-chunk completion logs */
+ chunkLogs?: boolean;
  /** Cache directory location */
  cacheLocation?: string;
  /** Enable auto-fixing */
@@ -55,6 +59,8 @@ interface ChunkyLintConfig {
  "size": 10,
  "concurrency": 2,
  "verbose": true,
+ "quiet": false,
+ "chunkLogs": true,
  "cacheLocation": ".chunky-cache",
  "fix": false,
  "continueOnError": true,
@@ -72,6 +78,8 @@ const config: ChunkyLintConfig = {
  size: 15,
  concurrency: 4,
  verbose: process.env.NODE_ENV === "development",
+ quiet: false,
+ chunkLogs: true,
  cacheLocation: ".chunky-cache",
  fix: false,
  continueOnError: true,
@@ -90,6 +98,8 @@ const config = {
  size: 8,
  concurrency: 2,
  verbose: false,
+ quiet: false,
+ chunkLogs: true,
  cacheLocation: ".chunky-cache",
  fix: true,
  continueOnError: false,
@@ -114,6 +124,8 @@ export default function (): ChunkyLintConfig {
   size: isDevelopment ? 5 : 20,
   concurrency: isDevelopment ? 1 : 4,
   verbose: isDevelopment,
+  quiet: false,
+  chunkLogs: true,
   cacheLocation: ".chunky-cache",
   fix: !isDevelopment,
   continueOnError: true,
@@ -132,6 +144,12 @@ npx chunkylint --config-file .chunkylint.json --size 5
 
 # Use auto-detected config but enable verbose mode
 npx chunkylint --verbose
+
+# Quiet mode: only print final completion summary
+npx chunkylint --quiet
+
+# Hide per-chunk logs while keeping startup/final summaries
+npx chunkylint --no-chunk-logs
 
 # Override multiple settings
 npx chunkylint --size 2 --concurrency 1 --fix
@@ -156,6 +174,8 @@ When no configuration is provided (either via file or command line), ChunkyLint 
 - **size**: 200 files per chunk
 - **concurrency**: 1 (sequential processing)
 - **verbose**: false
+- **quiet**: false
+- **chunkLogs**: true
 - **cacheLocation**: '.eslintcache'
 - **fix**: false
 - **continueOnError**: false

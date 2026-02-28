@@ -6,10 +6,19 @@ export default defineConfig({
         watch: false,
         environment: "node",
         include: ["src/test/**/*.test.ts"],
-        exclude: ["dist/**", "node_modules/**", "coverage/**"],
+        exclude: [
+            "dist/**",
+            "node_modules/**",
+            "coverage/**",
+        ],
         coverage: {
             provider: "v8",
-            reporter: ["text", "json", "html", "lcov"],
+            reporter: [
+                "text",
+                "json",
+                "html",
+                "lcov",
+            ],
             include: ["src/**/*.ts"],
             exclude: [
                 "**/dist/**",

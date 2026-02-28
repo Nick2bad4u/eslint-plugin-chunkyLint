@@ -13,18 +13,12 @@
                 "order": 1
             },
             "request": "launch",
-            "runtimeArgs": [
-                "run",
-                "test"
-            ],
+            "runtimeArgs": ["run", "test"],
             "runtimeExecutable": "npm",
             "type": "node"
         },
         {
-            "args": [
-                "run",
-                "${relativeFile}"
-            ],
+            "args": ["run", "${relativeFile}"],
             "autoAttachChildProcesses": true,
             "console": "integratedTerminal",
             "cwd": "${workspaceFolder}",
@@ -38,10 +32,7 @@
             },
             "program": "${workspaceFolder}/node_modules/vitest/vitest.mjs",
             "request": "launch",
-            "skipFiles": [
-                "<node_internals>/**",
-                "**/node_modules/**"
-            ],
+            "skipFiles": ["<node_internals>/**", "**/node_modules/**"],
             "smartStep": true,
             "sourceMaps": true,
             "type": "node"

@@ -1,8 +1,8 @@
 {
-    "extends": "./tsconfig.json",
-    "include": ["src/**/*.test.ts", "src/**/*.spec.ts"],
-    "exclude": [],
     "compilerOptions": {
         "types": ["vitest/globals"]
-    }
+    },
+    "exclude": [".chunkylint.ts"],
+    "extends": "./tsconfig.json",
+    "include": ["src/**/*.test.ts", "src/**/*.spec.ts"]
 }

@@ -26,6 +26,10 @@ export interface ChunkerOptions {
     cwd?: string;
     /** Enable verbose output */
     verbose?: boolean;
+    /** Suppress all non-final output */
+    quiet?: boolean;
+    /** Show per-chunk completion logs */
+    chunkLogs?: boolean;
     /** Concurrency for processing chunks */
     concurrency?: number;
 }
@@ -117,6 +121,10 @@ export interface ChunkyLintConfig {
     concurrency?: number;
     /** Enable verbose logging */
     verbose?: boolean;
+    /** Suppress all non-final output */
+    quiet?: boolean;
+    /** Show per-chunk completion logs */
+    chunkLogs?: boolean;
     /** Cache directory location */
     cacheLocation?: string;
     /** Enable auto-fixing */

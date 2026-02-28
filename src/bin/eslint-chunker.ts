@@ -6,11 +6,7 @@ import { loadConfig, mergeConfig } from "../lib/configLoader.js";
 import { ESLintChunker } from "../lib/chunker.js";
 import chalk from "chalk";
 import { Command } from "commander";
-import type {
-    ChunkResult,
-    ChunkerOptions,
-    ChunkyLintConfig,
-} from "../types/index.js";
+import type { ChunkerOptions, ChunkyLintConfig } from "../types/index.js";
 
 interface CliOptions {
     config?: string;
@@ -26,6 +22,9 @@ interface CliOptions {
     ignore?: string[];
     cwd?: string;
     verbose?: boolean;
+    quiet?: boolean;
+    chunkLogs?: boolean;
+    banner?: boolean;
     concurrency?: number;
 }
 
@@ -62,8 +61,14 @@ program
         "Additional ignore patterns (comma-separated)",
         parseArrayOption
     )
+    .option("-q, --quiet", "Only print final completion summary")
+    .option("--no-quiet", "Disable quiet mode (overrides config file)")
+    .option("--chunk-logs", "Show per-chunk completion logs")
+    .option("--no-chunk-logs", "Hide per-chunk completion logs")
+    .option("--no-banner", "Hide CLI banner/preamble output")
     .option("--cwd <path>", "Working directory")
     .option("-v, --verbose", "Enable verbose output")
+    .option("--no-verbose", "Disable verbose output (overrides config file)")
     .option(
         "--config-file <path>",
         "Path to chunkyLint config file (.chunkylint.ts, .chunkylint.json, etc.)"
@@ -76,27 +81,19 @@ program
 
 program.action(async (options: CliOptions) => {
     try {
-        console.log(chalk.blue("🚀 ESLint Chunker"));
-        console.log();
-
         // Load config file if available
-        let fileConfig: ChunkyLintConfig | null = null;
+        let fileConfig: ChunkyLintConfig | null = null,
+            configWarning: string | null = null;
+
         try {
             fileConfig = await loadConfig(
                 options.configFile,
                 options.cwd ?? process.cwd()
             );
-            if (fileConfig && options.verbose) {
-                console.log(
-                    chalk.gray(
-                        `📋 Loaded config from ${options.configFile ?? "auto-detected config file"}`
-                    )
-                );
-            }
         } catch (error) {
             const message =
                 error instanceof Error ? error.message : String(error);
-            console.warn(chalk.yellow(`⚠️ Config file warning: ${message}`));
+            configWarning = `⚠️ Config file warning: ${message}`;
         }
 
         // Convert CLI options to config format (only include explicitly provided values)
@@ -113,44 +110,103 @@ program.action(async (options: CliOptions) => {
         if (options.ignore !== undefined) cliConfig.ignore = options.ignore;
         if (options.cwd !== undefined) cliConfig.cwd = options.cwd;
         if (options.verbose !== undefined) cliConfig.verbose = options.verbose;
+        if (options.quiet !== undefined) cliConfig.quiet = options.quiet;
+        if (options.chunkLogs !== undefined)
+            cliConfig.chunkLogs = options.chunkLogs;
         if (options.concurrency !== undefined)
             cliConfig.concurrency = options.concurrency;
 
         // Merge file config with CLI options (CLI takes precedence)
         const finalConfig = fileConfig
-                ? mergeConfig(fileConfig, cliConfig)
-                : cliConfig,
+            ? mergeConfig(fileConfig, cliConfig)
+            : cliConfig;
+
+        const isQuiet = finalConfig.quiet ?? false,
             // Convert to ChunkerOptions with proper defaults
             chunkerOptions: ChunkerOptions = {
-                config: finalConfig.config,
                 size: finalConfig.size ?? 200,
                 cacheLocation: finalConfig.cacheLocation ?? ".eslintcache",
                 maxWorkers: options.maxWorkers ?? "off",
-                continueOnError: finalConfig.continueOnError,
-                fix: finalConfig.fix,
-                fixTypes: options.fixTypes,
-                warnIgnored: options.warnIgnored,
-                include: finalConfig.include,
-                ignore: finalConfig.ignore,
                 cwd: finalConfig.cwd ?? process.cwd(),
-                verbose: finalConfig.verbose,
                 concurrency: finalConfig.concurrency ?? 1,
-            },
-            // Create and run chunker
-            chunker = new ESLintChunker(chunkerOptions);
+            };
 
-        let lastUpdate = Date.now();
-        const stats = await chunker.run((processed, total, currentChunk) => {
-            // Throttle progress updates to avoid spam
-            const now = Date.now();
-            if (now - lastUpdate > 1000 || processed === total) {
-                showProgress(processed, total, currentChunk);
-                lastUpdate = now;
+        if (finalConfig.config !== undefined) {
+            chunkerOptions.config = finalConfig.config;
+        }
+        if (finalConfig.continueOnError !== undefined) {
+            chunkerOptions.continueOnError = finalConfig.continueOnError;
+        }
+        if (finalConfig.fix !== undefined) {
+            chunkerOptions.fix = finalConfig.fix;
+        }
+        if (options.fixTypes !== undefined) {
+            chunkerOptions.fixTypes = options.fixTypes;
+        }
+        if (options.warnIgnored !== undefined) {
+            chunkerOptions.warnIgnored = options.warnIgnored;
+        }
+        if (finalConfig.include !== undefined) {
+            chunkerOptions.include = finalConfig.include;
+        }
+        if (finalConfig.ignore !== undefined) {
+            chunkerOptions.ignore = finalConfig.ignore;
+        }
+        if (finalConfig.verbose !== undefined) {
+            chunkerOptions.verbose = finalConfig.verbose;
+        }
+        if (finalConfig.quiet !== undefined) {
+            chunkerOptions.quiet = finalConfig.quiet;
+        }
+        if (finalConfig.chunkLogs !== undefined) {
+            chunkerOptions.chunkLogs = finalConfig.chunkLogs;
+        }
+
+        const chunker = new ESLintChunker(chunkerOptions);
+
+        if (!isQuiet) {
+            if (options.banner !== false) {
+                console.log(chalk.blue("🚀 ESLint Chunker"));
+                console.log();
+
+                if (fileConfig && finalConfig.verbose) {
+                    console.log(
+                        chalk.gray(
+                            `📋 Loaded config from ${options.configFile ?? "auto-detected config file"}`
+                        )
+                    );
+                }
             }
-        });
 
-        console.log();
-        console.log(chalk.green("✅ All done!"));
+            if (configWarning) {
+                console.warn(chalk.yellow(configWarning));
+            }
+        }
+
+        const stats = isQuiet
+            ? await runWithStdoutSuppressed(async () => chunker.run())
+            : await chunker.run();
+
+        if (isQuiet) {
+            const totalTime = Math.round(stats.totalTime),
+                avgTimePerFile =
+                    stats.totalFiles > 0
+                        ? Math.round(stats.totalTime / stats.totalFiles)
+                        : 0;
+
+            console.log(
+                chalk.blue("ℹ"),
+                chalk.green("✅ ESLint chunker completed!")
+            );
+            console.log(
+                chalk.blue("ℹ"),
+                `📊 Processed ${stats.totalFiles} files in ${stats.totalChunks} chunks`
+            );
+            console.log(
+                chalk.blue("ℹ"),
+                `⏱️  Total time: ${totalTime}ms (~${avgTimePerFile}ms per file)`
+            );
+        }
 
         // Exit with error code if there were failures
         if (stats.failedChunks > 0) {
@@ -168,49 +224,6 @@ program.action(async (options: CliOptions) => {
         process.exit(1);
     }
 });
-
-/**
- * Show progress indicator
- */
-function showProgress(
-    processed: number,
-    total: number,
-    currentChunk: ChunkResult | null
-): void {
-    const percentage = Math.round((processed / total) * 100),
-        progressBar = createProgressBar(processed, total, 30);
-
-    let message = `${progressBar} ${percentage}% (${processed}/${total})`;
-
-    if (currentChunk) {
-        if (currentChunk.success) {
-            const time = Math.round(currentChunk.processingTime);
-            message += ` - ${currentChunk.files.length} files (${time}ms)`;
-        } else {
-            message += chalk.red(" - FAILED");
-        }
-    }
-
-    // Clear previous line and print new progress
-    process.stdout.write(`\r${message}`);
-
-    if (processed === total) {
-        process.stdout.write("\n");
-    }
-}
-
-/**
- * Create a text-based progress bar
- */
-function createProgressBar(
-    current: number,
-    total: number,
-    width: number
-): string {
-    const filled = Math.round((current / total) * width),
-        empty = width - filled;
-    return chalk.green("█".repeat(filled)) + chalk.gray("░".repeat(empty));
-}
 
 /**
  * Parse integer option
@@ -270,6 +283,24 @@ function parseArrayOption(value: string): string[] {
         .split(",")
         .map((item) => item.trim())
         .filter(Boolean);
+}
+
+/**
+ * Run an async operation while suppressing stdout output.
+ */
+async function runWithStdoutSuppressed<T>(
+    operation: () => Promise<T>
+): Promise<T> {
+    const originalWrite = process.stdout.write;
+
+    process.stdout.write = (() =>
+        true) as unknown as typeof process.stdout.write;
+
+    try {
+        return await operation();
+    } finally {
+        process.stdout.write = originalWrite;
+    }
 }
 
 // Handle unhandled promise rejections

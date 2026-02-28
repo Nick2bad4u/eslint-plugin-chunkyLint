@@ -4,80 +4,219 @@
     "bracketSameLine": false,
     "bracketSpacing": true,
     "checkIgnorePragma": false,
+    "cursorOffset": -1,
     "embeddedLanguageFormatting": "auto",
     "endOfLine": "auto",
     "experimentalOperatorPosition": "end",
     "experimentalTernaries": false,
     "htmlWhitespaceSensitivity": "css",
     "insertPragma": false,
-    "jsdocCapitalizeDescription": true,
-    "jsdocCommentLineStrategy": "keep",
-    "jsdocDescriptionTag": false,
-    "jsdocDescriptionWithDot": false,
-    "jsdocKeepUnParseAbleExampleIndent": true,
-    "jsdocPreferCodeFences": true,
-    "jsdocSeparateReturnsFromParam": true,
-    "jsdocSeparateTagGroups": true,
-    "jsdocSpaces": 1,
-    "jsdocVerticalAlignment": false,
-    "jsonRecursiveSort": false,
-    "jsonSortOrder": "{\"*\": \"numeric\"}",
     "jsxSingleQuote": false,
-    "language": "sqlite",
     "multilineArraysWrapThreshold": 2,
     "objectWrap": "preserve",
     "overrides": [
         {
-            "files": "*.css",
+            "files": [
+                "*.js",
+                "*.jsx",
+                "*.ts",
+                "*.tsx",
+                "*.mjs",
+                "*.cjs"
+            ],
             "options": {
-                "printWidth": 80,
-                "multilineArraysWrapThreshold": 1
+                "useTabs": false,
+                "jsdocCapitalizeDescription": true,
+                "jsdocCommentLineStrategy": "keep",
+                "jsdocDescriptionTag": false,
+                "jsdocDescriptionWithDot": false,
+                "jsdocKeepUnParseAbleExampleIndent": true,
+                "jsdocLineWrappingStyle": "greedy",
+                "jsdocPreferCodeFences": true,
+                "jsdocPrintWidth": 80,
+                "jsdocSeparateReturnsFromParam": true,
+                "jsdocSeparateTagGroups": true,
+                "jsdocSpaces": 1,
+                "jsdocVerticalAlignment": false,
+                "plugins": [
+                    "prettier-plugin-interpolated-html-tags",
+                    "@softonus/prettier-plugin-duplicate-remover",
+                    "prettier-plugin-jsdoc",
+                    "prettier-plugin-multiline-arrays",
+                    "prettier-plugin-merge"
+                ],
+                "tsdoc": true
             }
         },
         {
-            "files": "eslint.config.mjs",
+            "files": "tsconfig.*",
             "options": {
-                "multilineArraysWrapThreshold": 1
-            }
-        },
-        {
-            "files": "*.user.css",
-            "options": {
-                "printWidth": 80
-            }
-        },
-        {
-            "files": "*.styl",
-            "options": {
-                "parser": "stylus"
+                "useTabs": false,
+                "jsonRecursiveSort": false,
+                "jsonSortOrder": "{\"*\": \"numeric\"}",
+                "plugins": [
+                    "prettier-plugin-multiline-arrays",
+                    "prettier-plugin-sort-json"
+                ]
             }
         },
         {
             "files": "*.html",
             "options": {
+                "useTabs": false,
+                "htmlWhitespaceSensitivity": "strict",
+                "plugins": [
+                    "prettier-plugin-multiline-arrays",
+                    "@softonus/prettier-plugin-duplicate-remover"
+                ],
                 "printWidth": 80,
-                "singleAttributePerLine": true,
-                "htmlWhitespaceSensitivity": "strict"
+                "singleAttributePerLine": true
             }
         },
         {
             "files": "*.user.js",
             "options": {
+                "useTabs": false,
                 "printWidth": 80
             }
         },
         {
             "files": "*.md",
             "options": {
+                "useTabs": false,
+                "jsdocCapitalizeDescription": true,
+                "jsdocCommentLineStrategy": "keep",
+                "jsdocDescriptionTag": false,
+                "jsdocDescriptionWithDot": false,
+                "jsdocKeepUnParseAbleExampleIndent": true,
+                "jsdocLineWrappingStyle": "greedy",
+                "jsdocPreferCodeFences": true,
+                "jsdocPrintWidth": 80,
+                "jsdocSeparateReturnsFromParam": true,
+                "jsdocSeparateTagGroups": true,
+                "jsdocSpaces": 1,
+                "jsdocVerticalAlignment": false,
+                "plugins": [
+                    "prettier-plugin-multiline-arrays",
+                    "prettier-plugin-sort-json",
+                    "prettier-plugin-jsdoc",
+                    "prettier-plugin-merge"
+                ],
                 "tabWidth": 1
             }
         },
         {
-            "files": ["**/package.json", "**/package-lock.json"],
+            "files": "*.mdx",
             "options": {
-                "requirePragma": true
+                "useTabs": false,
+                "jsdocCapitalizeDescription": true,
+                "jsdocCommentLineStrategy": "keep",
+                "jsdocDescriptionTag": false,
+                "jsdocDescriptionWithDot": false,
+                "jsdocKeepUnParseAbleExampleIndent": true,
+                "jsdocLineWrappingStyle": "greedy",
+                "jsdocPreferCodeFences": true,
+                "jsdocPrintWidth": 80,
+                "jsdocSeparateReturnsFromParam": true,
+                "jsdocSeparateTagGroups": true,
+                "jsdocSpaces": 1,
+                "jsdocVerticalAlignment": false,
+                "plugins": [
+                    "prettier-plugin-multiline-arrays",
+                    "prettier-plugin-sort-json",
+                    "prettier-plugin-jsdoc",
+                    "prettier-plugin-merge"
+                ],
+                "printWidth": 100,
+                "tabWidth": 2
+            }
+        },
+        {
+            "files": "*.toml",
+            "options": {
+                "useTabs": false,
+                "plugins": [
+                    "prettier-plugin-multiline-arrays",
+                    "prettier-plugin-toml"
+                ],
+                "printWidth": 120,
+                "tabWidth": 4
+            }
+        },
+        {
+            "files": [
+                "*.json",
+                "**/.prettierrc",
+                "**/.htmlhintrc"
+            ],
+            "options": {
+                "useTabs": false,
+                "jsonRecursiveSort": false,
+                "jsonSortOrder": "{\"*\": \"numeric\"}",
+                "plugins": [
+                    "prettier-plugin-sort-json",
+                    "prettier-plugin-multiline-arrays"
+                ]
+            }
+        },
+        {
+            "files": "*.sql",
+            "options": {
+                "useTabs": false,
+                "language": "sqlite",
+                "plugins": [
+                    "prettier-plugin-multiline-arrays",
+                    "prettier-plugin-sql"
+                ]
+            }
+        },
+        {
+            "files": "*.sh",
+            "options": {
+                "useTabs": false,
+                "plugins": [
+                    "prettier-plugin-multiline-arrays",
+                    "prettier-plugin-sh"
+                ]
+            }
+        },
+        {
+            "files": "*.properties",
+            "options": {
+                "useTabs": false,
+                "escapeNonLatin1": false,
+                "plugins": [
+                    "prettier-plugin-multiline-arrays",
+                    "prettier-plugin-properties"
+                ]
+            }
+        },
+        {
+            "files": "*.ini",
+            "options": {
+                "useTabs": false,
+                "iniSpaceAroundEquals": true,
+                "keySeparator": " = ",
+                "plugins": [
+                    "prettier-plugin-multiline-arrays",
+                    "prettier-plugin-ini"
+                ]
+            }
+        },
+        {
+            "files": "**/package.json, **/package-lock.json",
+            "options": {
+                "useTabs": false,
+                "tabWidth": 2,
+                "plugins": [
+                    "prettier-plugin-multiline-arrays",
+                    "prettier-plugin-packagejson"
+                ]
             }
         }
+    ],
+    "plugins": [
+        "prettier-plugin-multiline-arrays"
     ],
     "printWidth": 80,
     "proseWrap": "preserve",
@@ -87,11 +226,7 @@
     "singleAttributePerLine": false,
     "singleQuote": false,
     "tabWidth": 4,
-    "tailwindConfig": "./tailwind.config.mjs",
-    "tailwindFunctions": ["clsx", "cva"],
-    "tailwindStylesheet": "./src/index.css",
     "trailingComma": "es5",
-    "tsdoc": true,
     "useTabs": false,
     "vueIndentScriptAndStyle": false
 }

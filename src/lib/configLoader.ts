@@ -20,8 +20,11 @@ const CONFIG_FILE_NAMES = [
 
 /**
  * Load configuration from a config file
- * @param configPath - Path to the config file (optional, will search if not provided)
+ *
+ * @param configPath - Path to the config file (optional, will search if not
+ *   provided)
  * @param cwd - Working directory to search for config files
+ *
  * @returns Configuration object or null if no config found
  */
 export async function loadConfig(
@@ -62,7 +65,9 @@ export async function loadConfig(
 
 /**
  * Find a config file in the given directory
+ *
  * @param cwd - Directory to search
+ *
  * @returns Path to config file or null if not found
  */
 async function findConfigFile(cwd: string): Promise<string | null> {
@@ -80,7 +85,9 @@ async function findConfigFile(cwd: string): Promise<string | null> {
 
 /**
  * Load and parse a config file
+ *
  * @param filePath - Path to the config file
+ *
  * @returns Parsed configuration
  */
 async function loadConfigFile(filePath: string): Promise<ChunkyLintConfig> {
@@ -100,7 +107,9 @@ async function loadConfigFile(filePath: string): Promise<ChunkyLintConfig> {
 
 /**
  * Load JSON config file
+ *
  * @param filePath - Path to JSON config file
+ *
  * @returns Parsed configuration
  */
 async function loadJsonConfig(filePath: string): Promise<ChunkyLintConfig> {
@@ -118,7 +127,9 @@ async function loadJsonConfig(filePath: string): Promise<ChunkyLintConfig> {
 
 /**
  * Load JavaScript/TypeScript config file
+ *
  * @param filePath - Path to JS/TS config file
+ *
  * @returns Parsed configuration
  */
 export async function loadJsConfig(
@@ -148,7 +159,9 @@ export async function loadJsConfig(
 
 /**
  * Validate and normalize configuration
+ *
  * @param config - Raw configuration object
+ *
  * @returns Validated configuration
  */
 function validateConfig(config: unknown): ChunkyLintConfig {
@@ -187,14 +200,37 @@ function validateConfig(config: unknown): ChunkyLintConfig {
         throw new Error("ignore must be an array of strings");
     }
 
+    if (
+        normalizedConfig.verbose !== undefined &&
+        typeof normalizedConfig.verbose !== "boolean"
+    ) {
+        throw new Error("verbose must be a boolean");
+    }
+
+    if (
+        normalizedConfig.quiet !== undefined &&
+        typeof normalizedConfig.quiet !== "boolean"
+    ) {
+        throw new Error("quiet must be a boolean");
+    }
+
+    if (
+        normalizedConfig.chunkLogs !== undefined &&
+        typeof normalizedConfig.chunkLogs !== "boolean"
+    ) {
+        throw new Error("chunkLogs must be a boolean");
+    }
+
     return normalizedConfig;
 }
 
 /**
- * Merge configuration with CLI options
- * CLI options take precedence over config file options
+ * Merge configuration with CLI options CLI options take precedence over config
+ * file options
+ *
  * @param config - Configuration from file
  * @param cliOptions - Options from CLI
+ *
  * @returns Merged configuration
  */
 export function mergeConfig(

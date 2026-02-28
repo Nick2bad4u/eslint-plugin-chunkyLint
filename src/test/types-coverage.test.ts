@@ -85,6 +85,8 @@ describe("Types coverage test", () => {
             size: 50,
             concurrency: 4,
             verbose: true,
+            quiet: false,
+            chunkLogs: true,
             cwd: "/project",
             config: "eslint.config.js",
             include: ["src/**/*.ts"],
@@ -144,6 +146,8 @@ describe("Types coverage test", () => {
             size: 100,
             concurrency: 4,
             verbose: true,
+            quiet: false,
+            chunkLogs: true,
             cacheLocation: ".eslintcache",
             fix: true,
             continueOnError: false,
@@ -151,6 +155,8 @@ describe("Types coverage test", () => {
         expect(fullConfig.size).toBe(100);
         expect(fullConfig.concurrency).toBe(4);
         expect(fullConfig.verbose).toBe(true);
+        expect(fullConfig.quiet).toBe(false);
+        expect(fullConfig.chunkLogs).toBe(true);
         expect(fullConfig.fix).toBe(true);
         expect(fullConfig.continueOnError).toBe(false);
     });

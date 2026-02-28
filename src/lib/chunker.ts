@@ -6,6 +6,7 @@ import type {
     Logger,
     ProgressCallback,
 } from "../types/index.js";
+import type { ESLint as ESLintType } from "eslint";
 import { FileScanner } from "./fileScanner.js";
 import { loadESLintModule } from "./eslintLoader.js";
 import { ConsoleLogger } from "./logger.js";
@@ -13,17 +14,29 @@ import chalk from "chalk";
 import pLimit from "p-limit";
 import { performance } from "perf_hooks";
 
+type NormalizedChunkerOptions = Omit<
+    Required<ChunkerOptions>,
+    "config" | "include" | "ignore"
+> & {
+    config?: string;
+    include?: string[];
+    ignore?: string[];
+};
+
 /**
  * ESLint Chunker - Main orchestrator for chunked ESLint execution
  */
 export class ESLintChunker {
-    private options: Required<ChunkerOptions>;
+    private options: NormalizedChunkerOptions;
     private logger: Logger;
     private fileScanner: FileScanner;
 
     constructor(options: ChunkerOptions = {}) {
         this.options = this.normalizeOptions(options);
-        this.logger = new ConsoleLogger(this.options.verbose);
+        this.logger = new ConsoleLogger(
+            this.options.verbose,
+            this.options.quiet
+        );
         this.fileScanner = new FileScanner(this.logger);
     }
 
@@ -36,12 +49,27 @@ export class ESLintChunker {
 
         try {
             // Discover files to lint
-            const files = await this.fileScanner.scanFiles({
-                config: this.options.config,
+            const fileDiscoveryOptions: {
+                cwd: string;
+                config?: string;
+                include?: string[];
+                ignore?: string[];
+            } = {
                 cwd: this.options.cwd,
-                include: this.options.include,
-                ignore: this.options.ignore,
-            });
+            };
+
+            if (this.options.config !== undefined) {
+                fileDiscoveryOptions.config = this.options.config;
+            }
+            if (this.options.include !== undefined) {
+                fileDiscoveryOptions.include = this.options.include;
+            }
+            if (this.options.ignore !== undefined) {
+                fileDiscoveryOptions.ignore = this.options.ignore;
+            }
+
+            const files =
+                await this.fileScanner.scanFiles(fileDiscoveryOptions);
 
             if (files.length === 0) {
                 this.logger.warn("No files found to lint");
@@ -102,7 +130,7 @@ export class ESLintChunker {
                 }
 
                 // Log progress
-                if (result) {
+                if (result && this.options.chunkLogs) {
                     this.logChunkProgress(result, i + 1, chunks.length);
                 }
             } catch (error) {
@@ -148,16 +176,22 @@ export class ESLintChunker {
             const { ESLint } = await loadESLintModule();
 
             // Create ESLint instance for this chunk
-            const eslint = new ESLint({
-                    cwd: this.options.cwd,
-                    overrideConfigFile: this.options.config || true,
-                    cache: true,
-                    cacheLocation: this.options.cacheLocation,
-                    concurrency: this.options.maxWorkers,
-                    fix: this.options.fix,
-                    fixTypes: this.options.fixTypes,
-                    warnIgnored: this.options.warnIgnored,
-                }),
+            const eslintOptions: ESLintType.Options = {
+                cwd: this.options.cwd,
+                cache: true,
+                cacheLocation: this.options.cacheLocation,
+                concurrency: this.options.maxWorkers,
+                fix: this.options.fix,
+                fixTypes: this.options.fixTypes,
+                warnIgnored: this.options.warnIgnored,
+            };
+
+            // Only override config lookup when a config path is explicitly set
+            if (this.options.config) {
+                eslintOptions.overrideConfigFile = this.options.config;
+            }
+
+            const eslint = new ESLint(eslintOptions),
                 // Lint files in this chunk
                 results = await eslint.lintFiles(files);
 
@@ -281,7 +315,14 @@ export class ESLintChunker {
      */
     private logFinalStats(stats: ChunkingStats): void {
         const totalTime = Math.round(stats.totalTime),
-            avgTimePerFile = Math.round(stats.totalTime / stats.totalFiles);
+            avgTimePerFile =
+                stats.totalFiles > 0
+                    ? Math.round(stats.totalTime / stats.totalFiles)
+                    : 0;
+
+        if (this.options.quiet) {
+            return;
+        }
 
         this.logger.info("");
         this.logger.info(chalk.green("✅ ESLint chunker completed!"));
@@ -321,21 +362,36 @@ export class ESLintChunker {
      */
     private normalizeOptions(
         options: ChunkerOptions
-    ): Required<ChunkerOptions> {
-        return {
-            config: options.config ?? "",
+    ): NormalizedChunkerOptions {
+        const normalized: NormalizedChunkerOptions = {
             size: Math.max(1, options.size ?? 200),
             cacheLocation: options.cacheLocation ?? ".eslintcache",
             maxWorkers: options.maxWorkers ?? "off",
             continueOnError: options.continueOnError ?? false,
             fix: options.fix ?? false,
-            fixTypes: options.fixTypes ?? ["problem", "suggestion", "layout"],
+            fixTypes: options.fixTypes ?? [
+                "problem",
+                "suggestion",
+                "layout",
+            ],
             warnIgnored: options.warnIgnored !== false,
-            include: options.include ?? [],
-            ignore: options.ignore ?? [],
             cwd: options.cwd ?? process.cwd(),
             verbose: options.verbose ?? false,
+            quiet: options.quiet ?? false,
+            chunkLogs: options.chunkLogs ?? true,
             concurrency: Math.max(1, options.concurrency ?? 1),
         };
+
+        if (options.config !== undefined) {
+            normalized.config = options.config;
+        }
+        if (options.include !== undefined) {
+            normalized.include = options.include;
+        }
+        if (options.ignore !== undefined) {
+            normalized.ignore = options.ignore;
+        }
+
+        return normalized;
     }
 }

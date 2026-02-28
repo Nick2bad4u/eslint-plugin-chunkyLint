@@ -1,14 +1,20 @@
 /* eslint-disable init-declarations */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-call -- Vitest spy types for private methods are too broad in strict mode */
 /* eslint-disable no-shadow */
 /* eslint-disable prefer-arrow-callback -- Vitest constructor mocks require function/class implementations */
 
 /* eslint-disable sort-imports */
 import { ESLintChunker } from "../lib/chunker.js";
-import type { ChunkerOptions } from "../types/index.js";
+import type { ChunkerOptions, ChunkResult } from "../types/index.js";
 import type { ESLint as ESLintClass } from "eslint";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import {
+    beforeEach,
+    describe,
+    expect,
+    it,
+    vi,
+    type MockInstance,
+} from "vitest";
 
 // Minimal interface describing only the members we touch on mocked ESLint instances
 // Inline shapes used directly in mocks; no exported aggregate interface needed.
@@ -18,7 +24,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Helper type to spy on private method in tests without using 'any'
 type ESLintChunkerWithPrivate = ESLintChunker & {
-    processChunk: (...args: unknown[]) => Promise<unknown>;
+    processChunk: (files: string[], chunkIndex: number) => Promise<ChunkResult>;
 };
 
 // Mock ESLint module
@@ -45,13 +51,11 @@ vi.mock("eslint", () => ({
 
 // Mock fast-glob
 vi.mock("fast-glob", () => ({
-    default: vi
-        .fn()
-        .mockResolvedValue([
-            "/test/file1.js",
-            "/test/file2.js",
-            "/test/file3.js",
-        ]),
+    default: vi.fn().mockResolvedValue([
+        "/test/file1.js",
+        "/test/file2.js",
+        "/test/file3.js",
+    ]),
 }));
 
 // Mock p-limit
@@ -113,6 +117,32 @@ describe("ESLintChunker", () => {
             await chunker.run(progressCallback);
 
             expect(progressCallback).toHaveBeenCalled();
+        });
+
+        it("should not set overrideConfigFile by default", async () => {
+            const { ESLint } = await import("eslint");
+
+            await chunker.run();
+
+            const lastCallOptions = vi.mocked(ESLint).mock.calls.at(-1)?.[0] as
+                | { overrideConfigFile?: string | boolean }
+                | undefined;
+
+            expect(lastCallOptions?.overrideConfigFile).toBeUndefined();
+        });
+
+        it("should set overrideConfigFile when config is explicitly provided", async () => {
+            const { ESLint } = await import("eslint"),
+                configPath = "./eslint.config.js",
+                chunkerWithConfig = new ESLintChunker({ config: configPath });
+
+            await chunkerWithConfig.run();
+
+            const lastCallOptions = vi.mocked(ESLint).mock.calls.at(-1)?.[0] as
+                | { overrideConfigFile?: string | boolean }
+                | undefined;
+
+            expect(lastCallOptions?.overrideConfigFile).toBe(configPath);
         });
 
         it("should handle empty file list", async () => {
@@ -274,14 +304,20 @@ describe("ESLintChunker", () => {
             const chunker = new ESLintChunker({ continueOnError: false });
 
             // Directly override the processChunk method to throw
-            vi.spyOn(
+            const processChunkSpy = vi.spyOn(
                 chunker as ESLintChunkerWithPrivate,
                 "processChunk"
-            ).mockRejectedValue(new Error("ESLint critical failure"));
+            ) as MockInstance<ESLintChunkerWithPrivate["processChunk"]>;
+
+            processChunkSpy.mockRejectedValue(
+                new Error("ESLint critical failure")
+            );
 
             await expect(chunker.run()).rejects.toThrow(
                 "ESLint critical failure"
             );
+
+            processChunkSpy.mockRestore();
         });
 
         it("should apply fixes when fix option is enabled", async () => {
@@ -472,7 +508,7 @@ describe("ESLintChunker", () => {
                 processChunkSpy = vi.spyOn(
                     chunker as ESLintChunkerWithPrivate,
                     "processChunk"
-                );
+                ) as MockInstance<ESLintChunkerWithPrivate["processChunk"]>;
 
             // Use mockRejectedValue since processChunk is async
             processChunkSpy.mockRejectedValue(
@@ -493,7 +529,7 @@ describe("ESLintChunker", () => {
                 processChunkSpy = vi.spyOn(
                     chunker as ESLintChunkerWithPrivate,
                     "processChunk"
-                );
+                ) as MockInstance<ESLintChunkerWithPrivate["processChunk"]>;
 
             // Throw a non-Error object to test the String(error) branch
             processChunkSpy.mockRejectedValue("String error, not Error object");
@@ -503,6 +539,23 @@ describe("ESLintChunker", () => {
 
             expect(stats.failedChunks).toBeGreaterThan(0);
             processChunkSpy.mockRestore();
+        });
+
+        it("should suppress per-chunk logs when chunkLogs is false", async () => {
+            const consoleLogSpy = vi.spyOn(console, "log"),
+                chunker = new ESLintChunker({ chunkLogs: false, size: 1 });
+
+            await chunker.run();
+
+            const hasChunkLog = consoleLogSpy.mock.calls.some(
+                (call) =>
+                    call.length >= 2 &&
+                    typeof call[1] === "string" &&
+                    call[1].includes("Chunk ")
+            );
+
+            expect(hasChunkLog).toBe(false);
+            consoleLogSpy.mockRestore();
         });
     });
 });

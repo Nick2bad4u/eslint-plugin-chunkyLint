@@ -73,7 +73,7 @@ describe("CLI binary", () => {
         expect(mockProgram.name).toHaveBeenCalledWith("eslint-chunker");
         expect(mockProgram.description).toHaveBeenCalled();
         expect(mockProgram.version).toHaveBeenCalled();
-        expect(mockProgram.option).toHaveBeenCalledTimes(14); // All CLI options including --config-file
+        expect(mockProgram.option).toHaveBeenCalledTimes(20); // All CLI options including quiet/verbose, chunk-log toggles, banner toggle, and --config-file
         expect(mockProgram.action).toHaveBeenCalled();
         expect(mockProgram.parse).toHaveBeenCalled();
     });
@@ -98,9 +98,15 @@ describe("CLI binary", () => {
         expect(options).toContain("--include <patterns>");
         expect(options).toContain("--ignore <patterns>");
         expect(options).toContain("--cwd <path>");
+        expect(options).toContain("-q, --quiet");
+        expect(options).toContain("--no-quiet");
+        expect(options).toContain("--chunk-logs");
+        expect(options).toContain("--no-chunk-logs");
+        expect(options).toContain("--no-banner");
         expect(options).toContain("-v, --verbose");
+        expect(options).toContain("--no-verbose");
         expect(options).toContain("--concurrency <n>");
-        expect(optionCalls).toHaveLength(14); // Updated to match actual count including --config-file
+        expect(optionCalls).toHaveLength(20); // Updated to match actual count including quiet/verbose, chunk-log toggles, banner toggle, and --config-file
     });
 
     it("should process fix types correctly", async () => {

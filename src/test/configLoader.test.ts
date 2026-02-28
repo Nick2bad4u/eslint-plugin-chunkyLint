@@ -98,10 +98,9 @@ describe("ConfigLoader", () => {
             expect(result).toEqual(baseConfig);
         });
 
-        it("should filter out undefined values from CLI config", () => {
+        it("should preserve base values for omitted CLI fields", () => {
             const cliConfig: Partial<ChunkyLintConfig> = {
                     size: 10,
-                    verbose: undefined,
                     include: ["src/**/*.ts"],
                 },
                 result = mergeConfig(baseConfig, cliConfig);

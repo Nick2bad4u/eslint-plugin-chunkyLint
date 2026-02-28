@@ -72,6 +72,9 @@ chunkylint --cache-location .cache/.eslintcache --verbose
 
 # Include custom patterns and continue on errors
 chunkylint --include "**/*.{js,ts,tsx}" --continue-on-error
+
+# Quiet mode: only final summary lines
+chunkylint --quiet
 ```
 
 ### Programmatic Usage
@@ -118,7 +121,13 @@ console.log(`🔧 Files fixed: ${stats.filesFixed}`);
 | `--include <patterns>`    | Include patterns (comma-separated)            | Auto-detected   |
 | `--ignore <patterns>`     | Additional ignore patterns (comma-separated)  | Auto-detected   |
 | `--cwd <path>`            | Working directory                             | `process.cwd()` |
+| `-q, --quiet`             | Only print final completion summary           | `false`         |
+| `--no-quiet`              | Disable quiet mode (override config)          | Override only   |
+| `--chunk-logs`            | Show per-chunk completion logs                | `true`          |
+| `--no-chunk-logs`         | Hide per-chunk completion logs                | Override only   |
+| `--no-banner`             | Hide CLI banner/preamble output               | `false`         |
 | `-v, --verbose`           | Enable verbose output                         | `false`         |
+| `--no-verbose`            | Disable verbose output (override config)      | Override only   |
 | `--concurrency <n>`       | Number of chunks to process concurrently      | `1`             |
 | `--config-file <path>`    | Path to chunkyLint config file                | Auto-detected   |
 
@@ -222,6 +231,10 @@ interface ChunkerOptions {
  cwd?: string;
  /** Enable verbose output */
  verbose?: boolean;
+ /** Suppress all non-final output */
+ quiet?: boolean;
+ /** Show per-chunk completion logs */
+ chunkLogs?: boolean;
  /** Concurrency for processing chunks */
  concurrency?: number;
 }

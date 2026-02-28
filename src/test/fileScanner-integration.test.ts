@@ -8,8 +8,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
 /**
- * Integration tests focused on achieving specific code coverage for fileScanner.ts
- * These tests use carefully crafted mocking scenarios to trigger uncovered code paths
+ * Integration tests focused on achieving specific code coverage for
+ * fileScanner.ts These tests use carefully crafted mocking scenarios to trigger
+ * uncovered code paths
  */
 
 // Create separate mock modules for different scenarios
@@ -92,13 +93,11 @@ const createMockESLintWithIgnorePatterns = () => ({
 
 // Mock fast-glob consistently
 vi.mock("fast-glob", () => ({
-    default: vi
-        .fn()
-        .mockResolvedValue([
-            "/test/file1.js",
-            "/test/file2.js",
-            "/test/file3.js",
-        ]),
+    default: vi.fn().mockResolvedValue([
+        "/test/file1.js",
+        "/test/file2.js",
+        "/test/file3.js",
+    ]),
 }));
 
 describe("FileScanner Coverage Integration Tests", () => {

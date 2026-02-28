@@ -130,4 +130,46 @@ describe("ConsoleLogger", () => {
             expect(consoleSpy.log).not.toHaveBeenCalled();
         });
     });
+
+    describe("quiet mode", () => {
+        it("should suppress info and warn logs when quiet is enabled", () => {
+            logger = new ConsoleLogger(false, true);
+
+            logger.info("Info message");
+            logger.warn("Warn message");
+
+            expect(consoleSpy.log).not.toHaveBeenCalled();
+            expect(consoleSpy.warn).not.toHaveBeenCalled();
+        });
+
+        it("should still print errors when quiet is enabled", () => {
+            logger = new ConsoleLogger(false, true);
+
+            logger.error("Error message");
+
+            expect(consoleSpy.error).toHaveBeenCalledWith(
+                "red(✖)",
+                "Error message"
+            );
+        });
+
+        it("should suppress verbose logs even if verbose is enabled when quiet is enabled", () => {
+            logger = new ConsoleLogger(true, true);
+
+            logger.debug("Debug message");
+            logger.verbose("Verbose message");
+
+            expect(consoleSpy.log).not.toHaveBeenCalled();
+        });
+
+        it("should toggle quiet mode via setQuiet", () => {
+            logger.setQuiet(true);
+            logger.info("suppressed");
+            expect(consoleSpy.log).not.toHaveBeenCalled();
+
+            logger.setQuiet(false);
+            logger.info("visible");
+            expect(consoleSpy.log).toHaveBeenCalledWith("blue(ℹ)", "visible");
+        });
+    });
 });

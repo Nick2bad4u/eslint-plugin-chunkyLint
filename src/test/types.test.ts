@@ -23,6 +23,8 @@ describe("Type definitions", () => {
             ignore: ["dist/**"],
             cwd: process.cwd(),
             verbose: true,
+            quiet: false,
+            chunkLogs: true,
             concurrency: 2,
         };
 
@@ -38,6 +40,8 @@ describe("Type definitions", () => {
         expect(options.ignore).toEqual(["dist/**"]);
         expect(options.cwd).toBe(process.cwd());
         expect(options.verbose).toBe(true);
+        expect(options.quiet).toBe(false);
+        expect(options.chunkLogs).toBe(true);
         expect(options.concurrency).toBe(2);
     });
 
@@ -190,7 +194,12 @@ describe("Type definitions", () => {
 
     it("should allow all fix types", () => {
         const options: ChunkerOptions = {
-            fixTypes: ["directive", "problem", "suggestion", "layout"],
+            fixTypes: [
+                "directive",
+                "problem",
+                "suggestion",
+                "layout",
+            ],
         };
 
         expect(options.fixTypes).toEqual([

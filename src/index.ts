@@ -2,18 +2,21 @@
  * ESLint Chunker - Auto-chunking ESLint runner with incremental cache updates
  *
  * @example
+ *
  * ```typescript
- * import { ESLintChunker } from 'eslint-chunker';
+ * import { ESLintChunker } from "eslint-chunker";
  *
  * const chunker = new ESLintChunker({
- *   size: 150,
- *   cacheLocation: '.cache/.eslintcache',
- *   fix: true,
- *   verbose: true
+ *     size: 150,
+ *     cacheLocation: ".cache/.eslintcache",
+ *     fix: true,
+ *     verbose: true,
  * });
  *
  * const stats = await chunker.run();
- * console.log(`Processed ${stats.totalFiles} files in ${stats.totalChunks} chunks`);
+ * console.log(
+ *     `Processed ${stats.totalFiles} files in ${stats.totalChunks} chunks`
+ * );
  * ```
  */
 

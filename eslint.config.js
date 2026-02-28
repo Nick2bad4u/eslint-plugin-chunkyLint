@@ -2,6 +2,7 @@ import eslint from "@eslint/js";
 import { defineConfig, globalIgnores } from "@eslint/config-helpers";
 import tseslint from "typescript-eslint";
 import prettierEslintDisables from "eslint-config-prettier";
+import progress from "eslint-plugin-file-progress-2";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -10,6 +11,30 @@ export default defineConfig([
     eslint.configs.all,
     ...tseslint.configs.strictTypeChecked,
     ...tseslint.configs.stylisticTypeChecked,
+    {
+        name: "progress",
+        plugins: {
+            "file-progress": progress,
+        },
+        rules: {
+            "file-progress/activate": "warn",
+        },
+        settings: {
+            progress: {
+                hide: false, // hide progress output (useful in CI)
+                hideFileName: false, // show generic "Linting..." instead of file names
+                hidePrefix: false, // hide plugin prefix text before progress/summary output
+                hideDirectoryNames: false, // show only the filename (no directory path segments)
+                fileNameOnNewLine: true, // place filename on a second line under the linting prefix
+                successMessage: "Lint done...",
+                detailedSuccess: false, // show multi-line final summary (duration, file count, exit code)
+                spinnerStyle: "dots", // line | dots | arc | bounce | clock
+                prefixMark: "•", // marker after plugin name prefix in progress lines
+                successMark: "✔", // custom mark used for success completion
+                failureMark: "✖", // custom mark used for failure completion
+            },
+        },
+    },
     // Global TypeScript config for all .ts/.tsx files
     {
         files: ["**/*.ts", "**/*.tsx"],
@@ -114,7 +139,13 @@ export default defineConfig([
         },
     },
     {
-        ignores: ["dist/**", "node_modules/**", "*.js", "*.mjs", "examples/**"],
+        ignores: [
+            "dist/**",
+            "node_modules/**",
+            "*.js",
+            "*.mjs",
+            "examples/**",
+        ],
     },
     prettierEslintDisables,
 ]);

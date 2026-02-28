@@ -9,13 +9,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock fast-glob and eslint at the module level
 vi.mock("fast-glob", () => ({
-    default: vi
-        .fn()
-        .mockResolvedValue([
-            "/test/file1.js",
-            "/test/file2.js",
-            "/test/file3.js",
-        ]),
+    default: vi.fn().mockResolvedValue([
+        "/test/file1.js",
+        "/test/file2.js",
+        "/test/file3.js",
+    ]),
 }));
 
 vi.mock("eslint", () => ({
@@ -63,7 +61,12 @@ describe("FileScanner", () => {
         });
 
         it("should handle exact division", () => {
-            const files = ["file1.js", "file2.js", "file3.js", "file4.js"],
+            const files = [
+                    "file1.js",
+                    "file2.js",
+                    "file3.js",
+                    "file4.js",
+                ],
                 chunks = fileScanner.chunkFiles(files, 2);
 
             expect(chunks).toEqual([
@@ -73,10 +76,18 @@ describe("FileScanner", () => {
         });
 
         it("should handle single file per chunk", () => {
-            const files = ["file1.js", "file2.js", "file3.js"],
+            const files = [
+                    "file1.js",
+                    "file2.js",
+                    "file3.js",
+                ],
                 chunks = fileScanner.chunkFiles(files, 1);
 
-            expect(chunks).toEqual([["file1.js"], ["file2.js"], ["file3.js"]]);
+            expect(chunks).toEqual([
+                ["file1.js"],
+                ["file2.js"],
+                ["file3.js"],
+            ]);
         });
 
         it("should handle chunk size larger than file count", () => {
@@ -112,10 +123,7 @@ describe("FileScanner", () => {
         });
 
         it("should handle missing patterns gracefully", async () => {
-            const files = await fileScanner.scanFiles({
-                include: undefined,
-                ignore: undefined,
-            });
+            const files = await fileScanner.scanFiles({});
             expect(Array.isArray(files)).toBe(true);
         });
 

@@ -1,6 +1,6 @@
 /**
- * Loads ESLint at runtime and provides a friendly error when the peer dependency
- * is missing from the consuming project.
+ * Loads ESLint at runtime and provides a friendly error when the peer
+ * dependency is missing from the consuming project.
  */
 type ESLintImporter = () => Promise<typeof import("eslint")>;
 
