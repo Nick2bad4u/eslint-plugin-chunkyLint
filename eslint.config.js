@@ -7,7 +7,18 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 export default defineConfig([
-    globalIgnores(["**/CHANGELOG.md"]),
+    globalIgnores([
+        "**/CHANGELOG.md",
+        "**/CHANGELOG.md",
+        "**/dist/**",
+        "**/node_modules/**",
+        "**/coverage/**",
+        "**/.github/chatmodes/**",
+        "**/playground/**",
+        "**/scripts/**",
+        "vitest.config.ts",
+        ".chunkylint.ts",
+    ]),
     eslint.configs.all,
     ...tseslint.configs.strictTypeChecked,
     ...tseslint.configs.stylisticTypeChecked,

@@ -36,13 +36,16 @@
         "dev": "tsx src/bin/eslint-chunker.ts",
         "test": "vitest",
         "test:coverage": "vitest --coverage",
-        "lint": "eslint src --ext .ts",
+        "lint": "eslint",
         "lint:package-check": "publint && attw --pack .",
         "lint:package-check:strict": "publint && attw --pack . --profile strict --config-path ./.attw.json",
         "lint:package:strict": "npm run lint:package-check:strict",
         "changelog:all": "git-cliff --config cliff.toml --output CHANGELOG.md",
         "changelog:release-notes": "git-cliff --config cliff.toml --latest --strip all",
-        "lint:fix": "eslint src --ext .ts --fix",
+        "lint:fix": "eslint --fix",
+        "typecheck": "tsc --noEmit",
+        "lint:all": "npm run lint && npm run lint:prettier && npm run typecheck",
+        "lint:all:fix": "npm run lint:fix && npm run lint:prettier:fix && npm run typecheck",
         "lint:prettier": "prettier . --log-level warn --cache --cache-location=.cache/.prettier-cache --cache-strategy=content --check",
         "lint:prettier:fix": "prettier . --log-level warn --cache --cache-location=.cache/.prettier-cache --cache-strategy=content --write",
         "type-check": "tsc --noEmit && tsc --noEmit --project tsconfig.test.json",
@@ -73,7 +76,7 @@
         "p-limit": "^7.3.0"
     },
     "peerDependencies": {
-        "eslint": "^10.0.2"
+        "eslint": "^10.0.3"
     },
     "devDependencies": {
         "@arethetypeswrong/cli": "^0.18.2",
