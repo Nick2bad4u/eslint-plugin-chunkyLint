@@ -1,0 +1,13 @@
+{
+    "compilerOptions": {
+        "module": "CommonJS",
+        "moduleResolution": "node",
+        "outDir": "./dist/cjs",
+        "declaration": false,
+        "declarationMap": false,
+        "isolatedDeclarations": false,
+        "verbatimModuleSyntax": false,
+        "tsBuildInfoFile": "tsconfig.build.cjs.tsbuildinfo"
+    },
+    "extends": "./tsconfig.json"
+}

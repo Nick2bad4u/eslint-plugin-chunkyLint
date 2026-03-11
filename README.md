@@ -104,6 +104,18 @@ console.log(`⏱️ Total time: ${stats.totalTime}ms`);
 console.log(`🔧 Files fixed: ${stats.filesFixed}`);
 ```
 
+### Module Compatibility (ESM + CJS)
+
+```ts
+// ESM
+import { ESLintChunker } from "eslint-plugin-chunkylint";
+```
+
+```js
+// CJS
+const { ESLintChunker } = require("eslint-plugin-chunkylint");
+```
+
 ## ⚙️ Configuration Options
 
 ### CLI Options
@@ -330,6 +342,10 @@ npm run test:coverage
 
 # Run linting
 npm run lint
+
+# Package entry checks (publint + ATTW)
+npm run lint:package-check
+npm run lint:package-check:strict
 
 # Fix linting issues
 npm run lint:fix
