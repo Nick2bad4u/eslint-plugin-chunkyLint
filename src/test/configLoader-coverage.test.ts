@@ -11,9 +11,9 @@
  * contamination seen previously. Real temporary files are written then cleaned.
  */
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { promises as fs } from "fs";
+import { promises as fs } from "node:fs";
 import { loadConfig } from "../lib/configLoader.js";
-import path from "path";
+import path from "node:path";
 
 describe("ConfigLoader Coverage Tests - Missing Lines", () => {
     const projectDir = path.join(process.cwd(), "temp-config-coverage");

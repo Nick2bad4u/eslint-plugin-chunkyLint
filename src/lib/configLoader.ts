@@ -1,8 +1,8 @@
 /* eslint-disable func-style, init-declarations, no-use-before-define, no-await-in-loop, @typescript-eslint/restrict-template-expressions, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unnecessary-condition, sort-imports */
 import type { ChunkyLintConfig } from "../types/index.js";
-import { join, resolve } from "path";
-import { promises as fs } from "fs";
-import { pathToFileURL } from "url";
+import { join, resolve } from "node:path";
+import { promises as fs } from "node:fs";
+import { pathToFileURL } from "node:url";
 
 /**
  * Possible config file names in order of preference
@@ -171,57 +171,39 @@ function validateConfig(config: unknown): ChunkyLintConfig {
 
     const normalizedConfig = config as ChunkyLintConfig;
 
-    // Validate size
-    if (normalizedConfig.size !== undefined) {
-        if (
-            !Number.isInteger(normalizedConfig.size) ||
-            normalizedConfig.size < 1
-        ) {
-            throw new Error("size must be a positive integer");
-        }
-    }
-
-    // Validate concurrency
-    if (normalizedConfig.concurrency !== undefined) {
-        if (
-            !Number.isInteger(normalizedConfig.concurrency) ||
-            normalizedConfig.concurrency < 1
-        ) {
-            throw new Error("concurrency must be a positive integer");
-        }
-    }
-
-    // Validate arrays
-    if (normalizedConfig.include && !Array.isArray(normalizedConfig.include)) {
-        throw new Error("include must be an array of strings");
-    }
-
-    if (normalizedConfig.ignore && !Array.isArray(normalizedConfig.ignore)) {
-        throw new Error("ignore must be an array of strings");
-    }
-
-    if (
-        normalizedConfig.verbose !== undefined &&
-        typeof normalizedConfig.verbose !== "boolean"
-    ) {
-        throw new Error("verbose must be a boolean");
-    }
-
-    if (
-        normalizedConfig.quiet !== undefined &&
-        typeof normalizedConfig.quiet !== "boolean"
-    ) {
-        throw new Error("quiet must be a boolean");
-    }
-
-    if (
-        normalizedConfig.chunkLogs !== undefined &&
-        typeof normalizedConfig.chunkLogs !== "boolean"
-    ) {
-        throw new Error("chunkLogs must be a boolean");
-    }
+    validatePositiveIntegerOption(normalizedConfig.size, "size");
+    validatePositiveIntegerOption(normalizedConfig.concurrency, "concurrency");
+    validateStringArrayOption(normalizedConfig.include, "include");
+    validateStringArrayOption(normalizedConfig.ignore, "ignore");
+    validateBooleanOption(normalizedConfig.verbose, "verbose");
+    validateBooleanOption(normalizedConfig.quiet, "quiet");
+    validateBooleanOption(normalizedConfig.chunkLogs, "chunkLogs");
 
     return normalizedConfig;
+}
+
+function validatePositiveIntegerOption(
+    value: number | undefined,
+    name: string
+): void {
+    if (value !== undefined && (!Number.isInteger(value) || value < 1)) {
+        throw new Error(`${name} must be a positive integer`);
+    }
+}
+
+function validateStringArrayOption(
+    value: string[] | undefined,
+    name: string
+): void {
+    if (value !== undefined && !Array.isArray(value)) {
+        throw new Error(`${name} must be an array of strings`);
+    }
+}
+
+function validateBooleanOption(value: boolean | undefined, name: string): void {
+    if (value !== undefined && typeof value !== "boolean") {
+        throw new Error(`${name} must be a boolean`);
+    }
 }
 
 /**

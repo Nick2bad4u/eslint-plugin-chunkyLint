@@ -36,5 +36,4 @@ export type {
 /**
  * Default export for convenience
  */
-import { ESLintChunker } from "./lib/chunker.js";
-export default ESLintChunker;
+export { ESLintChunker as default } from "./lib/chunker.js";

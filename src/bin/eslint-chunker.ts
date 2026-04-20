@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-/* eslint-disable */
+/* eslint-disable complexity, func-style, no-use-before-define, sort-imports, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/restrict-template-expressions, @typescript-eslint/unbound-method */
 
 import { loadConfig, mergeConfig } from "../lib/configLoader.js";
 import { ESLintChunker } from "../lib/chunker.js";

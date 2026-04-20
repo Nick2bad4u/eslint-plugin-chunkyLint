@@ -2,7 +2,7 @@
 import type { FileDiscoveryOptions, Logger } from "../types/index.js";
 import type { ESLint } from "eslint";
 import fg from "fast-glob";
-import { resolve } from "path";
+import { resolve } from "node:path";
 import { loadESLintModule } from "./eslintLoader.js";
 
 /**
@@ -34,7 +34,7 @@ const DEFAULT_INCLUDE_PATTERNS = [
  * File scanner that discovers files to lint based on ESLint configuration
  */
 export class FileScanner {
-    private logger: Logger;
+    private readonly logger: Logger;
 
     constructor(logger: Logger) {
         this.logger = logger;

@@ -8,18 +8,18 @@ import {
     it,
     vi,
 } from "vitest";
-import { join, resolve } from "path";
+import { join, resolve } from "node:path";
 import { loadConfig, mergeConfig } from "../lib/configLoader.js";
 import type { ChunkyLintConfig } from "../types/index.js";
-import { promises as fs } from "fs";
+import { promises as fs } from "node:fs";
 
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 // Mock the fs module – expose real write/mkdir helpers for temp file tests
-vi.mock("fs", async () => {
-    const actualFs = await vi.importActual<typeof import("fs")>("fs");
+vi.mock("node:fs", async () => {
+    const actualFs = await vi.importActual<typeof import("node:fs")>("node:fs");
     return {
         promises: {
             access: vi.fn(), // Spied in tests
@@ -35,7 +35,7 @@ vi.mock("fs", async () => {
 });
 
 // Mock path functions
-vi.mock("path", () => ({
+vi.mock("node:path", () => ({
     join: vi.fn(),
     resolve: vi.fn(),
 }));

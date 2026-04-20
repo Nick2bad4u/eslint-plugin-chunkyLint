@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/restrict-template-expressions, id-length, no-await-in-loop, @typescript-eslint/no-non-null-assertion, class-methods-use-this, sort-imports */
+/* eslint-disable @typescript-eslint/restrict-template-expressions, id-length, no-await-in-loop, class-methods-use-this, sort-imports */
 import type {
     ChunkResult,
     ChunkerOptions,
@@ -12,7 +12,7 @@ import { loadESLintModule } from "./eslintLoader.js";
 import { ConsoleLogger } from "./logger.js";
 import chalk from "chalk";
 import pLimit from "p-limit";
-import { performance } from "perf_hooks";
+import { performance } from "node:perf_hooks";
 
 type NormalizedChunkerOptions = Omit<
     Required<ChunkerOptions>,
@@ -27,9 +27,9 @@ type NormalizedChunkerOptions = Omit<
  * ESLint Chunker - Main orchestrator for chunked ESLint execution
  */
 export class ESLintChunker {
-    private options: NormalizedChunkerOptions;
-    private logger: Logger;
-    private fileScanner: FileScanner;
+    private readonly options: NormalizedChunkerOptions;
+    private readonly logger: Logger;
+    private readonly fileScanner: FileScanner;
 
     constructor(options: ChunkerOptions = {}) {
         this.options = this.normalizeOptions(options);
@@ -119,18 +119,18 @@ export class ESLintChunker {
                 limit(() => this.processChunk(chunk, index))
             );
 
-        for (let i = 0; i < chunkPromises.length; i++) {
+        for (const [i, chunkPromise] of chunkPromises.entries()) {
             try {
-                const result = await chunkPromises[i];
-                results.push(result!);
+                const result = await chunkPromise;
+                results.push(result);
 
                 // Report progress
-                if (progressCallback && result) {
+                if (progressCallback) {
                     progressCallback(i + 1, chunks.length, result);
                 }
 
                 // Log progress
-                if (result && this.options.chunkLogs) {
+                if (this.options.chunkLogs) {
                     this.logChunkProgress(result, i + 1, chunks.length);
                 }
             } catch (error) {

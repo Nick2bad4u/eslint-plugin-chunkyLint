@@ -1,6 +1,6 @@
 /* eslint-disable sort-imports */
-import { promises as fs } from "fs";
-import path from "path";
+import { promises as fs } from "node:fs";
+import path from "node:path";
 import { loadConfig } from "../lib/configLoader.js";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
