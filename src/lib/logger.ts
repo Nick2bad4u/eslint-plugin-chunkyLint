@@ -1,17 +1,28 @@
-import type { Logger } from "../types/index.js";
 import chalk from "chalk";
+
+import type { Logger } from "../types/index.js";
 
 /**
  * Console logger implementation with colored output
  */
 export class ConsoleLogger implements Logger {
-    /* eslint-disable class-methods-use-this */
-    private verboseMode: boolean;
+     
     private quietMode: boolean;
+    private verboseMode: boolean;
 
     constructor(verbose = false, quiet = false) {
         this.verboseMode = verbose;
         this.quietMode = quiet;
+    }
+
+    debug(message: string, ...args: unknown[]): void {
+        if (this.verboseMode && !this.quietMode) {
+            console.log(chalk.gray("🐛"), message, ...args);
+        }
+    }
+
+    error(message: string, ...args: unknown[]): void {
+        console.error(chalk.red("✖"), message, ...args);
     }
 
     info(message: string, ...args: unknown[]): void {
@@ -22,22 +33,12 @@ export class ConsoleLogger implements Logger {
         console.log(chalk.blue("ℹ"), message, ...args);
     }
 
-    warn(message: string, ...args: unknown[]): void {
-        if (this.quietMode) {
-            return;
-        }
-
-        console.warn(chalk.yellow("⚠"), message, ...args);
+    setQuiet(quiet: boolean): void {
+        this.quietMode = quiet;
     }
 
-    error(message: string, ...args: unknown[]): void {
-        console.error(chalk.red("✖"), message, ...args);
-    }
-
-    debug(message: string, ...args: unknown[]): void {
-        if (this.verboseMode && !this.quietMode) {
-            console.log(chalk.gray("🐛"), message, ...args);
-        }
+    setVerbose(verbose: boolean): void {
+        this.verboseMode = verbose;
     }
 
     verbose(message: string, ...args: unknown[]): void {
@@ -46,11 +47,11 @@ export class ConsoleLogger implements Logger {
         }
     }
 
-    setVerbose(verbose: boolean): void {
-        this.verboseMode = verbose;
-    }
+    warn(message: string, ...args: unknown[]): void {
+        if (this.quietMode) {
+            return;
+        }
 
-    setQuiet(quiet: boolean): void {
-        this.quietMode = quiet;
+        console.warn(chalk.yellow("⚠"), message, ...args);
     }
 }

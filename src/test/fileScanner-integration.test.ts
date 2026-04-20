@@ -1,11 +1,12 @@
-/* eslint-disable sort-imports */
-import { ConsoleLogger } from "../lib/logger.js";
+ 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-/* eslint-disable prefer-arrow-callback -- Vitest constructor mocks require function/class implementations */
+import { ConsoleLogger } from "../lib/logger.js";
 
-/* eslint-disable init-declarations */
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
+ 
+
+ 
+ 
 
 /**
  * Integration tests focused on achieving specific code coverage for
@@ -14,44 +15,33 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
  */
 
 // Create separate mock modules for different scenarios
-const createMockESLintWithIgnorePatterns = () => ({
-        calculateConfigForFile: vi.fn().mockResolvedValue({
-            ignorePatterns: ["dist/**", "*.test.js"], // This will trigger lines 138-143
-        }),
-        isPathIgnored: vi.fn().mockResolvedValue(false),
-        lintFiles: vi.fn(),
-        lintText: vi.fn(),
-        findConfigFile: vi.fn(),
-        loadFormatter: vi.fn(),
-        getConfigForFile: vi.fn().mockResolvedValue({}),
-        executeOnFiles: vi.fn(),
-        outputFixes: vi.fn(),
-        getFormatter: vi.fn(),
-        getErrorResults: vi.fn(),
-        getRulesMetaForResults: vi.fn(),
-        hasFlag: vi.fn(),
-        version: "8.0.0",
-    }),
-    createMockESLintWithConfigError = () => ({
+const createMockESLintWithConfigError = () => ({
         calculateConfigForFile: vi
             .fn()
             .mockRejectedValue(new Error("Config error")), // This will trigger lines 147-152
+        executeOnFiles: vi.fn(),
+        findConfigFile: vi.fn(),
+        getConfigForFile: vi.fn().mockResolvedValue({}),
+        getErrorResults: vi.fn(),
+        getFormatter: vi.fn(),
+        getRulesMetaForResults: vi.fn(),
+        hasFlag: vi.fn(),
         isPathIgnored: vi.fn().mockResolvedValue(false),
         lintFiles: vi.fn(),
         lintText: vi.fn(),
-        findConfigFile: vi.fn(),
         loadFormatter: vi.fn(),
-        getConfigForFile: vi.fn().mockResolvedValue({}),
-        executeOnFiles: vi.fn(),
         outputFixes: vi.fn(),
-        getFormatter: vi.fn(),
-        getErrorResults: vi.fn(),
-        getRulesMetaForResults: vi.fn(),
-        hasFlag: vi.fn(),
         version: "8.0.0",
     }),
     createMockESLintWithIgnoredFiles = () => ({
         calculateConfigForFile: vi.fn().mockResolvedValue({}),
+        executeOnFiles: vi.fn(),
+        findConfigFile: vi.fn(),
+        getConfigForFile: vi.fn().mockResolvedValue({}),
+        getErrorResults: vi.fn(),
+        getFormatter: vi.fn(),
+        getRulesMetaForResults: vi.fn(),
+        hasFlag: vi.fn(),
         isPathIgnored: vi
             .fn()
             .mockResolvedValueOnce(false) // First file not ignored
@@ -59,19 +49,37 @@ const createMockESLintWithIgnorePatterns = () => ({
             .mockResolvedValueOnce(false), // Third file not ignored
         lintFiles: vi.fn(),
         lintText: vi.fn(),
-        findConfigFile: vi.fn(),
         loadFormatter: vi.fn(),
-        getConfigForFile: vi.fn().mockResolvedValue({}),
-        executeOnFiles: vi.fn(),
         outputFixes: vi.fn(),
-        getFormatter: vi.fn(),
+        version: "8.0.0",
+    }),
+    createMockESLintWithIgnorePatterns = () => ({
+        calculateConfigForFile: vi.fn().mockResolvedValue({
+            ignorePatterns: ["dist/**", "*.test.js"], // This will trigger lines 138-143
+        }),
+        executeOnFiles: vi.fn(),
+        findConfigFile: vi.fn(),
+        getConfigForFile: vi.fn().mockResolvedValue({}),
         getErrorResults: vi.fn(),
+        getFormatter: vi.fn(),
         getRulesMetaForResults: vi.fn(),
         hasFlag: vi.fn(),
+        isPathIgnored: vi.fn().mockResolvedValue(false),
+        lintFiles: vi.fn(),
+        lintText: vi.fn(),
+        loadFormatter: vi.fn(),
+        outputFixes: vi.fn(),
         version: "8.0.0",
     }),
     createMockESLintWithPathError = () => ({
         calculateConfigForFile: vi.fn().mockResolvedValue({}),
+        executeOnFiles: vi.fn(),
+        findConfigFile: vi.fn(),
+        getConfigForFile: vi.fn().mockResolvedValue({}),
+        getErrorResults: vi.fn(),
+        getFormatter: vi.fn(),
+        getRulesMetaForResults: vi.fn(),
+        hasFlag: vi.fn(),
         isPathIgnored: vi
             .fn()
             .mockResolvedValueOnce(false) // First file succeeds
@@ -79,15 +87,8 @@ const createMockESLintWithIgnorePatterns = () => ({
             .mockResolvedValueOnce(false), // Third file succeeds
         lintFiles: vi.fn(),
         lintText: vi.fn(),
-        findConfigFile: vi.fn(),
         loadFormatter: vi.fn(),
-        getConfigForFile: vi.fn().mockResolvedValue({}),
-        executeOnFiles: vi.fn(),
         outputFixes: vi.fn(),
-        getFormatter: vi.fn(),
-        getErrorResults: vi.fn(),
-        getRulesMetaForResults: vi.fn(),
-        hasFlag: vi.fn(),
         version: "8.0.0",
     });
 

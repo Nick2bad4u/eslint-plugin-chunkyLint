@@ -1,9 +1,10 @@
+import { describe, expect, it } from "vitest";
+
 import ESLintChunker, {
     ConsoleLogger,
     FileScanner,
     ESLintChunker as NamedESLintChunker,
 } from "../index.js";
-import { describe, expect, it } from "vitest";
 
 describe("Index exports", () => {
     it("should export ESLintChunker as default export", () => {

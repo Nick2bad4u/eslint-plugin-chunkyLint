@@ -1,3 +1,6 @@
+import { promises as fs } from "node:fs";
+import { join, resolve } from "node:path";
+import { arrayJoin, safeCastTo  } from "ts-extras";
 import {
     afterAll,
     afterEach,
@@ -8,13 +11,13 @@ import {
     it,
     vi,
 } from "vitest";
-import { join, resolve } from "node:path";
-import { loadConfig, mergeConfig } from "../lib/configLoader.js";
-import type { ChunkyLintConfig } from "../types/index.js";
-import { promises as fs } from "node:fs";
 
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+import type { ChunkyLintConfig } from "../types/index.js";
+
+import { loadConfig, mergeConfig } from "../lib/configLoader.js";
+
+ 
+ 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 // Mock the fs module – expose real write/mkdir helpers for temp file tests
@@ -23,13 +26,13 @@ vi.mock("node:fs", async () => {
     return {
         promises: {
             access: vi.fn(), // Spied in tests
-            readFile: vi.fn(), // Spied in tests
-            writeFile: actualFs.promises.writeFile,
             mkdir: actualFs.promises.mkdir,
             readdir: actualFs.promises.readdir,
+            readFile: vi.fn(), // Spied in tests
+            rmdir: actualFs.promises.rmdir,
             stat: actualFs.promises.stat,
             unlink: actualFs.promises.unlink,
-            rmdir: actualFs.promises.rmdir,
+            writeFile: actualFs.promises.writeFile,
         },
     };
 });
@@ -52,8 +55,8 @@ describe("ConfigLoader", () => {
         vi.clearAllMocks();
 
         // Setup default path behavior
-        mockJoin.mockImplementation((...parts) => parts.join("/"));
-        mockResolve.mockImplementation((...parts) => parts.join("/"));
+        mockJoin.mockImplementation((...parts) => arrayJoin(parts, "/"));
+        mockResolve.mockImplementation((...parts) => arrayJoin(parts, "/"));
 
         // Reset global import
         (globalThis as any).import = originalImport;
@@ -65,31 +68,31 @@ describe("ConfigLoader", () => {
 
     describe("mergeConfig", () => {
         const baseConfig: ChunkyLintConfig = {
-            size: 5,
-            concurrency: 1,
-            verbose: false,
             cacheLocation: ".cache",
-            fix: false,
+            concurrency: 1,
             continueOnError: false,
+            fix: false,
             include: ["src/**/*.js"],
+            size: 5,
+            verbose: false,
         };
 
         it("should merge configs with CLI taking precedence", () => {
             const cliConfig: Partial<ChunkyLintConfig> = {
+                    include: ["src/**/*.ts"],
                     size: 10,
                     verbose: true,
-                    include: ["src/**/*.ts"],
                 },
                 result = mergeConfig(baseConfig, cliConfig);
 
             expect(result).toEqual({
-                size: 10, // From CLI
-                concurrency: 1, // From base
-                verbose: true, // From CLI
                 cacheLocation: ".cache", // From base
-                fix: false, // From base
+                concurrency: 1, // From base
                 continueOnError: false, // From base
+                fix: false, // From base
                 include: ["src/**/*.ts"], // From CLI
+                size: 10, // From CLI
+                verbose: true, // From CLI
             });
         });
 
@@ -100,48 +103,48 @@ describe("ConfigLoader", () => {
 
         it("should preserve base values for omitted CLI fields", () => {
             const cliConfig: Partial<ChunkyLintConfig> = {
-                    size: 10,
                     include: ["src/**/*.ts"],
+                    size: 10,
                 },
                 result = mergeConfig(baseConfig, cliConfig);
 
             expect(result).toEqual({
-                size: 10,
-                concurrency: 1,
-                verbose: false, // From base, not overridden
                 cacheLocation: ".cache",
-                fix: false,
+                concurrency: 1,
                 continueOnError: false,
+                fix: false,
                 include: ["src/**/*.ts"],
+                size: 10,
+                verbose: false, // From base, not overridden
             });
         });
 
         it("should handle all config properties", () => {
             const cliConfig: Partial<ChunkyLintConfig> = {
-                    config: "/custom/eslint.config.js",
-                    size: 15,
                     cacheLocation: "/tmp/cache",
                     concurrency: 4,
-                    verbose: true,
-                    fix: true,
+                    config: "/custom/eslint.config.js",
                     continueOnError: true,
-                    include: ["**/*.tsx"],
-                    ignore: ["**/dist/**"],
                     cwd: "/custom/dir",
+                    fix: true,
+                    ignore: ["**/dist/**"],
+                    include: ["**/*.tsx"],
+                    size: 15,
+                    verbose: true,
                 },
                 result = mergeConfig(baseConfig, cliConfig);
 
             expect(result).toEqual({
-                config: "/custom/eslint.config.js",
-                size: 15,
-                concurrency: 4,
-                verbose: true,
                 cacheLocation: "/tmp/cache",
-                fix: true,
+                concurrency: 4,
+                config: "/custom/eslint.config.js",
                 continueOnError: true,
-                include: ["**/*.tsx"],
-                ignore: ["**/dist/**"],
                 cwd: "/custom/dir",
+                fix: true,
+                ignore: ["**/dist/**"],
+                include: ["**/*.tsx"],
+                size: 15,
+                verbose: true,
             });
         });
 
@@ -152,46 +155,46 @@ describe("ConfigLoader", () => {
 
         it("should handle partial overrides correctly", () => {
             const cliConfig: Partial<ChunkyLintConfig> = {
-                    size: 20,
                     fix: true,
+                    size: 20,
                 },
                 result = mergeConfig(baseConfig, cliConfig);
 
             expect(result).toEqual({
-                size: 20, // Overridden
-                concurrency: 1, // From base
-                verbose: false, // From base
                 cacheLocation: ".cache", // From base
-                fix: true, // Overridden
+                concurrency: 1, // From base
                 continueOnError: false, // From base
+                fix: true, // Overridden
                 include: ["src/**/*.js"], // From base
+                size: 20, // Overridden
+                verbose: false, // From base
             });
         });
 
         it("should handle null and false values correctly", () => {
             const cliConfig: Partial<ChunkyLintConfig> = {
-                    verbose: false,
                     fix: false,
                     include: [],
+                    verbose: false,
                 },
                 result = mergeConfig(baseConfig, cliConfig);
 
             expect(result).toEqual({
-                size: 5,
-                concurrency: 1,
-                verbose: false,
                 cacheLocation: ".cache",
-                fix: false,
+                concurrency: 1,
                 continueOnError: false,
+                fix: false,
                 include: [],
+                size: 5,
+                verbose: false,
             });
         });
 
         it("should preserve properties not in CLI config", () => {
             const baseWithMore: ChunkyLintConfig = {
                     ...baseConfig,
-                    ignore: ["**/*.test.js"],
                     cwd: "/base/path",
+                    ignore: ["**/*.test.js"],
                 },
                 cliConfig: Partial<ChunkyLintConfig> = {
                     size: 8,
@@ -199,15 +202,15 @@ describe("ConfigLoader", () => {
                 result = mergeConfig(baseWithMore, cliConfig);
 
             expect(result).toEqual({
-                size: 8, // Overridden
-                concurrency: 1,
-                verbose: false,
                 cacheLocation: ".cache",
-                fix: false,
+                concurrency: 1,
                 continueOnError: false,
-                include: ["src/**/*.js"],
-                ignore: ["**/*.test.js"], // Preserved
                 cwd: "/base/path", // Preserved
+                fix: false,
+                ignore: ["**/*.test.js"], // Preserved
+                include: ["src/**/*.js"],
+                size: 8, // Overridden
+                verbose: false,
             });
         });
     });
@@ -215,22 +218,22 @@ describe("ConfigLoader", () => {
     describe("loadConfig", () => {
         describe("JSON config files", () => {
             it("should load valid JSON config with explicit path", async () => {
-                const configPath = ".chunkylint.json",
-                    configContent = JSON.stringify({
-                        size: 10,
+                const configContent = JSON.stringify({
                         concurrency: 2,
+                        size: 10,
                         verbose: true,
-                    });
+                    }),
+                    configPath = ".chunkylint.json";
 
                 mockResolve.mockReturnValue("/project/.chunkylint.json");
-                mockFs.access.mockResolvedValue(undefined);
+                mockFs.access.mockResolvedValue();
                 mockFs.readFile.mockResolvedValue(configContent);
 
                 const result = await loadConfig(configPath, "/project");
 
                 expect(result).toEqual({
-                    size: 10,
                     concurrency: 2,
+                    size: 10,
                     verbose: true,
                 });
                 expect(mockResolve).toHaveBeenCalledWith(
@@ -250,7 +253,7 @@ describe("ConfigLoader", () => {
             it("should throw error for invalid JSON", async () => {
                 const configPath = ".chunkylint.json";
                 mockResolve.mockReturnValue("/project/.chunkylint.json");
-                mockFs.access.mockResolvedValue(undefined);
+                mockFs.access.mockResolvedValue();
                 mockFs.readFile.mockResolvedValue("{ invalid json }");
 
                 await expect(
@@ -265,7 +268,7 @@ describe("ConfigLoader", () => {
                     .mockRejectedValueOnce(new Error("ENOENT")) // .chunkylint.ts not found
                     .mockRejectedValueOnce(new Error("ENOENT")) // .chunkylint.js not found
                     .mockRejectedValueOnce(new Error("ENOENT")) // .chunkylint.mjs not found
-                    .mockResolvedValueOnce(undefined); // .chunkylint.json found
+                    .mockResolvedValueOnce(); // .chunkylint.json found
                 mockFs.readFile.mockResolvedValue(configContent);
 
                 const result = await loadConfig(undefined, "/project");
@@ -293,25 +296,21 @@ describe("ConfigLoader", () => {
                 try {
                     const entries = await fs
                         .readdir(dir)
-                        .catch(() => [] as string[]);
+                        .catch(() => safeCastTo<string[]>([]));
                     await Promise.all(
                         entries.map(async (entry) => {
                             const full = resolve(dir, entry);
                             try {
                                 const st = await fs.stat(full);
-                                if (st.isDirectory()) {
-                                    await removeDir(full);
-                                } else {
-                                    await fs
+                                await (st.isDirectory() ? removeDir(full) : fs
                                         .unlink(full)
-                                        .catch(() => undefined);
-                                }
+                                        .catch(() => {}));
                             } catch {
                                 // Ignore
                             }
                         })
                     );
-                    await fs.rmdir(dir).catch(() => undefined);
+                    await fs.rmdir(dir).catch(() => {});
                 } catch {
                     // Ignore
                 }
@@ -382,7 +381,7 @@ describe("ConfigLoader", () => {
                     if (url.includes(".chunkylint.ts")) {
                         return { default: { size: 12, verbose: true } };
                     }
-                    return (original as (u: string) => unknown)(url);
+                    return (safeCastTo<(u: string) => unknown>(original))(url);
                 });
                 const result = await loadConfig(".chunkylint.ts", tmpRoot);
                 expect(result).toEqual({ size: 12, verbose: true });
@@ -404,7 +403,7 @@ describe("ConfigLoader", () => {
             it("should throw error for unsupported file extension", async () => {
                 const configPath = ".chunkylint.yml";
                 mockResolve.mockReturnValue("/project/.chunkylint.yml");
-                mockFs.access.mockResolvedValue(undefined);
+                mockFs.access.mockResolvedValue();
 
                 await expect(
                     loadConfig(configPath, "/project")
@@ -414,7 +413,7 @@ describe("ConfigLoader", () => {
             it("should throw error for file without extension", async () => {
                 const configPath = "chunkylint";
                 mockResolve.mockReturnValue("/project/chunkylint");
-                mockFs.access.mockResolvedValue(undefined);
+                mockFs.access.mockResolvedValue();
 
                 await expect(
                     loadConfig(configPath, "/project")
@@ -424,7 +423,7 @@ describe("ConfigLoader", () => {
             it("should throw error for import failures", async () => {
                 const configPath = ".chunkylint.js";
                 mockResolve.mockReturnValue("/project/.chunkylint.js");
-                mockFs.access.mockResolvedValue(undefined);
+                mockFs.access.mockResolvedValue();
 
                 (globalThis as any).import = vi
                     .fn()
@@ -438,18 +437,18 @@ describe("ConfigLoader", () => {
 
         describe("config validation", () => {
             it("should validate valid config", async () => {
-                const validConfig = {
-                        size: 10,
+                const configPath = ".chunkylint.json",
+                    validConfig = {
                         concurrency: 2,
-                        include: ["src/**/*.ts"],
-                        ignore: ["**/*.test.ts"],
-                        verbose: true,
                         fix: false,
-                    },
-                    configPath = ".chunkylint.json";
+                        ignore: ["**/*.test.ts"],
+                        include: ["src/**/*.ts"],
+                        size: 10,
+                        verbose: true,
+                    };
 
                 mockResolve.mockReturnValue("/project/.chunkylint.json");
-                mockFs.access.mockResolvedValue(undefined);
+                mockFs.access.mockResolvedValue();
                 mockFs.readFile.mockResolvedValue(JSON.stringify(validConfig));
 
                 const result = await loadConfig(configPath, "/project");
@@ -459,7 +458,7 @@ describe("ConfigLoader", () => {
             it("should reject non-object config", async () => {
                 const configPath = ".chunkylint.json";
                 mockResolve.mockReturnValue("/project/.chunkylint.json");
-                mockFs.access.mockResolvedValue(undefined);
+                mockFs.access.mockResolvedValue();
                 mockFs.readFile.mockResolvedValue(
                     JSON.stringify("string config")
                 );
@@ -472,7 +471,7 @@ describe("ConfigLoader", () => {
             it("should reject null config", async () => {
                 const configPath = ".chunkylint.json";
                 mockResolve.mockReturnValue("/project/.chunkylint.json");
-                mockFs.access.mockResolvedValue(undefined);
+                mockFs.access.mockResolvedValue();
                 mockFs.readFile.mockResolvedValue(JSON.stringify(null));
 
                 await expect(
@@ -481,10 +480,10 @@ describe("ConfigLoader", () => {
             });
 
             it("should reject invalid size (non-integer)", async () => {
-                const invalidConfig = { size: 5.5 },
-                    configPath = ".chunkylint.json";
+                const configPath = ".chunkylint.json",
+                    invalidConfig = { size: 5.5 };
                 mockResolve.mockReturnValue("/project/.chunkylint.json");
-                mockFs.access.mockResolvedValue(undefined);
+                mockFs.access.mockResolvedValue();
                 mockFs.readFile.mockResolvedValue(
                     JSON.stringify(invalidConfig)
                 );
@@ -495,10 +494,10 @@ describe("ConfigLoader", () => {
             });
 
             it("should reject invalid size (zero)", async () => {
-                const invalidConfig = { size: 0 },
-                    configPath = ".chunkylint.json";
+                const configPath = ".chunkylint.json",
+                    invalidConfig = { size: 0 };
                 mockResolve.mockReturnValue("/project/.chunkylint.json");
-                mockFs.access.mockResolvedValue(undefined);
+                mockFs.access.mockResolvedValue();
                 mockFs.readFile.mockResolvedValue(
                     JSON.stringify(invalidConfig)
                 );
@@ -509,10 +508,10 @@ describe("ConfigLoader", () => {
             });
 
             it("should reject invalid size (negative)", async () => {
-                const invalidConfig = { size: -1 },
-                    configPath = ".chunkylint.json";
+                const configPath = ".chunkylint.json",
+                    invalidConfig = { size: -1 };
                 mockResolve.mockReturnValue("/project/.chunkylint.json");
-                mockFs.access.mockResolvedValue(undefined);
+                mockFs.access.mockResolvedValue();
                 mockFs.readFile.mockResolvedValue(
                     JSON.stringify(invalidConfig)
                 );
@@ -523,10 +522,10 @@ describe("ConfigLoader", () => {
             });
 
             it("should reject invalid concurrency (non-integer)", async () => {
-                const invalidConfig = { concurrency: 2.5 },
-                    configPath = ".chunkylint.json";
+                const configPath = ".chunkylint.json",
+                    invalidConfig = { concurrency: 2.5 };
                 mockResolve.mockReturnValue("/project/.chunkylint.json");
-                mockFs.access.mockResolvedValue(undefined);
+                mockFs.access.mockResolvedValue();
                 mockFs.readFile.mockResolvedValue(
                     JSON.stringify(invalidConfig)
                 );
@@ -537,10 +536,10 @@ describe("ConfigLoader", () => {
             });
 
             it("should reject invalid concurrency (zero)", async () => {
-                const invalidConfig = { concurrency: 0 },
-                    configPath = ".chunkylint.json";
+                const configPath = ".chunkylint.json",
+                    invalidConfig = { concurrency: 0 };
                 mockResolve.mockReturnValue("/project/.chunkylint.json");
-                mockFs.access.mockResolvedValue(undefined);
+                mockFs.access.mockResolvedValue();
                 mockFs.readFile.mockResolvedValue(
                     JSON.stringify(invalidConfig)
                 );
@@ -551,10 +550,10 @@ describe("ConfigLoader", () => {
             });
 
             it("should reject invalid include (non-array)", async () => {
-                const invalidConfig = { include: "src/**/*.ts" },
-                    configPath = ".chunkylint.json";
+                const configPath = ".chunkylint.json",
+                    invalidConfig = { include: "src/**/*.ts" };
                 mockResolve.mockReturnValue("/project/.chunkylint.json");
-                mockFs.access.mockResolvedValue(undefined);
+                mockFs.access.mockResolvedValue();
                 mockFs.readFile.mockResolvedValue(
                     JSON.stringify(invalidConfig)
                 );
@@ -565,10 +564,10 @@ describe("ConfigLoader", () => {
             });
 
             it("should reject invalid ignore (non-array)", async () => {
-                const invalidConfig = { ignore: "**/*.test.ts" },
-                    configPath = ".chunkylint.json";
+                const configPath = ".chunkylint.json",
+                    invalidConfig = { ignore: "**/*.test.ts" };
                 mockResolve.mockReturnValue("/project/.chunkylint.json");
-                mockFs.access.mockResolvedValue(undefined);
+                mockFs.access.mockResolvedValue();
                 mockFs.readFile.mockResolvedValue(
                     JSON.stringify(invalidConfig)
                 );
@@ -579,10 +578,10 @@ describe("ConfigLoader", () => {
             });
 
             it("should allow undefined optional fields", async () => {
-                const validConfig = { size: 5 },
-                    configPath = ".chunkylint.json";
+                const configPath = ".chunkylint.json",
+                    validConfig = { size: 5 };
                 mockResolve.mockReturnValue("/project/.chunkylint.json");
-                mockFs.access.mockResolvedValue(undefined);
+                mockFs.access.mockResolvedValue();
                 mockFs.readFile.mockResolvedValue(JSON.stringify(validConfig));
 
                 const result = await loadConfig(configPath, "/project");
@@ -590,10 +589,10 @@ describe("ConfigLoader", () => {
             });
 
             it("should allow empty arrays", async () => {
-                const validConfig = { include: [], ignore: [] },
-                    configPath = ".chunkylint.json";
+                const configPath = ".chunkylint.json",
+                    validConfig = { ignore: [], include: [] };
                 mockResolve.mockReturnValue("/project/.chunkylint.json");
-                mockFs.access.mockResolvedValue(undefined);
+                mockFs.access.mockResolvedValue();
                 mockFs.readFile.mockResolvedValue(JSON.stringify(validConfig));
 
                 const result = await loadConfig(configPath, "/project");
@@ -618,9 +617,9 @@ describe("ConfigLoader", () => {
                     "chunkylint.config.json",
                 ];
 
-                expectedFiles.forEach((filename) => {
+                for (const filename of expectedFiles) {
                     expect(mockJoin).toHaveBeenCalledWith("/project", filename);
-                });
+                }
             });
         });
 
@@ -629,7 +628,7 @@ describe("ConfigLoader", () => {
                 // Test the error instanceof Error ternary on lines 52-53
                 const configPath = ".chunkylint.json";
                 mockResolve.mockReturnValue("/project/.chunkylint.json");
-                mockFs.access.mockResolvedValue(undefined);
+                mockFs.access.mockResolvedValue();
 
                 // Mock a non-Error object being thrown
                 mockFs.readFile.mockRejectedValue(

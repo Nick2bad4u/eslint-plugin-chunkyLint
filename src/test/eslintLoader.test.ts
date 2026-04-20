@@ -9,13 +9,13 @@ describe("eslintLoader", () => {
     });
 
     it("throws a friendly peer dependency error when eslint is missing", async () => {
-        const { loadESLintModule } = await import("../lib/eslintLoader.js"),
-            missingImporter = (): Promise<typeof import("eslint")> =>
+        const missingImporter = (): Promise<typeof import("eslint")> =>
                 Promise.reject(
                     new Error(
                         "Cannot find package 'eslint' imported from /virtual/test.mjs"
                     )
-                );
+                ),
+            { loadESLintModule } = await import("../lib/eslintLoader.js");
 
         await expect(loadESLintModule(missingImporter)).rejects.toThrow(
             "Missing peer dependency 'eslint'"
@@ -23,9 +23,9 @@ describe("eslintLoader", () => {
     });
 
     it("rethrows non-missing-eslint import errors", async () => {
-        const { loadESLintModule } = await import("../lib/eslintLoader.js"),
-            failingImporter = (): Promise<typeof import("eslint")> =>
-                Promise.reject(new Error("Unexpected eslint loader failure"));
+        const failingImporter = (): Promise<typeof import("eslint")> =>
+                Promise.reject(new Error("Unexpected eslint loader failure")),
+            { loadESLintModule } = await import("../lib/eslintLoader.js");
 
         await expect(loadESLintModule(failingImporter)).rejects.toThrow(
             "Unexpected eslint loader failure"

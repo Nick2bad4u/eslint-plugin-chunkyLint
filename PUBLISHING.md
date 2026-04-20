@@ -36,7 +36,7 @@ Use GitHub Actions > Manual Publish to bump `patch`/`minor`/`major` or specify e
 
 ## Post-Publish Validation Checklist
 
-- [ ] Package visible at https://www.npmjs.com/package/eslint-plugin-chunkylint
+- [ ] Package visible at <https://www.npmjs.com/package/eslint-plugin-chunkylint>
 - [ ] Binaries resolve: `npx eslint-plugin-chunkylint --version`
 - [ ] Legacy aliases still function: `npx eslint-chunker`, `npx chunkylint`, `npx chunky-lint`
 - [ ] README badges show correct version/download counts

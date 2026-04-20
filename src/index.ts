@@ -21,7 +21,12 @@
  */
 
 export { ESLintChunker } from "./lib/chunker.js";
+/**
+ * Default export for convenience
+ */
+export { ESLintChunker as default } from "./lib/chunker.js";
 export { FileScanner } from "./lib/fileScanner.js";
+
 export { ConsoleLogger } from "./lib/logger.js";
 
 export type {
@@ -29,11 +34,6 @@ export type {
     ChunkingStats,
     ChunkResult,
     FileDiscoveryOptions,
-    ProgressCallback,
     Logger,
+    ProgressCallback,
 } from "./types/index.js";
-
-/**
- * Default export for convenience
- */
-export { ESLintChunker as default } from "./lib/chunker.js";

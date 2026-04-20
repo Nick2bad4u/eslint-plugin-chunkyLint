@@ -1,20 +1,24 @@
-/* eslint-disable init-declarations */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+ 
+ 
 /* eslint-disable no-shadow */
-/* eslint-disable prefer-arrow-callback -- Vitest constructor mocks require function/class implementations */
+ 
 
-/* eslint-disable sort-imports */
-import { ESLintChunker } from "../lib/chunker.js";
-import type { ChunkerOptions, ChunkResult } from "../types/index.js";
+ 
 import type { ESLint as ESLintClass } from "eslint";
+
+import { arrayAt, safeCastTo  } from "ts-extras";
 import {
     beforeEach,
     describe,
     expect,
     it,
-    vi,
     type MockInstance,
+    vi,
 } from "vitest";
+
+import type { ChunkerOptions, ChunkResult } from "../types/index.js";
+
+import { ESLintChunker } from "../lib/chunker.js";
 
 // Minimal interface describing only the members we touch on mocked ESLint instances
 // Inline shapes used directly in mocks; no exported aggregate interface needed.
@@ -31,22 +35,22 @@ type ESLintChunkerWithPrivate = ESLintChunker & {
 vi.mock("eslint", () => ({
     ESLint: vi.fn().mockImplementation(function MockESLint() {
         return {
-            lintFiles: vi.fn().mockResolvedValue([
-                {
-                    filePath: "/test/file1.js",
-                    messages: [],
-                    errorCount: 0,
-                    warningCount: 0,
-                    fixableErrorCount: 0,
-                    fixableWarningCount: 0,
-                    output: undefined,
-                },
-            ]),
             calculateConfigForFile: vi.fn().mockResolvedValue({}),
             isPathIgnored: vi.fn().mockResolvedValue(false),
+            lintFiles: vi.fn().mockResolvedValue([
+                {
+                    errorCount: 0,
+                    filePath: "/test/file1.js",
+                    fixableErrorCount: 0,
+                    fixableWarningCount: 0,
+                    messages: [],
+                    output: undefined,
+                    warningCount: 0,
+                },
+            ]),
         };
     }),
-    outputFixes: vi.fn().mockResolvedValue(undefined),
+    outputFixes: vi.fn().mockResolvedValue(),
 }));
 
 // Mock fast-glob
@@ -72,10 +76,10 @@ describe("ESLintChunker", () => {
 
     beforeEach(() => {
         mockOptions = {
+            continueOnError: false,
+            cwd: "/test",
             size: 2,
             verbose: false,
-            cwd: "/test",
-            continueOnError: false,
         };
         chunker = new ESLintChunker(mockOptions);
     });
@@ -88,9 +92,9 @@ describe("ESLintChunker", () => {
 
         it("should create chunker with custom options", () => {
             const customChunker = new ESLintChunker({
+                cacheLocation: ".custom-cache",
                 size: 100,
                 verbose: true,
-                cacheLocation: ".custom-cache",
             });
             expect(customChunker).toBeInstanceOf(ESLintChunker);
         });
@@ -101,13 +105,13 @@ describe("ESLintChunker", () => {
             const stats = await chunker.run();
 
             expect(stats).toMatchObject({
-                totalFiles: expect.any(Number),
-                totalChunks: expect.any(Number),
-                totalTime: expect.any(Number),
+                failedChunks: expect.any(Number),
+                filesFixed: expect.any(Number),
                 filesWithErrors: expect.any(Number),
                 filesWithWarnings: expect.any(Number),
-                filesFixed: expect.any(Number),
-                failedChunks: expect.any(Number),
+                totalChunks: expect.any(Number),
+                totalFiles: expect.any(Number),
+                totalTime: expect.any(Number),
             });
         });
 
@@ -124,23 +128,21 @@ describe("ESLintChunker", () => {
 
             await chunker.run();
 
-            const lastCallOptions = vi.mocked(ESLint).mock.calls.at(-1)?.[0] as
-                | { overrideConfigFile?: string | boolean }
-                | undefined;
+            const lastCallOptions = safeCastTo<| undefined
+                | { overrideConfigFile?: boolean | string }>(arrayAt(vi.mocked(ESLint).mock.calls, -1)?.[0]);
 
             expect(lastCallOptions?.overrideConfigFile).toBeUndefined();
         });
 
         it("should set overrideConfigFile when config is explicitly provided", async () => {
-            const { ESLint } = await import("eslint"),
-                configPath = "./eslint.config.js",
-                chunkerWithConfig = new ESLintChunker({ config: configPath });
+            const configPath = "./eslint.config.js",
+                chunkerWithConfig = new ESLintChunker({ config: configPath }),
+                { ESLint } = await import("eslint");
 
             await chunkerWithConfig.run();
 
-            const lastCallOptions = vi.mocked(ESLint).mock.calls.at(-1)?.[0] as
-                | { overrideConfigFile?: string | boolean }
-                | undefined;
+            const lastCallOptions = safeCastTo<| undefined
+                | { overrideConfigFile?: boolean | string }>(arrayAt(vi.mocked(ESLint).mock.calls, -1)?.[0]);
 
             expect(lastCallOptions?.overrideConfigFile).toBe(configPath);
         });
@@ -158,32 +160,32 @@ describe("ESLintChunker", () => {
 
         it("should handle ESLint errors with counts", async () => {
             // Mock ESLint to return results with errors
-            const { ESLint } = await import("eslint"),
-                mockLintFiles = vi.fn().mockResolvedValue([
+            const mockLintFiles = vi.fn().mockResolvedValue([
                     {
-                        filePath: "/test/file1.js",
-                        messages: [
-                            {
-                                severity: 2,
-                                message: "Error message",
-                                ruleId: "test-rule",
-                            },
-                        ],
                         errorCount: 1,
-                        warningCount: 0,
+                        filePath: "/test/file1.js",
                         fixableErrorCount: 0,
                         fixableWarningCount: 0,
-                        source: "test source",
+                        messages: [
+                            {
+                                message: "Error message",
+                                ruleId: "test-rule",
+                                severity: 2,
+                            },
+                        ],
                         output: undefined,
+                        source: "test source",
+                        warningCount: 0,
                     },
-                ]);
+                ]),
+                { ESLint } = await import("eslint");
 
             vi.mocked(ESLint).mockImplementation(function MockESLint() {
                 return {
-                    lintFiles: mockLintFiles,
+                    calculateConfigForFile: vi.fn().mockResolvedValue({}),
                     getConfigForFile: vi.fn().mockResolvedValue({}),
                     isPathIgnored: vi.fn().mockResolvedValue(false),
-                    calculateConfigForFile: vi.fn().mockResolvedValue({}),
+                    lintFiles: mockLintFiles,
                     version: "8.0.0",
                 } as unknown as ESLintClass;
             });
@@ -194,32 +196,32 @@ describe("ESLintChunker", () => {
 
         it("should handle ESLint warnings with counts", async () => {
             // Mock ESLint to return results with warnings
-            const { ESLint } = await import("eslint"),
-                mockLintFiles = vi.fn().mockResolvedValue([
+            const mockLintFiles = vi.fn().mockResolvedValue([
                     {
-                        filePath: "/test/file1.js",
-                        messages: [
-                            {
-                                severity: 1,
-                                message: "Warning message",
-                                ruleId: "test-rule",
-                            },
-                        ],
                         errorCount: 0,
-                        warningCount: 1,
+                        filePath: "/test/file1.js",
                         fixableErrorCount: 0,
                         fixableWarningCount: 0,
-                        source: "test source",
+                        messages: [
+                            {
+                                message: "Warning message",
+                                ruleId: "test-rule",
+                                severity: 1,
+                            },
+                        ],
                         output: undefined,
+                        source: "test source",
+                        warningCount: 1,
                     },
-                ]);
+                ]),
+                { ESLint } = await import("eslint");
 
             vi.mocked(ESLint).mockImplementation(function MockESLint() {
                 return {
-                    lintFiles: mockLintFiles,
+                    calculateConfigForFile: vi.fn().mockResolvedValue({}),
                     getConfigForFile: vi.fn().mockResolvedValue({}),
                     isPathIgnored: vi.fn().mockResolvedValue(false),
-                    calculateConfigForFile: vi.fn().mockResolvedValue({}),
+                    lintFiles: mockLintFiles,
                     version: "8.0.0",
                 } as unknown as ESLintClass;
             });
@@ -230,26 +232,26 @@ describe("ESLintChunker", () => {
 
         it("should handle fixed files count", async () => {
             // Mock ESLint to return results with fixes
-            const { ESLint } = await import("eslint"),
-                mockLintFiles = vi.fn().mockResolvedValue([
+            const mockLintFiles = vi.fn().mockResolvedValue([
                     {
-                        filePath: "/test/file1.js",
-                        messages: [],
                         errorCount: 0,
-                        warningCount: 0,
+                        filePath: "/test/file1.js",
                         fixableErrorCount: 0,
                         fixableWarningCount: 0,
-                        source: "test source",
+                        messages: [],
                         output: "fixed content",
+                        source: "test source",
+                        warningCount: 0,
                     },
-                ]);
+                ]),
+                { ESLint } = await import("eslint");
 
             vi.mocked(ESLint).mockImplementation(function MockESLint() {
                 return {
-                    lintFiles: mockLintFiles,
+                    calculateConfigForFile: vi.fn().mockResolvedValue({}),
                     getConfigForFile: vi.fn().mockResolvedValue({}),
                     isPathIgnored: vi.fn().mockResolvedValue(false),
-                    calculateConfigForFile: vi.fn().mockResolvedValue({}),
+                    lintFiles: mockLintFiles,
                     version: "8.0.0",
                 } as unknown as ESLintClass;
             });
@@ -262,17 +264,17 @@ describe("ESLintChunker", () => {
 
         it("should handle chunk failures and continue when continueOnError is true", async () => {
             // Mock ESLint to throw an error
-            const { ESLint } = await import("eslint"),
-                mockLintFiles = vi
+            const mockLintFiles = vi
                     .fn()
-                    .mockRejectedValue(new Error("ESLint failed"));
+                    .mockRejectedValue(new Error("ESLint failed")),
+                { ESLint } = await import("eslint");
 
             vi.mocked(ESLint).mockImplementation(function MockESLint() {
                 return {
-                    lintFiles: mockLintFiles,
+                    calculateConfigForFile: vi.fn().mockResolvedValue({}),
                     getConfigForFile: vi.fn().mockResolvedValue({}),
                     isPathIgnored: vi.fn().mockResolvedValue(false),
-                    calculateConfigForFile: vi.fn().mockResolvedValue({}),
+                    lintFiles: mockLintFiles,
                     version: "8.0.0",
                 } as unknown as ESLintClass;
             });
@@ -304,10 +306,10 @@ describe("ESLintChunker", () => {
             const chunker = new ESLintChunker({ continueOnError: false });
 
             // Directly override the processChunk method to throw
-            const processChunkSpy = vi.spyOn(
+            const processChunkSpy = safeCastTo<MockInstance<ESLintChunkerWithPrivate["processChunk"]>>(vi.spyOn(
                 chunker as ESLintChunkerWithPrivate,
                 "processChunk"
-            ) as MockInstance<ESLintChunkerWithPrivate["processChunk"]>;
+            ));
 
             processChunkSpy.mockRejectedValue(
                 new Error("ESLint critical failure")
@@ -336,26 +338,26 @@ describe("ESLintChunker", () => {
             vi.mocked(fg).mockResolvedValue(["test1.ts"]);
 
             // Create a proper mock for ESLint.outputFixes
-            const { ESLint } = await import("eslint"),
-                mockOutputFixes = vi.fn().mockResolvedValue(undefined);
+            const mockOutputFixes = vi.fn().mockResolvedValue(),
+                { ESLint } = await import("eslint");
             vi.mocked(ESLint).outputFixes = mockOutputFixes;
 
             // Mock ESLint instance to return results with fixes
             const mockESLintInstance = {
-                lintFiles: vi.fn().mockResolvedValue([
-                    {
-                        filePath: "/test1.ts",
-                        messages: [],
-                        errorCount: 0,
-                        warningCount: 0,
-                        fixableErrorCount: 1,
-                        fixableWarningCount: 0,
-                        source: "const x = 1",
-                        output: "const x = 1;", // This indicates a fix was applied
-                    },
-                ]),
                 calculateConfigForFile: vi.fn().mockResolvedValue({}),
                 isPathIgnored: vi.fn().mockResolvedValue(false),
+                lintFiles: vi.fn().mockResolvedValue([
+                    {
+                        errorCount: 0,
+                        filePath: "/test1.ts",
+                        fixableErrorCount: 1,
+                        fixableWarningCount: 0,
+                        messages: [],
+                        output: "const x = 1;", // This indicates a fix was applied
+                        source: "const x = 1",
+                        warningCount: 0,
+                    },
+                ]),
             };
 
             vi.mocked(ESLint).mockImplementation(function MockESLint() {
@@ -386,24 +388,24 @@ describe("ESLintChunker", () => {
             const { ESLint } = await import("eslint");
             vi.mocked(ESLint).mockImplementation(function MockESLint() {
                 return {
-                    lintFiles: vi.fn().mockResolvedValue([
-                        {
-                            filePath: "/test1.ts",
-                            messages: [
-                                {
-                                    ruleId: "no-console",
-                                    severity: 1,
-                                    message: "Unexpected console statement.",
-                                },
-                            ],
-                            errorCount: 0,
-                            warningCount: 1,
-                            fixableErrorCount: 0,
-                            fixableWarningCount: 0,
-                        },
-                    ]),
                     calculateConfigForFile: vi.fn().mockResolvedValue({}),
                     isPathIgnored: vi.fn().mockResolvedValue(false),
+                    lintFiles: vi.fn().mockResolvedValue([
+                        {
+                            errorCount: 0,
+                            filePath: "/test1.ts",
+                            fixableErrorCount: 0,
+                            fixableWarningCount: 0,
+                            messages: [
+                                {
+                                    message: "Unexpected console statement.",
+                                    ruleId: "no-console",
+                                    severity: 1,
+                                },
+                            ],
+                            warningCount: 1,
+                        },
+                    ]),
                 } as unknown as ESLintClass;
             });
 
@@ -434,19 +436,19 @@ describe("ESLintChunker", () => {
             const { ESLint } = await import("eslint");
             vi.mocked(ESLint).mockImplementation(function MockESLint() {
                 return {
-                    lintFiles: vi.fn().mockResolvedValue([
-                        {
-                            filePath: "/test1.ts",
-                            messages: [],
-                            errorCount: 0,
-                            warningCount: 0,
-                            fixableErrorCount: 0,
-                            fixableWarningCount: 0,
-                            output: "const x = 1;", // This indicates a fix was applied
-                        },
-                    ]),
                     calculateConfigForFile: vi.fn().mockResolvedValue({}),
                     isPathIgnored: vi.fn().mockResolvedValue(false),
+                    lintFiles: vi.fn().mockResolvedValue([
+                        {
+                            errorCount: 0,
+                            filePath: "/test1.ts",
+                            fixableErrorCount: 0,
+                            fixableWarningCount: 0,
+                            messages: [],
+                            output: "const x = 1;", // This indicates a fix was applied
+                            warningCount: 0,
+                        },
+                    ]),
                 } as unknown as ESLintClass;
             });
 
@@ -477,11 +479,11 @@ describe("ESLintChunker", () => {
             const { ESLint } = await import("eslint");
             vi.mocked(ESLint).mockImplementation(function MockESLint() {
                 return {
+                    calculateConfigForFile: vi.fn().mockResolvedValue({}),
+                    isPathIgnored: vi.fn().mockResolvedValue(false),
                     lintFiles: vi
                         .fn()
                         .mockRejectedValue(new Error("ESLint failed")),
-                    calculateConfigForFile: vi.fn().mockResolvedValue({}),
-                    isPathIgnored: vi.fn().mockResolvedValue(false),
                 } as unknown as ESLintClass;
             });
 
@@ -505,10 +507,10 @@ describe("ESLintChunker", () => {
             // Test the chunks[i] ?? [] fallback on lines 114-117
             const chunker = new ESLintChunker({ continueOnError: true }),
                 // Override the processChunk method to simulate failure
-                processChunkSpy = vi.spyOn(
+                processChunkSpy = safeCastTo<MockInstance<ESLintChunkerWithPrivate["processChunk"]>>(vi.spyOn(
                     chunker as ESLintChunkerWithPrivate,
                     "processChunk"
-                ) as MockInstance<ESLintChunkerWithPrivate["processChunk"]>;
+                ));
 
             // Use mockRejectedValue since processChunk is async
             processChunkSpy.mockRejectedValue(
@@ -526,10 +528,10 @@ describe("ESLintChunker", () => {
         it("should handle non-Error objects in processChunk error handling", async () => {
             // Test the error instanceof Error ternary on line 201
             const chunker = new ESLintChunker({ continueOnError: true }),
-                processChunkSpy = vi.spyOn(
+                processChunkSpy = safeCastTo<MockInstance<ESLintChunkerWithPrivate["processChunk"]>>(vi.spyOn(
                     chunker as ESLintChunkerWithPrivate,
                     "processChunk"
-                ) as MockInstance<ESLintChunkerWithPrivate["processChunk"]>;
+                ));
 
             // Throw a non-Error object to test the String(error) branch
             processChunkSpy.mockRejectedValue("String error, not Error object");
@@ -542,8 +544,8 @@ describe("ESLintChunker", () => {
         });
 
         it("should suppress per-chunk logs when chunkLogs is false", async () => {
-            const consoleLogSpy = vi.spyOn(console, "log"),
-                chunker = new ESLintChunker({ chunkLogs: false, size: 1 });
+            const chunker = new ESLintChunker({ chunkLogs: false, size: 1 }),
+                consoleLogSpy = vi.spyOn(console, "log");
 
             await chunker.run();
 

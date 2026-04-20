@@ -1,12 +1,13 @@
-/* eslint-disable sort-imports */
+ 
 import { promises as fs } from "node:fs";
 import path from "node:path";
-import { loadConfig } from "../lib/configLoader.js";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
+import { loadConfig } from "../lib/configLoader.js";
+
 describe("ConfigLoader Real File Tests - targeting uncovered lines", () => {
-    const testDir = path.join(process.cwd(), "temp-config-test"),
-        configPaths: string[] = [];
+    const configPaths: string[] = [],
+        testDir = path.join(process.cwd(), "temp-config-test");
 
     beforeEach(async () => {
         // Create test directory

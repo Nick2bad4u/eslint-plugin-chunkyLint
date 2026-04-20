@@ -1,31 +1,32 @@
+import { describe, expect, it } from "vitest";
+
 import type {
-    ChunkResult,
     ChunkerOptions,
     ChunkingStats,
+    ChunkResult,
     FileDiscoveryOptions,
     Logger,
     ProgressCallback,
 } from "../types/index.js";
-import { describe, expect, it } from "vitest";
 
 describe("Type definitions", () => {
     it("should define ChunkerOptions interface correctly", () => {
         const options: ChunkerOptions = {
-            config: "./eslint.config.js",
-            size: 100,
             cacheLocation: ".cache/.eslintcache",
-            maxWorkers: 4,
-            continueOnError: true,
-            fix: true,
-            fixTypes: ["directive", "problem"],
-            warnIgnored: false,
-            include: ["src/**/*.ts"],
-            ignore: ["dist/**"],
-            cwd: process.cwd(),
-            verbose: true,
-            quiet: false,
             chunkLogs: true,
             concurrency: 2,
+            config: "./eslint.config.js",
+            continueOnError: true,
+            cwd: process.cwd(),
+            fix: true,
+            fixTypes: ["directive", "problem"],
+            ignore: ["dist/**"],
+            include: ["src/**/*.ts"],
+            maxWorkers: 4,
+            quiet: false,
+            size: 100,
+            verbose: true,
+            warnIgnored: false,
         };
 
         expect(options.config).toBe("./eslint.config.js");
@@ -47,13 +48,13 @@ describe("Type definitions", () => {
 
     it("should define ChunkingStats interface correctly", () => {
         const stats: ChunkingStats = {
-            totalFiles: 10,
-            totalChunks: 3,
-            totalTime: 1500,
+            failedChunks: 0,
+            filesFixed: 5,
             filesWithErrors: 2,
             filesWithWarnings: 1,
-            filesFixed: 5,
-            failedChunks: 0,
+            totalChunks: 3,
+            totalFiles: 10,
+            totalTime: 1500,
         };
 
         expect(stats.totalFiles).toBe(10);
@@ -68,12 +69,12 @@ describe("Type definitions", () => {
     it("should define ChunkResult interface correctly", () => {
         const result: ChunkResult = {
             chunkIndex: 1,
-            files: ["file1.ts", "file2.ts"],
             errorCount: 2,
-            warningCount: 1,
+            files: ["file1.ts", "file2.ts"],
             fixedCount: 3,
             processingTime: 500,
             success: true,
+            warningCount: 1,
         };
 
         expect(result.chunkIndex).toBe(1);
@@ -88,10 +89,10 @@ describe("Type definitions", () => {
     it("should define FileDiscoveryOptions interface correctly", () => {
         const options: FileDiscoveryOptions = {
             config: "./eslint.config.js",
-            include: ["src/**/*.ts"],
-            ignore: ["dist/**"],
             cwd: process.cwd(),
             followSymlinks: true,
+            ignore: ["dist/**"],
+            include: ["src/**/*.ts"],
         };
 
         expect(options.config).toBe("./eslint.config.js");
@@ -117,12 +118,12 @@ describe("Type definitions", () => {
         // Test that the callback can be called with expected parameters
         const mockChunk: ChunkResult = {
             chunkIndex: 1,
-            files: ["test.ts"],
-            success: true,
-            processingTime: 100,
             errorCount: 0,
-            warningCount: 0,
+            files: ["test.ts"],
             fixedCount: 0,
+            processingTime: 100,
+            success: true,
+            warningCount: 0,
         };
         expect(() => {
             callback(1, 10, mockChunk);
@@ -134,20 +135,20 @@ describe("Type definitions", () => {
 
     it("should define Logger interface correctly", () => {
         const logger: Logger = {
-            info: (...args: unknown[]) => {
-                console.log(...args);
-            },
-            warn: (...args: unknown[]) => {
-                console.warn(...args);
+            debug: (...args: unknown[]) => {
+                console.debug(...args);
             },
             error: (...args: unknown[]) => {
                 console.error(...args);
             },
-            debug: (...args: unknown[]) => {
-                console.debug(...args);
+            info: (...args: unknown[]) => {
+                console.log(...args);
             },
             verbose: (...args: unknown[]) => {
                 console.log(...args);
+            },
+            warn: (...args: unknown[]) => {
+                console.warn(...args);
             },
         };
 

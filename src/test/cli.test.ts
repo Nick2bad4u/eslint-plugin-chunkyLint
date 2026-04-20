@@ -1,25 +1,25 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-/* eslint-disable prefer-arrow-callback -- Vitest constructor mocks require function/class implementations */
+ 
 
 // Mock chalk to prevent console output issues
 vi.mock("chalk", () => ({
     default: {
         blue: vi.fn((text: string) => text),
+        gray: vi.fn((text: string) => text),
         green: vi.fn((text: string) => text),
         red: vi.fn((text: string) => text),
-        gray: vi.fn((text: string) => text),
     },
 }));
 
 // Mock commander before importing CLI
 const mockProgram = {
-    name: vi.fn().mockReturnThis(),
-    description: vi.fn().mockReturnThis(),
-    version: vi.fn().mockReturnThis(),
-    option: vi.fn().mockReturnThis(),
     action: vi.fn().mockReturnThis(),
+    description: vi.fn().mockReturnThis(),
+    name: vi.fn().mockReturnThis(),
+    option: vi.fn().mockReturnThis(),
     parse: vi.fn().mockReturnThis(),
+    version: vi.fn().mockReturnThis(),
 };
 
 vi.mock("commander", () => ({
@@ -31,13 +31,13 @@ vi.mock("commander", () => ({
 // Mock ESLintChunker
 const mockChunker = {
     run: vi.fn().mockResolvedValue({
-        totalFiles: 10,
-        totalChunks: 2,
-        totalTime: 1000,
+        failedChunks: 0,
+        filesFixed: 0,
         filesWithErrors: 1,
         filesWithWarnings: 2,
-        filesFixed: 0,
-        failedChunks: 0,
+        totalChunks: 2,
+        totalFiles: 10,
+        totalTime: 1000,
     }),
 };
 
@@ -82,10 +82,10 @@ describe("CLI binary", () => {
         await import("../bin/eslint-chunker.js");
 
         // Verify all expected options are defined
-        /* eslint-disable @typescript-eslint/no-unsafe-return */
+         
         const optionCalls = mockProgram.option.mock.calls,
             options = optionCalls.map((call) => call[0]);
-        /* eslint-enable @typescript-eslint/no-unsafe-return */
+         
 
         expect(options).toContain("-c, --config <path>");
         expect(options).toContain("-s, --size <number>");

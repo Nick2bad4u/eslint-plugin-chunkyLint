@@ -1,31 +1,33 @@
-#!/usr/bin/env node
 
-/* eslint-disable complexity, func-style, no-use-before-define, sort-imports, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/restrict-template-expressions, @typescript-eslint/unbound-method */
+/* eslint-disable @typescript-eslint/unbound-method */
 
-import { loadConfig, mergeConfig } from "../lib/configLoader.js";
-import { ESLintChunker } from "../lib/chunker.js";
 import chalk from "chalk";
 import { Command } from "commander";
+import { arrayJoin, safeCastTo, stringSplit   } from "ts-extras";
+
 import type { ChunkerOptions, ChunkyLintConfig } from "../types/index.js";
 
+import { ESLintChunker } from "../lib/chunker.js";
+import { loadConfig, mergeConfig } from "../lib/configLoader.js";
+
 interface CliOptions {
+    banner?: boolean;
+    cacheLocation?: string;
+    chunkLogs?: boolean;
+    concurrency?: number;
     config?: string;
     configFile?: string;
-    size?: number;
-    cacheLocation?: string;
-    maxWorkers: number | "auto" | "off";
     continueOnError?: boolean;
-    fix?: boolean;
-    fixTypes?: ("directive" | "problem" | "suggestion" | "layout")[];
-    warnIgnored?: boolean;
-    include?: string[];
-    ignore?: string[];
     cwd?: string;
-    verbose?: boolean;
+    fix?: boolean;
+    fixTypes?: ("directive" | "layout" | "problem" | "suggestion")[];
+    ignore?: string[];
+    include?: string[];
+    maxWorkers: "auto" | "off" | number;
     quiet?: boolean;
-    chunkLogs?: boolean;
-    banner?: boolean;
-    concurrency?: number;
+    size?: number;
+    verbose?: boolean;
+    warnIgnored?: boolean;
 }
 
 const program = new Command();
@@ -82,8 +84,8 @@ program
 program.action(async (options: CliOptions) => {
     try {
         // Load config file if available
-        let fileConfig: ChunkyLintConfig | null = null,
-            configWarning: string | null = null;
+        let configWarning: null | string = null,
+            fileConfig: ChunkyLintConfig | null = null;
 
         try {
             fileConfig = await loadConfig(
@@ -121,15 +123,15 @@ program.action(async (options: CliOptions) => {
             ? mergeConfig(fileConfig, cliConfig)
             : cliConfig;
 
-        const isQuiet = finalConfig.quiet ?? false,
-            // Convert to ChunkerOptions with proper defaults
+        const // Convert to ChunkerOptions with proper defaults
             chunkerOptions: ChunkerOptions = {
-                size: finalConfig.size ?? 200,
                 cacheLocation: finalConfig.cacheLocation ?? ".eslintcache",
-                maxWorkers: options.maxWorkers ?? "off",
-                cwd: finalConfig.cwd ?? process.cwd(),
                 concurrency: finalConfig.concurrency ?? 1,
-            };
+                cwd: finalConfig.cwd ?? process.cwd(),
+                maxWorkers: options.maxWorkers ?? "off",
+                size: finalConfig.size ?? 200,
+            },
+            isQuiet = finalConfig.quiet ?? false;
 
         if (finalConfig.config !== undefined) {
             chunkerOptions.config = finalConfig.config;
@@ -188,11 +190,11 @@ program.action(async (options: CliOptions) => {
             : await chunker.run();
 
         if (isQuiet) {
-            const totalTime = Math.round(stats.totalTime),
-                avgTimePerFile =
+            const avgTimePerFile =
                     stats.totalFiles > 0
                         ? Math.round(stats.totalTime / stats.totalFiles)
-                        : 0;
+                        : 0,
+                totalTime = Math.round(stats.totalTime);
 
             console.log(
                 chalk.blue("ℹ"),
@@ -226,11 +228,49 @@ program.action(async (options: CliOptions) => {
 });
 
 /**
+ * Parse array option (comma-separated values)
+ */
+function parseArrayOption(value: string): string[] {
+    return stringSplit(value, ",")
+        .map((item) => item.trim())
+        .filter(Boolean);
+}
+
+/**
+ * Parse fix types option
+ */
+function parseFixTypes(
+    value: string
+): ("directive" | "layout" | "problem" | "suggestion")[] {
+    const types = stringSplit(value, ",").map((type) => type.trim()),
+        validTypes = [
+            "directive",
+            "problem",
+            "suggestion",
+            "layout",
+        ] as const;
+
+    for (const type of types) {
+        if (
+            !validTypes.includes(
+                safeCastTo<"directive" | "layout" | "problem" | "suggestion">(type)
+            )
+        ) {
+            throw new Error(
+                `Invalid fix type: ${type}. Valid types: ${arrayJoin(validTypes, ", ")}`
+            );
+        }
+    }
+
+    return safeCastTo<("directive" | "layout" | "problem" | "suggestion")[]>(types);
+}
+
+/**
  * Parse integer option
  */
 function parseIntOption(value: string): number {
-    const parsed = parseInt(value, 10);
-    if (isNaN(parsed) || parsed < 1) {
+    const parsed = Number.parseInt(value, 10);
+    if (Number.isNaN(parsed) || parsed < 1) {
         throw new Error(`Invalid number: ${value}`);
     }
     return parsed;
@@ -239,50 +279,11 @@ function parseIntOption(value: string): number {
 /**
  * Parse workers option
  */
-function parseWorkersOption(value: string): number | "auto" | "off" {
+function parseWorkersOption(value: string): "auto" | "off" | number {
     if (value === "auto" || value === "off") {
         return value;
     }
     return parseIntOption(value);
-}
-
-/**
- * Parse fix types option
- */
-function parseFixTypes(
-    value: string
-): ("directive" | "problem" | "suggestion" | "layout")[] {
-    const validTypes = [
-            "directive",
-            "problem",
-            "suggestion",
-            "layout",
-        ] as const,
-        types = value.split(",").map((type) => type.trim());
-
-    for (const type of types) {
-        if (
-            !validTypes.includes(
-                type as "directive" | "problem" | "suggestion" | "layout"
-            )
-        ) {
-            throw new Error(
-                `Invalid fix type: ${type}. Valid types: ${validTypes.join(", ")}`
-            );
-        }
-    }
-
-    return types as ("directive" | "problem" | "suggestion" | "layout")[];
-}
-
-/**
- * Parse array option (comma-separated values)
- */
-function parseArrayOption(value: string): string[] {
-    return value
-        .split(",")
-        .map((item) => item.trim())
-        .filter(Boolean);
 }
 
 /**
@@ -293,8 +294,8 @@ async function runWithStdoutSuppressed<T>(
 ): Promise<T> {
     const originalWrite = process.stdout.write;
 
-    process.stdout.write = (() =>
-        true) as unknown as typeof process.stdout.write;
+    process.stdout.write = () =>
+        true;
 
     try {
         return await operation();

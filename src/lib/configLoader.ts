@@ -1,8 +1,10 @@
-/* eslint-disable func-style, init-declarations, no-use-before-define, no-await-in-loop, @typescript-eslint/restrict-template-expressions, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unnecessary-condition, sort-imports */
-import type { ChunkyLintConfig } from "../types/index.js";
-import { join, resolve } from "node:path";
+/* eslint-disable no-await-in-loop */
 import { promises as fs } from "node:fs";
+import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
+import { objectEntries, objectFromEntries, safeCastTo, stringSplit, isInteger     } from "ts-extras";
+
+import type { ChunkyLintConfig } from "../types/index.js";
 
 /**
  * Possible config file names in order of preference
@@ -64,68 +66,6 @@ export async function loadConfig(
 }
 
 /**
- * Find a config file in the given directory
- *
- * @param cwd - Directory to search
- *
- * @returns Path to config file or null if not found
- */
-async function findConfigFile(cwd: string): Promise<string | null> {
-    for (const fileName of CONFIG_FILE_NAMES) {
-        const filePath = join(cwd, fileName);
-        try {
-            await fs.access(filePath);
-            return filePath;
-        } catch {
-            // File doesn't exist, continue searching
-        }
-    }
-    return null;
-}
-
-/**
- * Load and parse a config file
- *
- * @param filePath - Path to the config file
- *
- * @returns Parsed configuration
- */
-async function loadConfigFile(filePath: string): Promise<ChunkyLintConfig> {
-    const ext = filePath.split(".").pop()?.toLowerCase();
-
-    switch (ext) {
-        case "json":
-            return await loadJsonConfig(filePath);
-        case "js":
-        case "mjs":
-        case "ts":
-            return await loadJsConfig(filePath);
-        default:
-            throw new Error(`Unsupported config file type: ${ext}`);
-    }
-}
-
-/**
- * Load JSON config file
- *
- * @param filePath - Path to JSON config file
- *
- * @returns Parsed configuration
- */
-async function loadJsonConfig(filePath: string): Promise<ChunkyLintConfig> {
-    try {
-        const content = await fs.readFile(filePath, "utf-8"),
-            config = JSON.parse(content) as ChunkyLintConfig;
-        return validateConfig(config);
-    } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        throw new Error(`Failed to parse JSON config: ${message}`, {
-            cause: error,
-        });
-    }
-}
-
-/**
  * Load JavaScript/TypeScript config file
  *
  * @param filePath - Path to JS/TS config file
@@ -158,6 +98,100 @@ export async function loadJsConfig(
 }
 
 /**
+ * Merge configuration with CLI options CLI options take precedence over config
+ * file options
+ *
+ * @param config - Configuration from file
+ * @param cliOptions - Options from CLI
+ *
+ * @returns Merged configuration
+ */
+export function mergeConfig(
+    config: ChunkyLintConfig,
+    cliOptions: Partial<ChunkyLintConfig>
+): ChunkyLintConfig {
+    return {
+        ...config,
+        ...objectFromEntries(
+            objectEntries(cliOptions).filter(
+                ([, value]) => value !== undefined
+            )
+        ),
+    };
+}
+
+/**
+ * Find a config file in the given directory
+ *
+ * @param cwd - Directory to search
+ *
+ * @returns Path to config file or null if not found
+ */
+async function findConfigFile(cwd: string): Promise<null | string> {
+    for (const fileName of CONFIG_FILE_NAMES) {
+        const filePath = join(cwd, fileName);
+        try {
+            await fs.access(filePath);
+            return filePath;
+        } catch {
+            // File doesn't exist, continue searching
+        }
+    }
+    return null;
+}
+
+/**
+ * Load and parse a config file
+ *
+ * @param filePath - Path to the config file
+ *
+ * @returns Parsed configuration
+ */
+async function loadConfigFile(filePath: string): Promise<ChunkyLintConfig> {
+    const ext = stringSplit(filePath, ".").pop()?.toLowerCase();
+
+    switch (ext) {
+        case "js":
+        case "mjs":
+        case "ts": {
+            return loadJsConfig(filePath);
+        }
+        case "json": {
+            return loadJsonConfig(filePath);
+        }
+        default: {
+            throw new Error(`Unsupported config file type: ${ext}`);
+        }
+    }
+}
+
+/**
+ * Load JSON config file
+ *
+ * @param filePath - Path to JSON config file
+ *
+ * @returns Parsed configuration
+ */
+async function loadJsonConfig(filePath: string): Promise<ChunkyLintConfig> {
+    try {
+        const content = await fs.readFile(filePath),
+            config = safeCastTo<ChunkyLintConfig>(JSON.parse(content));
+        return validateConfig(config);
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        throw new Error(`Failed to parse JSON config: ${message}`, {
+            cause: error,
+        });
+    }
+}
+
+function validateBooleanOption(value: boolean | undefined, name: string): void {
+    if (value !== undefined && typeof value !== "boolean") {
+        throw new Error(`${name} must be a boolean`);
+    }
+}
+
+/**
  * Validate and normalize configuration
  *
  * @param config - Raw configuration object
@@ -169,7 +203,7 @@ function validateConfig(config: unknown): ChunkyLintConfig {
         throw new Error("Config must be an object");
     }
 
-    const normalizedConfig = config as ChunkyLintConfig;
+    const normalizedConfig = safeCastTo<ChunkyLintConfig>(config);
 
     validatePositiveIntegerOption(normalizedConfig.size, "size");
     validatePositiveIntegerOption(normalizedConfig.concurrency, "concurrency");
@@ -186,7 +220,7 @@ function validatePositiveIntegerOption(
     value: number | undefined,
     name: string
 ): void {
-    if (value !== undefined && (!Number.isInteger(value) || value < 1)) {
+    if (value !== undefined && (!isInteger(value) || value < 1)) {
         throw new Error(`${name} must be a positive integer`);
     }
 }
@@ -198,33 +232,4 @@ function validateStringArrayOption(
     if (value !== undefined && !Array.isArray(value)) {
         throw new Error(`${name} must be an array of strings`);
     }
-}
-
-function validateBooleanOption(value: boolean | undefined, name: string): void {
-    if (value !== undefined && typeof value !== "boolean") {
-        throw new Error(`${name} must be a boolean`);
-    }
-}
-
-/**
- * Merge configuration with CLI options CLI options take precedence over config
- * file options
- *
- * @param config - Configuration from file
- * @param cliOptions - Options from CLI
- *
- * @returns Merged configuration
- */
-export function mergeConfig(
-    config: ChunkyLintConfig,
-    cliOptions: Partial<ChunkyLintConfig>
-): ChunkyLintConfig {
-    return {
-        ...config,
-        ...Object.fromEntries(
-            Object.entries(cliOptions).filter(
-                ([, value]) => value !== undefined
-            )
-        ),
-    };
 }

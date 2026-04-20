@@ -1,3 +1,6 @@
+import { promises as fs } from "node:fs";
+import path from "node:path";
+import { safeCastTo } from "ts-extras";
 /*
  * Focused coverage tests to exercise branches not touched by primary spec:
  *  - Auto discovery returning null
@@ -11,9 +14,8 @@
  * contamination seen previously. Real temporary files are written then cleaned.
  */
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { promises as fs } from "node:fs";
+
 import { loadConfig } from "../lib/configLoader.js";
-import path from "node:path";
 
 describe("ConfigLoader Coverage Tests - Missing Lines", () => {
     const projectDir = path.join(process.cwd(), "temp-config-coverage");
@@ -25,7 +27,7 @@ describe("ConfigLoader Coverage Tests - Missing Lines", () => {
     const cleanDir = async (): Promise<void> => {
         const entries = await fs
             .readdir(projectDir)
-            .catch(() => [] as string[]);
+            .catch(() => safeCastTo<string[]>([]));
         if (entries.length === 0) return;
         await Promise.all(
             entries.map(async (entry) => {
@@ -95,7 +97,7 @@ describe("ConfigLoader Coverage Tests - Missing Lines", () => {
             "utf-8"
         );
         const result = await loadConfig("objectConfig.mjs", projectDir);
-        expect(result).toMatchObject({ size: 50, concurrency: 2 });
+        expect(result).toMatchObject({ concurrency: 2, size: 50 });
     });
 
     it("loads named exports only when no default (namedOnly.js)", async () => {

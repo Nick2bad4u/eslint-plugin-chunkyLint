@@ -1,9 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { ConsoleLogger } from "../lib/logger.js";
 
-/* eslint-disable prefer-arrow-callback -- Vitest constructor mocks require function/class implementations */
+ 
 
-/* eslint-disable init-declarations */
+ 
 
 // Mock fast-glob at the top level (the actual module used by FileScanner)
 vi.mock("fast-glob", () => ({
@@ -38,18 +39,18 @@ describe("FileScanner Coverage Tests - Targeting Specific Uncovered Lines", () =
             calculateConfigForFile: vi
                 .fn()
                 .mockRejectedValue(new Error("Config calculation failed")),
+            executeOnFiles: vi.fn(),
+            findConfigFile: vi.fn(),
+            getConfigForFile: vi.fn().mockResolvedValue({}),
+            getErrorResults: vi.fn(),
+            getFormatter: vi.fn(),
+            getRulesMetaForResults: vi.fn(),
+            hasFlag: vi.fn(),
             isPathIgnored: vi.fn().mockResolvedValue(false),
             lintFiles: vi.fn(),
             lintText: vi.fn(),
-            findConfigFile: vi.fn(),
             loadFormatter: vi.fn(),
-            getConfigForFile: vi.fn().mockResolvedValue({}),
-            executeOnFiles: vi.fn(),
             outputFixes: vi.fn(),
-            getFormatter: vi.fn(),
-            getErrorResults: vi.fn(),
-            getRulesMetaForResults: vi.fn(),
-            hasFlag: vi.fn(),
             version: "8.0.0",
         };
 
@@ -78,6 +79,13 @@ describe("FileScanner Coverage Tests - Targeting Specific Uncovered Lines", () =
         // Create a mock ESLint that reports some files as ignored
         const mockESLint = {
             calculateConfigForFile: vi.fn().mockResolvedValue({}),
+            executeOnFiles: vi.fn(),
+            findConfigFile: vi.fn(),
+            getConfigForFile: vi.fn().mockResolvedValue({}),
+            getErrorResults: vi.fn(),
+            getFormatter: vi.fn(),
+            getRulesMetaForResults: vi.fn(),
+            hasFlag: vi.fn(),
             isPathIgnored: vi
                 .fn()
                 .mockResolvedValueOnce(false) // First file not ignored
@@ -85,15 +93,8 @@ describe("FileScanner Coverage Tests - Targeting Specific Uncovered Lines", () =
                 .mockResolvedValueOnce(false), // Third file not ignored
             lintFiles: vi.fn(),
             lintText: vi.fn(),
-            findConfigFile: vi.fn(),
             loadFormatter: vi.fn(),
-            getConfigForFile: vi.fn().mockResolvedValue({}),
-            executeOnFiles: vi.fn(),
             outputFixes: vi.fn(),
-            getFormatter: vi.fn(),
-            getErrorResults: vi.fn(),
-            getRulesMetaForResults: vi.fn(),
-            hasFlag: vi.fn(),
             version: "8.0.0",
         };
 
@@ -122,6 +123,13 @@ describe("FileScanner Coverage Tests - Targeting Specific Uncovered Lines", () =
         // Create a mock ESLint that throws an error during isPathIgnored
         const mockESLint = {
             calculateConfigForFile: vi.fn().mockResolvedValue({}),
+            executeOnFiles: vi.fn(),
+            findConfigFile: vi.fn(),
+            getConfigForFile: vi.fn().mockResolvedValue({}),
+            getErrorResults: vi.fn(),
+            getFormatter: vi.fn(),
+            getRulesMetaForResults: vi.fn(),
+            hasFlag: vi.fn(),
             isPathIgnored: vi
                 .fn()
                 .mockResolvedValueOnce(false) // First file succeeds
@@ -129,15 +137,8 @@ describe("FileScanner Coverage Tests - Targeting Specific Uncovered Lines", () =
                 .mockResolvedValueOnce(false), // Third file succeeds
             lintFiles: vi.fn(),
             lintText: vi.fn(),
-            findConfigFile: vi.fn(),
             loadFormatter: vi.fn(),
-            getConfigForFile: vi.fn().mockResolvedValue({}),
-            executeOnFiles: vi.fn(),
             outputFixes: vi.fn(),
-            getFormatter: vi.fn(),
-            getErrorResults: vi.fn(),
-            getRulesMetaForResults: vi.fn(),
-            hasFlag: vi.fn(),
             version: "8.0.0",
         };
 
@@ -168,18 +169,18 @@ describe("FileScanner Coverage Tests - Targeting Specific Uncovered Lines", () =
             calculateConfigForFile: vi.fn().mockResolvedValue({
                 ignorePatterns: ["dist/**", "*.test.js"], // This will trigger lines 138-143
             }),
+            executeOnFiles: vi.fn(),
+            findConfigFile: vi.fn(),
+            getConfigForFile: vi.fn().mockResolvedValue({}),
+            getErrorResults: vi.fn(),
+            getFormatter: vi.fn(),
+            getRulesMetaForResults: vi.fn(),
+            hasFlag: vi.fn(),
             isPathIgnored: vi.fn().mockResolvedValue(false),
             lintFiles: vi.fn(),
             lintText: vi.fn(),
-            findConfigFile: vi.fn(),
             loadFormatter: vi.fn(),
-            getConfigForFile: vi.fn().mockResolvedValue({}),
-            executeOnFiles: vi.fn(),
             outputFixes: vi.fn(),
-            getFormatter: vi.fn(),
-            getErrorResults: vi.fn(),
-            getRulesMetaForResults: vi.fn(),
-            hasFlag: vi.fn(),
             version: "8.0.0",
         };
 

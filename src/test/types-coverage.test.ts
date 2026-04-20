@@ -1,13 +1,14 @@
+import { describe, expect, it } from "vitest";
+
 import type {
-    ChunkResult,
     ChunkerOptions,
     ChunkingStats,
+    ChunkResult,
     ChunkyLintConfig,
     FileDiscoveryOptions,
     Logger,
     ProgressCallback,
 } from "../types/index.js";
-import { describe, expect, it } from "vitest";
 
 describe("Types coverage test", () => {
     it("should import and use all types from types/index.ts", () => {
@@ -15,39 +16,39 @@ describe("Types coverage test", () => {
 
         // Test ChunkerOptions
         const options: ChunkerOptions = {
-            size: 10,
             concurrency: 2,
+            size: 10,
         };
         expect(options.size).toBe(10);
 
         // Test ChunkingStats
         const stats: ChunkingStats = {
-            totalFiles: 100,
-            totalChunks: 10,
-            totalTime: 5000,
+            failedChunks: 1,
+            filesFixed: 3,
             filesWithErrors: 2,
             filesWithWarnings: 5,
-            filesFixed: 3,
-            failedChunks: 1,
+            totalChunks: 10,
+            totalFiles: 100,
+            totalTime: 5000,
         };
         expect(stats.totalFiles).toBe(100);
 
         // Test ChunkResult
         const result: ChunkResult = {
             chunkIndex: 0,
-            files: ["test.js"],
-            success: true,
-            processingTime: 1000,
             errorCount: 0,
-            warningCount: 0,
+            files: ["test.js"],
             fixedCount: 1,
+            processingTime: 1000,
+            success: true,
+            warningCount: 0,
         };
         expect(result.success).toBe(true);
 
         // Test FileDiscoveryOptions
         const discoveryOptions: FileDiscoveryOptions = {
-            include: ["**/*.js"],
             ignore: ["node_modules/**"],
+            include: ["**/*.js"],
         };
         expect(discoveryOptions.include).toEqual(["**/*.js"]);
 
@@ -60,15 +61,15 @@ describe("Types coverage test", () => {
         callback(1, 10, result);
 
         // Test Logger interface
-        /* eslint-disable @typescript-eslint/no-empty-function */
+         
         const logger: Logger = {
-            info: () => {},
-            warn: () => {},
-            error: () => {},
             debug: () => {},
+            error: () => {},
+            info: () => {},
             verbose: () => {},
+            warn: () => {},
         };
-        /* eslint-enable @typescript-eslint/no-empty-function */
+         
         expect(typeof logger.info).toBe("function");
 
         // All types are properly imported and usable
@@ -82,20 +83,20 @@ describe("Types coverage test", () => {
 
         // Test full options
         const fullOptions: ChunkerOptions = {
-            size: 50,
-            concurrency: 4,
-            verbose: true,
-            quiet: false,
+            cacheLocation: ".eslintcache",
             chunkLogs: true,
-            cwd: "/project",
+            concurrency: 4,
             config: "eslint.config.js",
-            include: ["src/**/*.ts"],
-            ignore: ["**/*.test.ts"],
             continueOnError: true,
+            cwd: "/project",
             fix: true,
             fixTypes: ["problem", "suggestion"],
+            ignore: ["**/*.test.ts"],
+            include: ["src/**/*.ts"],
             maxWorkers: 4,
-            cacheLocation: ".eslintcache",
+            quiet: false,
+            size: 50,
+            verbose: true,
             warnIgnored: false,
         };
         expect(fullOptions.size).toBe(50);
@@ -106,13 +107,13 @@ describe("Types coverage test", () => {
         // Test result with error
         const errorResult: ChunkResult = {
             chunkIndex: 1,
-            files: ["error.js"],
-            success: false,
             error: "ESLint failed",
-            processingTime: 500,
             errorCount: 1,
-            warningCount: 0,
+            files: ["error.js"],
             fixedCount: 0,
+            processingTime: 500,
+            success: false,
+            warningCount: 0,
         };
         expect(errorResult.success).toBe(false);
         expect(errorResult.error).toBe("ESLint failed");
@@ -120,10 +121,10 @@ describe("Types coverage test", () => {
 
     it("should validate FixType union values", () => {
         // Test that FixType accepts correct values
-        const problemFix = "problem" as const,
-            suggestionFix = "suggestion" as const,
+        const directiveFix = "directive" as const,
             layoutFix = "layout" as const,
-            directiveFix = "directive" as const;
+            problemFix = "problem" as const,
+            suggestionFix = "suggestion" as const;
 
         expect(problemFix).toBe("problem");
         expect(suggestionFix).toBe("suggestion");
@@ -138,19 +139,19 @@ describe("Types coverage test", () => {
 
         // Test full config
         const fullConfig: ChunkyLintConfig = {
-            config: "eslint.config.js",
-            cwd: "/project",
-            include: ["src/**/*.ts"],
-            ignore: ["**/*.test.ts"],
-            followSymlinks: false,
-            size: 100,
-            concurrency: 4,
-            verbose: true,
-            quiet: false,
-            chunkLogs: true,
             cacheLocation: ".eslintcache",
-            fix: true,
+            chunkLogs: true,
+            concurrency: 4,
+            config: "eslint.config.js",
             continueOnError: false,
+            cwd: "/project",
+            fix: true,
+            followSymlinks: false,
+            ignore: ["**/*.test.ts"],
+            include: ["src/**/*.ts"],
+            quiet: false,
+            size: 100,
+            verbose: true,
         };
         expect(fullConfig.size).toBe(100);
         expect(fullConfig.concurrency).toBe(4);

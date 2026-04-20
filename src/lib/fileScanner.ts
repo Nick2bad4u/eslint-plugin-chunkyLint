@@ -1,23 +1,18 @@
-/* eslint-disable sort-imports -- keeping grouped type/runtime imports for clarity with strict module boundaries */
-import type { FileDiscoveryOptions, Logger } from "../types/index.js";
+ 
 import type { ESLint } from "eslint";
+
 import fg from "fast-glob";
 import { resolve } from "node:path";
+import { safeCastTo } from "ts-extras";
+
+import type { FileDiscoveryOptions, Logger } from "../types/index.js";
+
 import { loadESLintModule } from "./eslintLoader.js";
 
 /**
  * Default include patterns for common file extensions
  */
-const DEFAULT_INCLUDE_PATTERNS = [
-        "**/*.js",
-        "**/*.jsx",
-        "**/*.ts",
-        "**/*.tsx",
-        "**/*.mjs",
-        "**/*.cjs",
-        "**/*.vue",
-    ],
-    /**
+const /**
      * Default ignore patterns
      */
     DEFAULT_IGNORE_PATTERNS = [
@@ -28,6 +23,15 @@ const DEFAULT_INCLUDE_PATTERNS = [
         ".git/**",
         "**/*.min.js",
         "**/*.bundle.js",
+    ],
+    DEFAULT_INCLUDE_PATTERNS = [
+        "**/*.js",
+        "**/*.jsx",
+        "**/*.ts",
+        "**/*.tsx",
+        "**/*.mjs",
+        "**/*.cjs",
+        "**/*.vue",
     ];
 
 /**
@@ -41,23 +45,43 @@ export class FileScanner {
     }
 
     /**
+     * Split files into chunks
+     */
+    chunkFiles(files: string[], chunkSize: number): string[][] {
+        if (chunkSize <= 0) {
+            throw new Error("Chunk size must be greater than 0");
+        }
+
+        const chunks: string[][] = [];
+        for (let index = 0; index < files.length; index += chunkSize) {
+            chunks.push(files.slice(index, index + chunkSize));
+        }
+
+        this.logger.debug(
+            `Split ${files.length.toString()} files into ${chunks.length.toString()} chunks of ~${chunkSize.toString()} files each`
+        );
+
+        return chunks;
+    }
+
+    /**
      * Scan and discover files to lint
      */
     async scanFiles(options: FileDiscoveryOptions = {}): Promise<string[]> {
         const {
             config,
             cwd = process.cwd(),
-            include = DEFAULT_INCLUDE_PATTERNS,
-            ignore = DEFAULT_IGNORE_PATTERNS,
             followSymlinks = false,
+            ignore = DEFAULT_IGNORE_PATTERNS,
+            include = DEFAULT_INCLUDE_PATTERNS,
         } = options;
 
         this.logger.verbose("Starting file discovery...");
         this.logger.debug("Discovery options:", {
             config: config ?? "auto-detect (ESLint default)",
             cwd,
-            include,
             ignore,
+            include,
         });
 
         try {
@@ -89,10 +113,10 @@ export class FileScanner {
 
             // Use fast-glob to find files
             const files = await fg(include, {
-                    cwd,
                     absolute: true,
-                    ignore: allIgnorePatterns,
+                    cwd,
                     followSymbolicLinks: followSymlinks,
+                    ignore: allIgnorePatterns,
                     onlyFiles: true,
                     suppressErrors: false,
                 }),
@@ -115,46 +139,6 @@ export class FileScanner {
                 }`,
                 { cause: error }
             );
-        }
-    }
-
-    /**
-     * Get ignore patterns from ESLint configuration
-     */
-    private async getESLintIgnorePatterns(
-        eslint: ESLint,
-        cwd: string
-    ): Promise<string[]> {
-        try {
-            // Try to get ignore patterns from a sample file
-            const sampleFile = resolve(cwd, "package.json");
-            /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-            const config = await eslint.calculateConfigForFile(sampleFile);
-            /* eslint-enable @typescript-eslint/no-unsafe-assignment */
-
-            // Extract ignore patterns from config
-            const ignorePatterns: string[] = [];
-
-            // Check for ignorePatterns in config
-            if (
-                config &&
-                typeof config === "object" &&
-                "ignorePatterns" in config
-            ) {
-                const patterns = (config as { ignorePatterns?: string[] })
-                    .ignorePatterns;
-                if (Array.isArray(patterns)) {
-                    ignorePatterns.push(...patterns);
-                }
-            }
-
-            return ignorePatterns;
-        } catch (error) {
-            this.logger.debug(
-                "Could not extract ignore patterns from ESLint config:",
-                error
-            );
-            return [];
         }
     }
 
@@ -191,22 +175,42 @@ export class FileScanner {
     }
 
     /**
-     * Split files into chunks
+     * Get ignore patterns from ESLint configuration
      */
-    chunkFiles(files: string[], chunkSize: number): string[][] {
-        if (chunkSize <= 0) {
-            throw new Error("Chunk size must be greater than 0");
+    private async getESLintIgnorePatterns(
+        eslint: ESLint,
+        cwd: string
+    ): Promise<string[]> {
+        try {
+            // Try to get ignore patterns from a sample file
+            const sampleFile = resolve(cwd, "package.json");
+             
+            const config = await eslint.calculateConfigForFile(sampleFile);
+             
+
+            // Extract ignore patterns from config
+            const ignorePatterns: string[] = [];
+
+            // Check for ignorePatterns in config
+            if (
+                config &&
+                typeof config === "object" &&
+                "ignorePatterns" in config
+            ) {
+                const patterns = (safeCastTo<{ ignorePatterns?: string[] }>(config))
+                    .ignorePatterns;
+                if (Array.isArray(patterns)) {
+                    ignorePatterns.push(...patterns);
+                }
+            }
+
+            return ignorePatterns;
+        } catch (error) {
+            this.logger.debug(
+                "Could not extract ignore patterns from ESLint config:",
+                error
+            );
+            return [];
         }
-
-        const chunks: string[][] = [];
-        for (let index = 0; index < files.length; index += chunkSize) {
-            chunks.push(files.slice(index, index + chunkSize));
-        }
-
-        this.logger.debug(
-            `Split ${files.length.toString()} files into ${chunks.length.toString()} chunks of ~${chunkSize.toString()} files each`
-        );
-
-        return chunks;
     }
 }

@@ -2,24 +2,8 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
     test: {
-        globals: true,
-        watch: false,
-        environment: "node",
-        include: ["src/test/**/*.test.ts"],
-        exclude: [
-            "dist/**",
-            "node_modules/**",
-            "coverage/**",
-        ],
         coverage: {
-            provider: "v8",
-            reporter: [
-                "text",
-                "json",
-                "html",
-                "lcov",
-            ],
-            include: ["src/**/*.ts"],
+            all: true,
             exclude: [
                 "**/dist/**",
                 "**/node_modules/**",
@@ -31,8 +15,24 @@ export default defineConfig({
                 "**/bin/**",
                 "**/types/**",
             ],
+            include: ["src/**/*.ts"],
+            provider: "v8",
+            reporter: [
+                "text",
+                "json",
+                "html",
+                "lcov",
+            ],
             reportsDirectory: "./coverage",
-            all: true,
         },
+        environment: "node",
+        exclude: [
+            "dist/**",
+            "node_modules/**",
+            "coverage/**",
+        ],
+        globals: true,
+        include: ["src/test/**/*.test.ts"],
+        watch: false,
     },
 });
