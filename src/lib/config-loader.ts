@@ -27,51 +27,50 @@ const validateConfig = (config: unknown): ChunkyLintConfig => {
     const normalizedConfig = safeCastTo<ChunkyLintConfig>(config);
 
     if (
-        isDefined(normalizedConfig.size) === true &&
-        (isInteger(normalizedConfig.size) === false ||
-            normalizedConfig.size <= 0)
+        isDefined(normalizedConfig.size) &&
+        (!isInteger(normalizedConfig.size) || normalizedConfig.size <= 0)
     ) {
         throw new Error("size must be a positive integer");
     }
 
     if (
-        isDefined(normalizedConfig.concurrency) === true &&
-        (isInteger(normalizedConfig.concurrency) === false ||
+        isDefined(normalizedConfig.concurrency) &&
+        (!isInteger(normalizedConfig.concurrency) ||
             normalizedConfig.concurrency <= 0)
     ) {
         throw new Error("concurrency must be a positive integer");
     }
 
     if (
-        isDefined(normalizedConfig.include) === true &&
+        isDefined(normalizedConfig.include) &&
         !Array.isArray(normalizedConfig.include)
     ) {
         throw new Error("include must be an array of strings");
     }
 
     if (
-        isDefined(normalizedConfig.ignore) === true &&
+        isDefined(normalizedConfig.ignore) &&
         !Array.isArray(normalizedConfig.ignore)
     ) {
         throw new Error("ignore must be an array of strings");
     }
 
     if (
-        isDefined(normalizedConfig.verbose) === true &&
+        isDefined(normalizedConfig.verbose) &&
         typeof normalizedConfig.verbose !== "boolean"
     ) {
         throw new Error("verbose must be a boolean");
     }
 
     if (
-        isDefined(normalizedConfig.quiet) === true &&
+        isDefined(normalizedConfig.quiet) &&
         typeof normalizedConfig.quiet !== "boolean"
     ) {
         throw new Error("quiet must be a boolean");
     }
 
     if (
-        isDefined(normalizedConfig.chunkLogs) === true &&
+        isDefined(normalizedConfig.chunkLogs) &&
         typeof normalizedConfig.chunkLogs !== "boolean"
     ) {
         throw new Error("chunkLogs must be a boolean");
@@ -82,8 +81,8 @@ const validateConfig = (config: unknown): ChunkyLintConfig => {
 
 const loadJsonConfig = async (filePath: string): Promise<ChunkyLintConfig> => {
     try {
-        const content = await fs.readFile(filePath, "utf8");
-        const config = JSON.parse(content) as unknown;
+        const content = await fs.readFile(filePath);
+        const config = JSON.parse(content.toString()) as unknown;
         return validateConfig(config);
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
@@ -208,55 +207,55 @@ export function mergeConfig(
 ): ChunkyLintConfig {
     const mergedConfig: ChunkyLintConfig = { ...config };
 
-    if (cliOptions.cacheLocation !== undefined) {
+    if (isDefined(cliOptions.cacheLocation)) {
         mergedConfig.cacheLocation = cliOptions.cacheLocation;
     }
 
-    if (cliOptions.chunkLogs !== undefined) {
+    if (isDefined(cliOptions.chunkLogs)) {
         mergedConfig.chunkLogs = cliOptions.chunkLogs;
     }
 
-    if (cliOptions.concurrency !== undefined) {
+    if (isDefined(cliOptions.concurrency)) {
         mergedConfig.concurrency = cliOptions.concurrency;
     }
 
-    if (cliOptions.config !== undefined) {
+    if (isDefined(cliOptions.config)) {
         mergedConfig.config = cliOptions.config;
     }
 
-    if (cliOptions.continueOnError !== undefined) {
+    if (isDefined(cliOptions.continueOnError)) {
         mergedConfig.continueOnError = cliOptions.continueOnError;
     }
 
-    if (cliOptions.cwd !== undefined) {
+    if (isDefined(cliOptions.cwd)) {
         mergedConfig.cwd = cliOptions.cwd;
     }
 
-    if (cliOptions.fix !== undefined) {
+    if (isDefined(cliOptions.fix)) {
         mergedConfig.fix = cliOptions.fix;
     }
 
-    if (cliOptions.followSymlinks !== undefined) {
+    if (isDefined(cliOptions.followSymlinks)) {
         mergedConfig.followSymlinks = cliOptions.followSymlinks;
     }
 
-    if (cliOptions.ignore !== undefined) {
+    if (isDefined(cliOptions.ignore)) {
         mergedConfig.ignore = cliOptions.ignore;
     }
 
-    if (cliOptions.include !== undefined) {
+    if (isDefined(cliOptions.include)) {
         mergedConfig.include = cliOptions.include;
     }
 
-    if (cliOptions.quiet !== undefined) {
+    if (isDefined(cliOptions.quiet)) {
         mergedConfig.quiet = cliOptions.quiet;
     }
 
-    if (cliOptions.size !== undefined) {
+    if (isDefined(cliOptions.size)) {
         mergedConfig.size = cliOptions.size;
     }
 
-    if (cliOptions.verbose !== undefined) {
+    if (isDefined(cliOptions.verbose)) {
         mergedConfig.verbose = cliOptions.verbose;
     }
 

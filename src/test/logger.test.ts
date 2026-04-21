@@ -2,10 +2,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ConsoleLogger } from "../lib/logger.js";
 
-interface ConsoleSpy {
-    error: ReturnType<typeof vi.spyOn>;
-    log: ReturnType<typeof vi.spyOn>;
-    warn: ReturnType<typeof vi.spyOn>;
+interface StreamSpy {
+    stderr: ReturnType<typeof vi.spyOn>;
+    stdout: ReturnType<typeof vi.spyOn>;
 }
 
 // Mock chalk
@@ -21,44 +20,51 @@ vi.mock("chalk", () => ({
 
 describe("ConsoleLogger", () => {
     let logger: ConsoleLogger = new ConsoleLogger(false);
-    let consoleSpy: ConsoleSpy = {
-        error: vi.spyOn(console, "error").mockImplementation(() => {}),
-        log: vi.spyOn(console, "log").mockImplementation(() => {}),
-        warn: vi.spyOn(console, "warn").mockImplementation(() => {}),
+    let streamSpy: StreamSpy = {
+        stderr: vi
+            .spyOn(process.stderr, "write")
+            .mockImplementation(() => true),
+        stdout: vi
+            .spyOn(process.stdout, "write")
+            .mockImplementation(() => true),
     };
 
     beforeEach(() => {
         logger = new ConsoleLogger(false);
 
-        consoleSpy = {
-            error: vi.spyOn(console, "error").mockImplementation(() => {}),
-            log: vi.spyOn(console, "log").mockImplementation(() => {}),
-            warn: vi.spyOn(console, "warn").mockImplementation(() => {}),
+        streamSpy = {
+            stderr: vi
+                .spyOn(process.stderr, "write")
+                .mockImplementation(() => true),
+            stdout: vi
+                .spyOn(process.stdout, "write")
+                .mockImplementation(() => true),
         };
     });
 
     afterEach(() => {
-        consoleSpy.log.mockRestore();
-        consoleSpy.warn.mockRestore();
-        consoleSpy.error.mockRestore();
+        streamSpy.stdout.mockRestore();
+        streamSpy.stderr.mockRestore();
     });
 
     describe("info", () => {
         it("should log info messages", () => {
             logger.info("Test message");
-            expect(consoleSpy.log).toHaveBeenCalledWith(
-                "blue(ℹ)",
-                "Test message"
+            expect(streamSpy.stdout).toHaveBeenCalledWith(
+                expect.stringContaining("blue(ℹ) Test message")
             );
         });
 
         it("should log info messages with additional arguments", () => {
             logger.info("Test message", "arg1", "arg2");
-            expect(consoleSpy.log).toHaveBeenCalledWith(
-                "blue(ℹ)",
-                "Test message",
-                "arg1",
-                "arg2"
+            expect(streamSpy.stdout).toHaveBeenCalledWith(
+                expect.stringContaining("blue(ℹ) Test message")
+            );
+            expect(streamSpy.stdout).toHaveBeenCalledWith(
+                expect.stringContaining("arg1")
+            );
+            expect(streamSpy.stdout).toHaveBeenCalledWith(
+                expect.stringContaining("arg2")
             );
         });
     });
@@ -66,9 +72,8 @@ describe("ConsoleLogger", () => {
     describe("warn", () => {
         it("should log warning messages", () => {
             logger.warn("Warning message");
-            expect(consoleSpy.warn).toHaveBeenCalledWith(
-                "yellow(⚠)",
-                "Warning message"
+            expect(streamSpy.stderr).toHaveBeenCalledWith(
+                expect.stringContaining("yellow(⚠) Warning message")
             );
         });
     });
@@ -76,9 +81,8 @@ describe("ConsoleLogger", () => {
     describe("error", () => {
         it("should log error messages", () => {
             logger.error("Error message");
-            expect(consoleSpy.error).toHaveBeenCalledWith(
-                "red(✖)",
-                "Error message"
+            expect(streamSpy.stderr).toHaveBeenCalledWith(
+                expect.stringContaining("red(✖) Error message")
             );
         });
     });
@@ -90,17 +94,15 @@ describe("ConsoleLogger", () => {
 
         it("should log debug messages when verbose is enabled", () => {
             logger.debug("Debug message");
-            expect(consoleSpy.log).toHaveBeenCalledWith(
-                "gray(🐛)",
-                "Debug message"
+            expect(streamSpy.stdout).toHaveBeenCalledWith(
+                expect.stringContaining("gray(🐛) Debug message")
             );
         });
 
         it("should log verbose messages when verbose is enabled", () => {
             logger.verbose("Verbose message");
-            expect(consoleSpy.log).toHaveBeenCalledWith(
-                "gray(📝)",
-                "Verbose message"
+            expect(streamSpy.stdout).toHaveBeenCalledWith(
+                expect.stringContaining("gray(📝) Verbose message")
             );
         });
     });
@@ -108,12 +110,12 @@ describe("ConsoleLogger", () => {
     describe("non-verbose mode", () => {
         it("should not log debug messages when verbose is disabled", () => {
             logger.debug("Debug message");
-            expect(consoleSpy.log).not.toHaveBeenCalled();
+            expect(streamSpy.stdout).not.toHaveBeenCalled();
         });
 
         it("should not log verbose messages when verbose is disabled", () => {
             logger.verbose("Verbose message");
-            expect(consoleSpy.log).not.toHaveBeenCalled();
+            expect(streamSpy.stdout).not.toHaveBeenCalled();
         });
     });
 
@@ -121,16 +123,15 @@ describe("ConsoleLogger", () => {
         it("should change verbose mode", () => {
             logger.setVerbose(true);
             logger.debug("Debug message");
-            expect(consoleSpy.log).toHaveBeenCalledWith(
-                "gray(🐛)",
-                "Debug message"
+            expect(streamSpy.stdout).toHaveBeenCalledWith(
+                expect.stringContaining("gray(🐛) Debug message")
             );
 
-            consoleSpy.log.mockClear();
+            streamSpy.stdout.mockClear();
 
             logger.setVerbose(false);
             logger.debug("Debug message 2");
-            expect(consoleSpy.log).not.toHaveBeenCalled();
+            expect(streamSpy.stdout).not.toHaveBeenCalled();
         });
     });
 
@@ -141,8 +142,8 @@ describe("ConsoleLogger", () => {
             logger.info("Info message");
             logger.warn("Warn message");
 
-            expect(consoleSpy.log).not.toHaveBeenCalled();
-            expect(consoleSpy.warn).not.toHaveBeenCalled();
+            expect(streamSpy.stdout).not.toHaveBeenCalled();
+            expect(streamSpy.stderr).not.toHaveBeenCalled();
         });
 
         it("should still print errors when quiet is enabled", () => {
@@ -150,9 +151,8 @@ describe("ConsoleLogger", () => {
 
             logger.error("Error message");
 
-            expect(consoleSpy.error).toHaveBeenCalledWith(
-                "red(✖)",
-                "Error message"
+            expect(streamSpy.stderr).toHaveBeenCalledWith(
+                expect.stringContaining("red(✖) Error message")
             );
         });
 
@@ -162,17 +162,19 @@ describe("ConsoleLogger", () => {
             logger.debug("Debug message");
             logger.verbose("Verbose message");
 
-            expect(consoleSpy.log).not.toHaveBeenCalled();
+            expect(streamSpy.stdout).not.toHaveBeenCalled();
         });
 
         it("should toggle quiet mode via setQuiet", () => {
             logger.setQuiet(true);
             logger.info("suppressed");
-            expect(consoleSpy.log).not.toHaveBeenCalled();
+            expect(streamSpy.stdout).not.toHaveBeenCalled();
 
             logger.setQuiet(false);
             logger.info("visible");
-            expect(consoleSpy.log).toHaveBeenCalledWith("blue(ℹ)", "visible");
+            expect(streamSpy.stdout).toHaveBeenCalledWith(
+                expect.stringContaining("blue(ℹ) visible")
+            );
         });
     });
 });

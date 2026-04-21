@@ -2,7 +2,7 @@ import type { LiteralUnion } from "type-fest";
 
 import chalk from "chalk";
 import { Command } from "commander";
-import { arrayIncludes, arrayJoin, stringSplit } from "ts-extras";
+import { arrayIncludes, arrayJoin, isDefined, stringSplit } from "ts-extras";
 
 import type {
     ChunkerOptions,
@@ -36,15 +36,6 @@ type FixType = "directive" | "layout" | "problem" | "suggestion";
 type MaxWorkersInput = LiteralUnion<"auto" | "off", string>;
 type MaxWorkersOption = "auto" | "off" | number;
 
-function isFixType(value: string): value is FixType {
-    return (
-        value === "directive" ||
-        value === "layout" ||
-        value === "problem" ||
-        value === "suggestion"
-    );
-}
-
 function handleUncaughtException(error: Readonly<Error>): void {
     process.stderr.write(
         `${chalk.red("Uncaught Exception:")} ${error.message}\n`
@@ -54,6 +45,15 @@ function handleUncaughtException(error: Readonly<Error>): void {
 function handleUnhandledRejection(reason: unknown): void {
     process.stderr.write(
         `${chalk.red("Unhandled Promise Rejection:")} ${String(reason)}\n`
+    );
+}
+
+function isFixType(value: string): value is FixType {
+    return (
+        value === "directive" ||
+        value === "layout" ||
+        value === "problem" ||
+        value === "suggestion"
     );
 }
 
@@ -81,7 +81,7 @@ function parseFixTypes(value: string): FixType[] {
     const parsedTypes: FixType[] = [];
 
     for (const type of rawTypes) {
-        if (!isFixType(type) || arrayIncludes(validTypes, type) === false) {
+        if (!isFixType(type) || !arrayIncludes(validTypes, type)) {
             throw new Error(
                 `Invalid fix type: ${type}. Valid types: ${arrayJoin(validTypes, ", ")}`
             );
@@ -116,22 +116,16 @@ function parseWorkersOption(value: string): MaxWorkersInput {
     return value;
 }
 
-function toMaxWorkersOption(value: MaxWorkersInput): MaxWorkersOption {
-    if (value === "auto") {
-        return "auto";
-    }
-
-    if (value === "off") {
-        return "off";
-    }
-
-    return parseIntOption(value);
-}
-
 function removeProcessHandlers(): void {
     process.off("unhandledRejection", handleUnhandledRejection);
     process.off("uncaughtException", handleUncaughtException);
     process.off("exit", removeProcessHandlers);
+}
+
+function toMaxWorkersOption(value: MaxWorkersInput): MaxWorkersOption {
+    return value === "auto" || value === "off"
+        ? (value as "auto" | "off")
+        : parseIntOption(value);
 }
 
 function writeErrorLine(line: string): void {
@@ -215,51 +209,51 @@ program
 
         const cliConfig: Partial<ChunkyLintConfig> = {};
 
-        if (normalizedOptions.cacheLocation !== undefined) {
+        if (isDefined(normalizedOptions.cacheLocation)) {
             cliConfig.cacheLocation = normalizedOptions.cacheLocation;
         }
 
-        if (normalizedOptions.chunkLogs !== undefined) {
+        if (isDefined(normalizedOptions.chunkLogs)) {
             cliConfig.chunkLogs = normalizedOptions.chunkLogs;
         }
 
-        if (normalizedOptions.concurrency !== undefined) {
+        if (isDefined(normalizedOptions.concurrency)) {
             cliConfig.concurrency = normalizedOptions.concurrency;
         }
 
-        if (normalizedOptions.config !== undefined) {
+        if (isDefined(normalizedOptions.config)) {
             cliConfig.config = normalizedOptions.config;
         }
 
-        if (normalizedOptions.continueOnError !== undefined) {
+        if (isDefined(normalizedOptions.continueOnError)) {
             cliConfig.continueOnError = normalizedOptions.continueOnError;
         }
 
-        if (normalizedOptions.cwd !== undefined) {
+        if (isDefined(normalizedOptions.cwd)) {
             cliConfig.cwd = normalizedOptions.cwd;
         }
 
-        if (normalizedOptions.fix !== undefined) {
+        if (isDefined(normalizedOptions.fix)) {
             cliConfig.fix = normalizedOptions.fix;
         }
 
-        if (normalizedOptions.ignore !== undefined) {
+        if (isDefined(normalizedOptions.ignore)) {
             cliConfig.ignore = normalizedOptions.ignore;
         }
 
-        if (normalizedOptions.include !== undefined) {
+        if (isDefined(normalizedOptions.include)) {
             cliConfig.include = normalizedOptions.include;
         }
 
-        if (normalizedOptions.quiet !== undefined) {
+        if (isDefined(normalizedOptions.quiet)) {
             cliConfig.quiet = normalizedOptions.quiet;
         }
 
-        if (normalizedOptions.size !== undefined) {
+        if (isDefined(normalizedOptions.size)) {
             cliConfig.size = normalizedOptions.size;
         }
 
-        if (normalizedOptions.verbose !== undefined) {
+        if (isDefined(normalizedOptions.verbose)) {
             cliConfig.verbose = normalizedOptions.verbose;
         }
 
@@ -280,43 +274,43 @@ program
             size: finalConfig.size ?? 200,
         };
 
-        if (finalConfig.chunkLogs !== undefined) {
+        if (isDefined(finalConfig.chunkLogs)) {
             chunkerOptions.chunkLogs = finalConfig.chunkLogs;
         }
 
-        if (finalConfig.config !== undefined) {
+        if (isDefined(finalConfig.config)) {
             chunkerOptions.config = finalConfig.config;
         }
 
-        if (finalConfig.continueOnError !== undefined) {
+        if (isDefined(finalConfig.continueOnError)) {
             chunkerOptions.continueOnError = finalConfig.continueOnError;
         }
 
-        if (finalConfig.fix !== undefined) {
+        if (isDefined(finalConfig.fix)) {
             chunkerOptions.fix = finalConfig.fix;
         }
 
-        if (normalizedOptions.fixTypes !== undefined) {
+        if (isDefined(normalizedOptions.fixTypes)) {
             chunkerOptions.fixTypes = normalizedOptions.fixTypes;
         }
 
-        if (finalConfig.ignore !== undefined) {
+        if (isDefined(finalConfig.ignore)) {
             chunkerOptions.ignore = finalConfig.ignore;
         }
 
-        if (finalConfig.include !== undefined) {
+        if (isDefined(finalConfig.include)) {
             chunkerOptions.include = finalConfig.include;
         }
 
-        if (finalConfig.quiet !== undefined) {
+        if (isDefined(finalConfig.quiet)) {
             chunkerOptions.quiet = finalConfig.quiet;
         }
 
-        if (finalConfig.verbose !== undefined) {
+        if (isDefined(finalConfig.verbose)) {
             chunkerOptions.verbose = finalConfig.verbose;
         }
 
-        if (normalizedOptions.warnIgnored !== undefined) {
+        if (isDefined(normalizedOptions.warnIgnored)) {
             chunkerOptions.warnIgnored = normalizedOptions.warnIgnored;
         }
 
@@ -366,7 +360,9 @@ program
         }
     });
 
-void program.parseAsync().catch((error: unknown) => {
+try {
+    await program.parseAsync();
+} catch (error: unknown) {
     writeLine("");
     writeErrorLine(chalk.red("❌ ESLint chunker failed:"));
     writeErrorLine(error instanceof Error ? error.message : String(error));
@@ -376,4 +372,4 @@ void program.parseAsync().catch((error: unknown) => {
     }
 
     process.exitCode = 1;
-});
+}

@@ -1,6 +1,6 @@
-type ESLintModule = typeof import("eslint");
-
 import { describe, expect, it } from "vitest";
+
+import type { ESLintModule } from "../lib/eslint-loader.js";
 
 describe("eslintLoader", () => {
     it("loads eslint module when available", async () => {

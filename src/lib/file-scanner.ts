@@ -1,4 +1,5 @@
 import type { ESLint } from "eslint";
+import type { UnknownRecord } from "type-fest";
 
 import fg from "fast-glob";
 import { resolve } from "node:path";
@@ -199,12 +200,10 @@ export class FileScanner {
             if (
                 config !== null &&
                 typeof config === "object" &&
-                objectHasOwn(config, "ignorePatterns") === true
+                objectHasOwn(config, "ignorePatterns")
             ) {
                 const patterns =
-                    safeCastTo<Record<string, unknown>>(config)[
-                        "ignorePatterns"
-                    ];
+                    safeCastTo<UnknownRecord>(config)["ignorePatterns"];
                 if (Array.isArray(patterns)) {
                     ignorePatterns.push(
                         ...patterns.filter(

@@ -105,3 +105,4 @@ tsconfig.tsbuildinfo
 tsconfig.build.cjs.tsbuildinfo
 .chunky-cache-ts
 .cache/
+lint-report.json

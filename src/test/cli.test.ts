@@ -18,6 +18,7 @@ const mockProgram = {
     name: vi.fn().mockReturnThis(),
     option: vi.fn().mockReturnThis(),
     parse: vi.fn().mockReturnThis(),
+    parseAsync: vi.fn().mockImplementation(async () => {}),
     version: vi.fn().mockReturnThis(),
 };
 
@@ -58,6 +59,7 @@ describe("CLI binary", () => {
         mockProgram.option.mockReturnThis();
         mockProgram.action.mockReturnThis();
         mockProgram.parse.mockReturnThis();
+        mockProgram.parseAsync.mockImplementation(async () => {});
     });
 
     afterEach(() => {
@@ -74,7 +76,7 @@ describe("CLI binary", () => {
         expect(mockProgram.version).toHaveBeenCalled();
         expect(mockProgram.option).toHaveBeenCalledTimes(20); // All CLI options including quiet/verbose, chunk-log toggles, banner toggle, and --config-file
         expect(mockProgram.action).toHaveBeenCalled();
-        expect(mockProgram.parse).toHaveBeenCalled();
+        expect(mockProgram.parseAsync).toHaveBeenCalled();
     });
 
     it("should handle CLI option parsing", async () => {

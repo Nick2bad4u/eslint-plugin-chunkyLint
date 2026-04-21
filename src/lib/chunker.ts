@@ -150,7 +150,7 @@ export class ESLintChunker {
             const files =
                 await this.fileScanner.scanFiles(fileDiscoveryOptions);
 
-            if (isEmpty(files) === true) {
+            if (isEmpty(files)) {
                 this.logger.warn("No files found to lint");
                 return ESLintChunker.createStats(
                     [],
@@ -313,17 +313,17 @@ export class ESLintChunker {
             }
 
             const errorCount = results.reduce(
-                (sum: number, result: ESLintType.LintResult) =>
+                (sum: number, result: Readonly<ESLintType.LintResult>) =>
                     sum + result.errorCount,
                 0
             );
             const fixedCount = results.reduce(
-                (sum: number, result: ESLintType.LintResult) =>
+                (sum: number, result: Readonly<ESLintType.LintResult>) =>
                     sum + (typeof result.output === "string" ? 1 : 0),
                 0
             );
             const warningCount = results.reduce(
-                (sum: number, result: ESLintType.LintResult) =>
+                (sum: number, result: Readonly<ESLintType.LintResult>) =>
                     sum + result.warningCount,
                 0
             );

@@ -18,16 +18,15 @@ import type { ChunkyLintConfig } from "../types/chunky-lint-types.js";
 
 import { loadConfig, mergeConfig } from "../lib/config-loader.js";
 
-type NodeFsModule = typeof import("node:fs");
-
 type GlobalWithImport = typeof globalThis & {
     import?: (url: string) => Promisable<unknown>;
 };
+
 const globalWithImport = safeCastTo<GlobalWithImport>(globalThis);
 
 // Mock the fs module – expose real write/mkdir helpers for temp file tests
 vi.mock("node:fs", async () => {
-    const actualFs = await vi.importActual<NodeFsModule>("node:fs");
+    const actualFs = await vi.importActual<{ promises: typeof fs }>("node:fs");
     return {
         promises: {
             access: vi.fn(), // Spied in tests

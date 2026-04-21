@@ -1,4 +1,19 @@
-type ESLintModule = typeof import("eslint");
+import type { ESLint as ESLintClass } from "eslint";
+
+/**
+ * Shape of the dynamically-loaded `eslint` module used by this package.
+ *
+ * @remarks
+ * Defined as a structural interface (rather than `typeof import("eslint")`) to
+ * avoid inline `import()` type annotations that are disallowed by
+ * `@typescript-eslint/consistent-type-imports`.
+ */
+export type ESLintModule = {
+    readonly ESLint: {
+        readonly outputFixes: typeof ESLintClass.outputFixes;
+        new (options?: Readonly<ESLintClass.Options>): ESLintClass;
+    };
+};
 
 /**
  * Loads ESLint at runtime and provides a friendly error when the peer
