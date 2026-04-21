@@ -34,7 +34,130 @@ interface CliOptions {
 
 type FixType = "directive" | "layout" | "problem" | "suggestion";
 type MaxWorkersInput = LiteralUnion<"auto" | "off", string>;
-type MaxWorkersOption = "auto" | "off" | number;
+
+function buildCliConfig(
+    normalizedOptions: Readonly<CliOptions>
+): Partial<ChunkyLintConfig> {
+    const cliConfig: Partial<ChunkyLintConfig> = {};
+
+    if (isDefined(normalizedOptions.cacheLocation)) {
+        cliConfig.cacheLocation = normalizedOptions.cacheLocation;
+    }
+
+    if (isDefined(normalizedOptions.chunkLogs)) {
+        cliConfig.chunkLogs = normalizedOptions.chunkLogs;
+    }
+
+    if (isDefined(normalizedOptions.concurrency)) {
+        cliConfig.concurrency = normalizedOptions.concurrency;
+    }
+
+    if (isDefined(normalizedOptions.config)) {
+        cliConfig.config = normalizedOptions.config;
+    }
+
+    if (isDefined(normalizedOptions.continueOnError)) {
+        cliConfig.continueOnError = normalizedOptions.continueOnError;
+    }
+
+    if (isDefined(normalizedOptions.cwd)) {
+        cliConfig.cwd = normalizedOptions.cwd;
+    }
+
+    if (isDefined(normalizedOptions.fix)) {
+        cliConfig.fix = normalizedOptions.fix;
+    }
+
+    if (isDefined(normalizedOptions.ignore)) {
+        cliConfig.ignore = normalizedOptions.ignore;
+    }
+
+    if (isDefined(normalizedOptions.include)) {
+        cliConfig.include = normalizedOptions.include;
+    }
+
+    if (isDefined(normalizedOptions.quiet)) {
+        cliConfig.quiet = normalizedOptions.quiet;
+    }
+
+    if (isDefined(normalizedOptions.size)) {
+        cliConfig.size = normalizedOptions.size;
+    }
+
+    if (isDefined(normalizedOptions.verbose)) {
+        cliConfig.verbose = normalizedOptions.verbose;
+    }
+
+    return cliConfig;
+}
+
+function createChunkerOptions(
+    finalConfig: Readonly<Partial<ChunkyLintConfig>>,
+    normalizedOptions: Readonly<CliOptions>
+): ChunkerOptions {
+    const maxWorkers = normalizedOptions.maxWorkers,
+        resolvedMaxWorkers =
+            maxWorkers === "auto" || maxWorkers === "off"
+                ? (maxWorkers as "auto" | "off")
+                : (() => {
+                      const parsed = Number.parseInt(maxWorkers, 10);
+
+                      if (Number.isNaN(parsed) || parsed < 1) {
+                          throw new Error(`Invalid number: ${maxWorkers}`);
+                      }
+
+                      return parsed;
+                  })();
+    const chunkerOptions: ChunkerOptions = {
+        cacheLocation: finalConfig.cacheLocation ?? ".eslintcache",
+        concurrency: finalConfig.concurrency ?? 1,
+        cwd: finalConfig.cwd ?? process.cwd(),
+        maxWorkers: resolvedMaxWorkers,
+        size: finalConfig.size ?? 200,
+    };
+
+    if (isDefined(finalConfig.chunkLogs)) {
+        chunkerOptions.chunkLogs = finalConfig.chunkLogs;
+    }
+
+    if (isDefined(finalConfig.config)) {
+        chunkerOptions.config = finalConfig.config;
+    }
+
+    if (isDefined(finalConfig.continueOnError)) {
+        chunkerOptions.continueOnError = finalConfig.continueOnError;
+    }
+
+    if (isDefined(finalConfig.fix)) {
+        chunkerOptions.fix = finalConfig.fix;
+    }
+
+    if (isDefined(normalizedOptions.fixTypes)) {
+        chunkerOptions.fixTypes = normalizedOptions.fixTypes;
+    }
+
+    if (isDefined(finalConfig.ignore)) {
+        chunkerOptions.ignore = finalConfig.ignore;
+    }
+
+    if (isDefined(finalConfig.include)) {
+        chunkerOptions.include = finalConfig.include;
+    }
+
+    if (isDefined(finalConfig.quiet)) {
+        chunkerOptions.quiet = finalConfig.quiet;
+    }
+
+    if (isDefined(finalConfig.verbose)) {
+        chunkerOptions.verbose = finalConfig.verbose;
+    }
+
+    if (isDefined(normalizedOptions.warnIgnored)) {
+        chunkerOptions.warnIgnored = normalizedOptions.warnIgnored;
+    }
+
+    return chunkerOptions;
+}
 
 function handleUncaughtException(error: Readonly<Error>): void {
     process.stderr.write(
@@ -55,6 +178,30 @@ function isFixType(value: string): value is FixType {
         value === "problem" ||
         value === "suggestion"
     );
+}
+
+async function loadFileConfigWithWarning(
+    normalizedOptions: Readonly<CliOptions>
+): Promise<{
+    configWarning: null | string;
+    fileConfig: ChunkyLintConfig | null;
+}> {
+    try {
+        return {
+            configWarning: null,
+            fileConfig: await loadConfig(
+                normalizedOptions.configFile,
+                normalizedOptions.cwd ?? process.cwd()
+            ),
+        };
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+
+        return {
+            configWarning: `⚠️ Config file warning: ${message}`,
+            fileConfig: null,
+        };
+    }
 }
 
 /**
@@ -122,10 +269,27 @@ function removeProcessHandlers(): void {
     process.off("exit", removeProcessHandlers);
 }
 
-function toMaxWorkersOption(value: MaxWorkersInput): MaxWorkersOption {
-    return value === "auto" || value === "off"
-        ? (value as "auto" | "off")
-        : parseIntOption(value);
+function writeBanner(
+    normalizedOptions: Readonly<CliOptions>,
+    fileConfig: null | Readonly<ChunkyLintConfig>,
+    finalConfig: Readonly<Partial<ChunkyLintConfig>>
+): void {
+    const isQuiet = finalConfig.quiet === true;
+    const showBanner = normalizedOptions.banner !== false;
+
+    if (isQuiet || !showBanner) {
+        return;
+    }
+
+    process.stdout.write(`${chalk.blue("🚀 ESLint Chunker")}\n`);
+    process.stdout.write("\n");
+
+    if (fileConfig !== null && finalConfig.verbose === true) {
+        const loadedFrom =
+                normalizedOptions.configFile ?? "auto-detected config file",
+            message = chalk.gray(`📋 Loaded config from ${loadedFrom}`);
+        process.stdout.write(`${message}\n`);
+    }
 }
 
 function writeErrorLine(line: string): void {
@@ -192,144 +356,20 @@ program
     )
     .action(async (options: Readonly<CliOptions>) => {
         const normalizedOptions: Readonly<CliOptions> = options;
-
-        let configWarning: null | string = null;
-        let fileConfig: ChunkyLintConfig | null = null;
-
-        try {
-            fileConfig = await loadConfig(
-                normalizedOptions.configFile,
-                normalizedOptions.cwd ?? process.cwd()
-            );
-        } catch (error) {
-            const message =
-                error instanceof Error ? error.message : String(error);
-            configWarning = `⚠️ Config file warning: ${message}`;
-        }
-
-        const cliConfig: Partial<ChunkyLintConfig> = {};
-
-        if (isDefined(normalizedOptions.cacheLocation)) {
-            cliConfig.cacheLocation = normalizedOptions.cacheLocation;
-        }
-
-        if (isDefined(normalizedOptions.chunkLogs)) {
-            cliConfig.chunkLogs = normalizedOptions.chunkLogs;
-        }
-
-        if (isDefined(normalizedOptions.concurrency)) {
-            cliConfig.concurrency = normalizedOptions.concurrency;
-        }
-
-        if (isDefined(normalizedOptions.config)) {
-            cliConfig.config = normalizedOptions.config;
-        }
-
-        if (isDefined(normalizedOptions.continueOnError)) {
-            cliConfig.continueOnError = normalizedOptions.continueOnError;
-        }
-
-        if (isDefined(normalizedOptions.cwd)) {
-            cliConfig.cwd = normalizedOptions.cwd;
-        }
-
-        if (isDefined(normalizedOptions.fix)) {
-            cliConfig.fix = normalizedOptions.fix;
-        }
-
-        if (isDefined(normalizedOptions.ignore)) {
-            cliConfig.ignore = normalizedOptions.ignore;
-        }
-
-        if (isDefined(normalizedOptions.include)) {
-            cliConfig.include = normalizedOptions.include;
-        }
-
-        if (isDefined(normalizedOptions.quiet)) {
-            cliConfig.quiet = normalizedOptions.quiet;
-        }
-
-        if (isDefined(normalizedOptions.size)) {
-            cliConfig.size = normalizedOptions.size;
-        }
-
-        if (isDefined(normalizedOptions.verbose)) {
-            cliConfig.verbose = normalizedOptions.verbose;
-        }
+        const { configWarning, fileConfig } =
+            await loadFileConfigWithWarning(normalizedOptions);
+        const cliConfig = buildCliConfig(normalizedOptions);
 
         const finalConfig =
             fileConfig === null
                 ? cliConfig
                 : mergeConfig(fileConfig, cliConfig);
-
-        const maxWorkersOption: MaxWorkersOption = toMaxWorkersOption(
-            normalizedOptions.maxWorkers
+        const isQuiet = finalConfig.quiet === true;
+        const chunker = new ESLintChunker(
+            createChunkerOptions(finalConfig, normalizedOptions)
         );
 
-        const chunkerOptions: ChunkerOptions = {
-            cacheLocation: finalConfig.cacheLocation ?? ".eslintcache",
-            concurrency: finalConfig.concurrency ?? 1,
-            cwd: finalConfig.cwd ?? process.cwd(),
-            maxWorkers: maxWorkersOption,
-            size: finalConfig.size ?? 200,
-        };
-
-        if (isDefined(finalConfig.chunkLogs)) {
-            chunkerOptions.chunkLogs = finalConfig.chunkLogs;
-        }
-
-        if (isDefined(finalConfig.config)) {
-            chunkerOptions.config = finalConfig.config;
-        }
-
-        if (isDefined(finalConfig.continueOnError)) {
-            chunkerOptions.continueOnError = finalConfig.continueOnError;
-        }
-
-        if (isDefined(finalConfig.fix)) {
-            chunkerOptions.fix = finalConfig.fix;
-        }
-
-        if (isDefined(normalizedOptions.fixTypes)) {
-            chunkerOptions.fixTypes = normalizedOptions.fixTypes;
-        }
-
-        if (isDefined(finalConfig.ignore)) {
-            chunkerOptions.ignore = finalConfig.ignore;
-        }
-
-        if (isDefined(finalConfig.include)) {
-            chunkerOptions.include = finalConfig.include;
-        }
-
-        if (isDefined(finalConfig.quiet)) {
-            chunkerOptions.quiet = finalConfig.quiet;
-        }
-
-        if (isDefined(finalConfig.verbose)) {
-            chunkerOptions.verbose = finalConfig.verbose;
-        }
-
-        if (isDefined(normalizedOptions.warnIgnored)) {
-            chunkerOptions.warnIgnored = normalizedOptions.warnIgnored;
-        }
-
-        const chunker = new ESLintChunker(chunkerOptions);
-        const isQuiet = finalConfig.quiet === true;
-        const showBanner = normalizedOptions.banner !== false;
-
-        if (isQuiet || !showBanner) {
-            // no-op
-        } else {
-            writeLine(chalk.blue("🚀 ESLint Chunker"));
-            writeLine("");
-
-            if (fileConfig !== null && finalConfig.verbose === true) {
-                const loadedFrom =
-                    normalizedOptions.configFile ?? "auto-detected config file";
-                writeLine(chalk.gray(`📋 Loaded config from ${loadedFrom}`));
-            }
-        }
+        writeBanner(normalizedOptions, fileConfig, finalConfig);
 
         if (!isQuiet && configWarning !== null) {
             writeErrorLine(chalk.yellow(configWarning));

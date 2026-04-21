@@ -49,6 +49,42 @@ const normalizeNodeVersion = (version) => {
 };
 
 /**
+ * Resolve an explicit version override argument when the current argument is a
+ * supported `--version` form.
+ *
+ * @param {readonly string[]} argumentList
+ * @param {number} index
+ * @param {string} argument
+ *
+ * @returns {{ explicitVersion: string; nextIndex: number } | null}
+ */
+const resolveVersionOverride = (argumentList, index, argument) => {
+    if (argument === "--version") {
+        const nextArgument = argumentList[index + 1];
+
+        if (typeof nextArgument !== "string") {
+            throw new TypeError("Expected a version after --version.");
+        }
+
+        return {
+            explicitVersion: normalizeNodeVersion(nextArgument),
+            nextIndex: index + 1,
+        };
+    }
+
+    if (argument.startsWith("--version=")) {
+        return {
+            explicitVersion: normalizeNodeVersion(
+                argument.slice("--version=".length)
+            ),
+            nextIndex: index,
+        };
+    }
+
+    return null;
+};
+
+/**
  * Check whether an unknown value is a non-null object record.
  *
  * @param {unknown} value
@@ -91,6 +127,18 @@ const parseArguments = (argumentList) => {
             );
         }
 
+        const versionOverride = resolveVersionOverride(
+            argumentList,
+            index,
+            argument
+        );
+
+        if (versionOverride !== null) {
+            explicitVersion = versionOverride.explicitVersion;
+            index = versionOverride.nextIndex;
+            continue;
+        }
+
         if (argument === "--check") {
             checkOnly = true;
             continue;
@@ -98,25 +146,6 @@ const parseArguments = (argumentList) => {
 
         if (argument === "--check-current") {
             checkCurrent = true;
-            continue;
-        }
-
-        if (argument === "--version") {
-            const nextArgument = argumentList[index + 1];
-
-            if (typeof nextArgument !== "string") {
-                throw new TypeError("Expected a version after --version.");
-            }
-
-            explicitVersion = normalizeNodeVersion(nextArgument);
-            index += 1;
-            continue;
-        }
-
-        if (argument.startsWith("--version=")) {
-            explicitVersion = normalizeNodeVersion(
-                argument.slice("--version=".length)
-            );
             continue;
         }
 
