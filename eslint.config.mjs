@@ -277,6 +277,7 @@ export default defineConfig([
             "lint-report.json",
             "eslint-target-report.json",
             "lint-target-output.txt",
+            "knip.config.ts",
         ],
         name: "Global: Ignore Patterns **/**",
     },
