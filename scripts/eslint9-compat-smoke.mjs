@@ -11,11 +11,13 @@
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 
-import { ESLintChunker } from "../dist/chunky-lint.js";
-
 const require = createRequire(import.meta.url);
 const packageJsonPath = fileURLToPath(
     new URL("../package.json", import.meta.url)
+);
+const distEntryUrl = new URL("../dist/chunky-lint.js", import.meta.url);
+const compatConfigPath = fileURLToPath(
+    new URL("./eslint9-compat.fixture.config.mjs", import.meta.url)
 );
 
 /**
@@ -116,8 +118,12 @@ const resolveInstalledEslintVersion = () => {
  * @returns {Promise<void>}
  */
 const runChunkerSmoke = async () => {
+    const { ESLintChunker } =
+        // eslint-disable-next-line no-unsanitized/method -- Controlled file:// URL resolved from static relative path.
+        await import(distEntryUrl.href);
     const chunker = new ESLintChunker({
         chunkLogs: false,
+        config: compatConfigPath,
         continueOnError: false,
         cwd: fileURLToPath(new URL("..", import.meta.url)),
         include: ["scripts/eslint9-compat-smoke.mjs"],

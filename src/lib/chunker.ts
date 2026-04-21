@@ -4,7 +4,7 @@ import type { Except } from "type-fest";
 import chalk from "chalk";
 import { performance } from "node:perf_hooks";
 import pLimit from "p-limit";
-import { isEmpty } from "ts-extras";
+import { isEmpty, isInteger, safeCastTo, stringSplit } from "ts-extras";
 
 import type {
     ChunkerOptions,
@@ -76,6 +76,24 @@ export class ESLintChunker {
             totalFiles,
             totalTime,
         };
+    }
+
+    private static getEslintMajorVersion(ESLint: unknown): null | number {
+        if (typeof ESLint !== "object" || ESLint === null) {
+            return null;
+        }
+
+        const version =
+            safeCastTo<Readonly<{ version?: unknown }>>(ESLint).version;
+
+        if (typeof version !== "string") {
+            return null;
+        }
+
+        const [majorSegment] = stringSplit(version, ".");
+        const major = Number.parseInt(majorSegment ?? "", 10);
+
+        return isInteger(major) ? major : null;
     }
 
     private static normalizeOptions(
@@ -287,16 +305,21 @@ export class ESLintChunker {
 
         try {
             const { ESLint } = await loadESLintModule();
+            const eslintMajorVersion =
+                ESLintChunker.getEslintMajorVersion(ESLint);
 
             const eslintOptions: ESLintType.Options = {
                 cache: true,
                 cacheLocation: this.options.cacheLocation,
-                concurrency: this.options.maxWorkers,
                 cwd: this.options.cwd,
                 fix: this.options.fix,
                 fixTypes: this.options.fixTypes,
                 warnIgnored: this.options.warnIgnored,
             };
+
+            if (eslintMajorVersion !== null && eslintMajorVersion >= 10) {
+                eslintOptions.concurrency = this.options.maxWorkers;
+            }
 
             if (
                 typeof this.options.config === "string" &&
