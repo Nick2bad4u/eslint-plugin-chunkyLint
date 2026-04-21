@@ -1,12 +1,7 @@
- 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { FileScanner } from "../lib/fileScanner.js";
+import { FileScanner } from "../lib/file-scanner.js";
 import { ConsoleLogger } from "../lib/logger.js";
-
- 
-
- 
 
 // Mock fast-glob and eslint at the module level
 vi.mock("fast-glob", () => ({
@@ -36,7 +31,8 @@ vi.mock("eslint", () => ({
 }));
 
 describe("FileScanner", () => {
-    let fileScanner: FileScanner, mockLogger: ConsoleLogger;
+    let mockLogger: ConsoleLogger = new ConsoleLogger(false);
+    let fileScanner: FileScanner = new FileScanner(mockLogger);
 
     beforeEach(() => {
         mockLogger = new ConsoleLogger(false);

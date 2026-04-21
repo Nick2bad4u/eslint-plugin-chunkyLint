@@ -8,6 +8,7 @@
         "isolatedDeclarations": false,
         "noCheck": false,
         "noEmit": true,
+        "rootDir": ".",
         "tsBuildInfoFile": "./.cache/tsbuildinfo/tsconfig.eslint.tsbuildinfo"
     },
     "exclude": [
@@ -22,6 +23,7 @@
     ],
     "extends": "./tsconfig.json",
     "include": [
+        "*.js",
         "*.cjs",
         "*.d.cts",
         "*.d.ts",
@@ -30,6 +32,8 @@
         "*.ts",
         "*.mts",
         "*.cts",
+        ".chunkylint.ts",
+        "eslint.simple.config.js",
         ".remarkrc.mjs",
         "benchmarks/**/*.mjs",
         "benchmarks/**/*.ts",

@@ -15,7 +15,7 @@ import { safeCastTo } from "ts-extras";
  */
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { loadConfig } from "../lib/configLoader.js";
+import { loadConfig } from "../lib/config-loader.js";
 
 describe("ConfigLoader Coverage Tests - Missing Lines", () => {
     const projectDir = path.join(process.cwd(), "temp-config-coverage");
@@ -59,7 +59,7 @@ describe("ConfigLoader Coverage Tests - Missing Lines", () => {
         await fs.writeFile(
             file,
             "export default async () => ({ size: 100, verbose: true });\n",
-            "utf-8"
+            "utf8"
         );
         const result = await loadConfig(undefined, projectDir);
         expect(result).toMatchObject({ size: 100, verbose: true });
@@ -70,7 +70,7 @@ describe("ConfigLoader Coverage Tests - Missing Lines", () => {
         await fs.writeFile(
             file,
             "export default () => { throw new Error('Config function failed'); };\n",
-            "utf-8"
+            "utf8"
         );
         await expect(loadConfig("throwConfig.js", projectDir)).rejects.toThrow(
             /Config function failed/u
@@ -82,7 +82,7 @@ describe("ConfigLoader Coverage Tests - Missing Lines", () => {
         await fs.writeFile(
             file,
             "export default async () => ({ size: 'invalid' });\n",
-            "utf-8"
+            "utf8"
         );
         await expect(
             loadConfig("invalidConfig.mjs", projectDir)
@@ -94,7 +94,7 @@ describe("ConfigLoader Coverage Tests - Missing Lines", () => {
         await fs.writeFile(
             file,
             "export default { size: 50, concurrency: 2 };\n",
-            "utf-8"
+            "utf8"
         );
         const result = await loadConfig("objectConfig.mjs", projectDir);
         expect(result).toMatchObject({ concurrency: 2, size: 50 });
@@ -107,7 +107,7 @@ describe("ConfigLoader Coverage Tests - Missing Lines", () => {
         await fs.writeFile(
             file,
             "export const size = 75; export const verbose = false;\n",
-            "utf-8"
+            "utf8"
         );
         const result = await loadConfig("namedOnly.js", projectDir);
         expect(result).toMatchObject({ size: 75, verbose: false });

@@ -1,13 +1,13 @@
-import type { ChunkyLintConfig } from "./src/types/index.js";
+import type { ChunkyLintConfig } from "./src/types/chunky-lint-types.js";
 
 const config: ChunkyLintConfig = {
-    size: 3,
-    concurrency: 1,
-    verbose: true,
     cacheLocation: ".chunky-cache-ts",
-    fix: false,
+    concurrency: 1,
     continueOnError: true,
+    fix: false,
     include: ["src/**/*.ts"],
+    size: 3,
+    verbose: true,
 };
 
 export default config;

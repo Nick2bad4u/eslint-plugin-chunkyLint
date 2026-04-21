@@ -6,7 +6,7 @@ A modern, TypeScript-based NPM package that provides auto-chunking ESLint functi
 
 ### 🏗️ Architecture
 
-```
+```text
 src/
 ├── index.ts              # Main export file with public API
 ├── bin/

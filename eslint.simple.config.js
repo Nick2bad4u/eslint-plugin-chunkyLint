@@ -1,4 +1,4 @@
-export default [
+const simpleConfig = [
     {
         files: ["src/**/*.ts"],
         languageOptions: {
@@ -6,8 +6,8 @@ export default [
             sourceType: "module",
         },
         rules: {
-            "no-unused-vars": "warn",
             "no-console": "off",
+            "no-unused-vars": "warn",
             "prefer-const": "error",
         },
     },
@@ -19,3 +19,5 @@ export default [
         ],
     },
 ];
+
+export default simpleConfig;

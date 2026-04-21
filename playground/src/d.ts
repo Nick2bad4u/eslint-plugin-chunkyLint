@@ -1,5 +1,7 @@
 // Fixable issues: unused variable, double semicolons, console style
+/**
+ * Return a demo numeric value.
+ */
 export const demo = () => {
-    const value = 1;
-    return value;
+    return 1;
 };

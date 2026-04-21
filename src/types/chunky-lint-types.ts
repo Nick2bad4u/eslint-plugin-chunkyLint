@@ -1,3 +1,5 @@
+import type { UnknownArray } from "type-fest";
+
 /**
  * Configuration options for the ESLint chunker
  */
@@ -128,11 +130,11 @@ export interface FileDiscoveryOptions {
  * Logger interface
  */
 export interface Logger {
-    debug: (message: string, ...args: unknown[]) => void;
-    error: (message: string, ...args: unknown[]) => void;
-    info: (message: string, ...args: unknown[]) => void;
-    verbose: (message: string, ...args: unknown[]) => void;
-    warn: (message: string, ...args: unknown[]) => void;
+    debug: (message: string, ...args: Readonly<UnknownArray>) => void;
+    error: (message: string, ...args: Readonly<UnknownArray>) => void;
+    info: (message: string, ...args: Readonly<UnknownArray>) => void;
+    verbose: (message: string, ...args: Readonly<UnknownArray>) => void;
+    warn: (message: string, ...args: Readonly<UnknownArray>) => void;
 }
 
 /**
@@ -141,5 +143,5 @@ export interface Logger {
 export type ProgressCallback = (
     processed: number,
     total: number,
-    currentChunk: ChunkResult | null
+    currentChunk: null | Readonly<ChunkResult>
 ) => void;

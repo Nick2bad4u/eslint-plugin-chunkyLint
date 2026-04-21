@@ -1,3 +1,5 @@
+import type { UnknownArray } from "type-fest";
+
 import { describe, expect, it } from "vitest";
 
 import type {
@@ -7,7 +9,7 @@ import type {
     FileDiscoveryOptions,
     Logger,
     ProgressCallback,
-} from "../types/index.js";
+} from "../types/chunky-lint-types.js";
 
 describe("Type definitions", () => {
     it("should define ChunkerOptions interface correctly", () => {
@@ -103,18 +105,17 @@ describe("Type definitions", () => {
     });
 
     it("should define ProgressCallback type correctly", () => {
-        const callback: ProgressCallback = (
+        const progressHandler: ProgressCallback = (
             processed: number,
             total: number,
-            currentChunk: ChunkResult | null
+            currentChunk: null | Readonly<ChunkResult>
         ) => {
-            console.log(
-                `Progress: ${processed.toString()}/${total.toString()}`,
-                currentChunk
-            );
+            expect(processed).toBeGreaterThan(0);
+            expect(total).toBeGreaterThan(0);
+            expect(currentChunk === null || currentChunk.success).toBeDefined();
         };
 
-        expect(typeof callback).toBe("function");
+        expect(typeof progressHandler).toBe("function");
         // Test that the callback can be called with expected parameters
         const mockChunk: ChunkResult = {
             chunkIndex: 1,
@@ -126,29 +127,29 @@ describe("Type definitions", () => {
             warningCount: 0,
         };
         expect(() => {
-            callback(1, 10, mockChunk);
+            progressHandler(1, 10, mockChunk);
         }).not.toThrow();
         expect(() => {
-            callback(1, 10, null);
+            progressHandler(1, 10, null);
         }).not.toThrow();
     });
 
     it("should define Logger interface correctly", () => {
         const logger: Logger = {
-            debug: (...args: unknown[]) => {
-                console.debug(...args);
+            debug: (...args: Readonly<UnknownArray>) => {
+                expect(args).toBeDefined();
             },
-            error: (...args: unknown[]) => {
-                console.error(...args);
+            error: (...args: Readonly<UnknownArray>) => {
+                expect(args).toBeDefined();
             },
-            info: (...args: unknown[]) => {
-                console.log(...args);
+            info: (...args: Readonly<UnknownArray>) => {
+                expect(args).toBeDefined();
             },
-            verbose: (...args: unknown[]) => {
-                console.log(...args);
+            verbose: (...args: Readonly<UnknownArray>) => {
+                expect(args).toBeDefined();
             },
-            warn: (...args: unknown[]) => {
-                console.warn(...args);
+            warn: (...args: Readonly<UnknownArray>) => {
+                expect(args).toBeDefined();
             },
         };
 

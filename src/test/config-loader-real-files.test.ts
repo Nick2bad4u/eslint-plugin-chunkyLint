@@ -1,9 +1,8 @@
- 
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { loadConfig } from "../lib/configLoader.js";
+import { loadConfig } from "../lib/config-loader.js";
 
 describe("ConfigLoader Real File Tests - targeting uncovered lines", () => {
     const configPaths: string[] = [],
@@ -16,7 +15,7 @@ describe("ConfigLoader Real File Tests - targeting uncovered lines", () => {
 
     afterEach(async () => {
         // Clean up config files
-        /* eslint-disable no-await-in-loop */
+        /* eslint-disable no-await-in-loop -- Cleanup intentionally awaits each unlink to keep deterministic teardown order. */
         for (const configPath of configPaths) {
             try {
                 await fs.unlink(configPath);
@@ -24,7 +23,7 @@ describe("ConfigLoader Real File Tests - targeting uncovered lines", () => {
                 // Ignore cleanup errors
             }
         }
-        /* eslint-enable no-await-in-loop */
+        /* eslint-enable no-await-in-loop -- Re-enable loop await linting after deterministic cleanup block. */
         configPaths.length = 0;
 
         try {

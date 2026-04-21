@@ -4,7 +4,7 @@ import ESLintChunker, {
     ConsoleLogger,
     FileScanner,
     ESLintChunker as NamedESLintChunker,
-} from "../index.js";
+} from "../chunky-lint.js";
 
 describe("Index exports", () => {
     it("should export ESLintChunker as default export", () => {

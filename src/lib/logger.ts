@@ -1,57 +1,91 @@
-import chalk from "chalk";
+import type { UnknownArray } from "type-fest";
 
-import type { Logger } from "../types/index.js";
+import chalk from "chalk";
+import { formatWithOptions } from "node:util";
+
+import type { Logger } from "../types/chunky-lint-types.js";
 
 /**
  * Console logger implementation with colored output
  */
 export class ConsoleLogger implements Logger {
-     
     private quietMode: boolean;
     private verboseMode: boolean;
 
-    constructor(verbose = false, quiet = false) {
+    public constructor(verbose = false, quiet = false) {
         this.verboseMode = verbose;
         this.quietMode = quiet;
     }
 
-    debug(message: string, ...args: unknown[]): void {
+    private static writeStderr(
+        prefix: string,
+        message: string,
+        ...args: Readonly<UnknownArray>
+    ): void {
+        process.stderr.write(
+            `${formatWithOptions({ colors: true }, "%s %s", prefix, message)}${
+                args.length > 0
+                    ? ` ${formatWithOptions({ colors: true }, "%o", args)}`
+                    : ""
+            }\n`
+        );
+    }
+
+    private static writeStdout(
+        prefix: string,
+        message: string,
+        ...args: Readonly<UnknownArray>
+    ): void {
+        process.stdout.write(
+            `${formatWithOptions({ colors: true }, "%s %s", prefix, message)}${
+                args.length > 0
+                    ? ` ${formatWithOptions({ colors: true }, "%o", args)}`
+                    : ""
+            }\n`
+        );
+    }
+
+    public debug(message: string, ...args: Readonly<UnknownArray>): void {
         if (this.verboseMode && !this.quietMode) {
-            console.log(chalk.gray("🐛"), message, ...args);
+            ConsoleLogger.writeStdout(chalk.gray("🐛"), message, ...args);
         }
     }
 
-    error(message: string, ...args: unknown[]): void {
-        console.error(chalk.red("✖"), message, ...args);
+    public error(message: string, ...args: Readonly<UnknownArray>): void {
+        if (this.quietMode) {
+            // Keep errors visible even in quiet mode.
+        }
+
+        ConsoleLogger.writeStderr(chalk.red("✖"), message, ...args);
     }
 
-    info(message: string, ...args: unknown[]): void {
+    public info(message: string, ...args: Readonly<UnknownArray>): void {
         if (this.quietMode) {
             return;
         }
 
-        console.log(chalk.blue("ℹ"), message, ...args);
+        ConsoleLogger.writeStdout(chalk.blue("ℹ"), message, ...args);
     }
 
-    setQuiet(quiet: boolean): void {
+    public setQuiet(quiet: boolean): void {
         this.quietMode = quiet;
     }
 
-    setVerbose(verbose: boolean): void {
+    public setVerbose(verbose: boolean): void {
         this.verboseMode = verbose;
     }
 
-    verbose(message: string, ...args: unknown[]): void {
+    public verbose(message: string, ...args: Readonly<UnknownArray>): void {
         if (this.verboseMode && !this.quietMode) {
-            console.log(chalk.gray("📝"), message, ...args);
+            ConsoleLogger.writeStdout(chalk.gray("📝"), message, ...args);
         }
     }
 
-    warn(message: string, ...args: unknown[]): void {
+    public warn(message: string, ...args: Readonly<UnknownArray>): void {
         if (this.quietMode) {
             return;
         }
 
-        console.warn(chalk.yellow("⚠"), message, ...args);
+        ConsoleLogger.writeStderr(chalk.yellow("⚠"), message, ...args);
     }
 }

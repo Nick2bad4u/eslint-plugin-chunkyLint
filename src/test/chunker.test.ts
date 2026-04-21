@@ -1,12 +1,6 @@
- 
- 
-/* eslint-disable no-shadow */
- 
-
- 
 import type { ESLint as ESLintClass } from "eslint";
 
-import { arrayAt, safeCastTo  } from "ts-extras";
+import { arrayAt, isFinite, safeCastTo } from "ts-extras";
 import {
     beforeEach,
     describe,
@@ -16,7 +10,10 @@ import {
     vi,
 } from "vitest";
 
-import type { ChunkerOptions, ChunkResult } from "../types/index.js";
+import type {
+    ChunkerOptions,
+    ChunkResult,
+} from "../types/chunky-lint-types.js";
 
 import { ESLintChunker } from "../lib/chunker.js";
 
@@ -28,7 +25,10 @@ import { ESLintChunker } from "../lib/chunker.js";
 
 // Helper type to spy on private method in tests without using 'any'
 type ESLintChunkerWithPrivate = ESLintChunker & {
-    processChunk: (files: string[], chunkIndex: number) => Promise<ChunkResult>;
+    processChunk: (
+        files: readonly string[],
+        chunkIndex: number
+    ) => Promise<ChunkResult>;
 };
 
 // Mock ESLint module
@@ -50,7 +50,7 @@ vi.mock("eslint", () => ({
             ]),
         };
     }),
-    outputFixes: vi.fn().mockResolvedValue(),
+    outputFixes: vi.fn().mockResolvedValue(undefined),
 }));
 
 // Mock fast-glob
@@ -64,15 +64,25 @@ vi.mock("fast-glob", () => ({
 
 // Mock p-limit
 vi.mock("p-limit", () => ({
-    default: vi.fn().mockImplementation(
-        (_concurrency: number) =>
-            (fn: () => Promise<unknown>): Promise<unknown> =>
-                fn()
-    ),
+    default: vi
+        .fn()
+        .mockImplementation(
+            (concurrency: number) =>
+                (fn: () => Promise<unknown>): Promise<unknown> => {
+                    isFinite(concurrency);
+                    return fn();
+                }
+        ),
 }));
 
 describe("ESLintChunker", () => {
-    let chunker: ESLintChunker, mockOptions: ChunkerOptions;
+    let mockOptions: ChunkerOptions = {
+        continueOnError: false,
+        cwd: "/test",
+        size: 2,
+        verbose: false,
+    };
+    let defaultChunker: ESLintChunker = new ESLintChunker(mockOptions);
 
     beforeEach(() => {
         mockOptions = {
@@ -81,13 +91,13 @@ describe("ESLintChunker", () => {
             size: 2,
             verbose: false,
         };
-        chunker = new ESLintChunker(mockOptions);
+        defaultChunker = new ESLintChunker(mockOptions);
     });
 
     describe("constructor", () => {
         it("should create chunker with default options", () => {
-            const defaultChunker = new ESLintChunker();
-            expect(defaultChunker).toBeInstanceOf(ESLintChunker);
+            const freshChunker = new ESLintChunker();
+            expect(freshChunker).toBeInstanceOf(ESLintChunker);
         });
 
         it("should create chunker with custom options", () => {
@@ -102,7 +112,7 @@ describe("ESLintChunker", () => {
 
     describe("run", () => {
         it("should process files and return statistics", async () => {
-            const stats = await chunker.run();
+            const stats = await defaultChunker.run();
 
             expect(stats).toMatchObject({
                 failedChunks: expect.any(Number),
@@ -118,7 +128,7 @@ describe("ESLintChunker", () => {
         it("should call progress callback if provided", async () => {
             const progressCallback = vi.fn();
 
-            await chunker.run(progressCallback);
+            await defaultChunker.run(progressCallback);
 
             expect(progressCallback).toHaveBeenCalled();
         });
@@ -126,10 +136,11 @@ describe("ESLintChunker", () => {
         it("should not set overrideConfigFile by default", async () => {
             const { ESLint } = await import("eslint");
 
-            await chunker.run();
+            await defaultChunker.run();
 
-            const lastCallOptions = safeCastTo<| undefined
-                | { overrideConfigFile?: boolean | string }>(arrayAt(vi.mocked(ESLint).mock.calls, -1)?.[0]);
+            const lastCallOptions = safeCastTo<
+                undefined | { overrideConfigFile?: unknown }
+            >(arrayAt(vi.mocked(ESLint).mock.calls, -1)?.[0]);
 
             expect(lastCallOptions?.overrideConfigFile).toBeUndefined();
         });
@@ -141,8 +152,9 @@ describe("ESLintChunker", () => {
 
             await chunkerWithConfig.run();
 
-            const lastCallOptions = safeCastTo<| undefined
-                | { overrideConfigFile?: boolean | string }>(arrayAt(vi.mocked(ESLint).mock.calls, -1)?.[0]);
+            const lastCallOptions = safeCastTo<
+                undefined | { overrideConfigFile?: unknown }
+            >(arrayAt(vi.mocked(ESLint).mock.calls, -1)?.[0]);
 
             expect(lastCallOptions?.overrideConfigFile).toBe(configPath);
         });
@@ -152,7 +164,7 @@ describe("ESLintChunker", () => {
             const { default: fg } = await import("fast-glob");
             vi.mocked(fg).mockResolvedValueOnce([]);
 
-            const stats = await chunker.run();
+            const stats = await defaultChunker.run();
 
             expect(stats.totalFiles).toBe(0);
             expect(stats.totalChunks).toBe(0);
@@ -190,7 +202,7 @@ describe("ESLintChunker", () => {
                 } as unknown as ESLintClass;
             });
 
-            const stats = await chunker.run();
+            const stats = await defaultChunker.run();
             expect(stats.filesWithErrors).toBeGreaterThan(0);
         });
 
@@ -226,7 +238,7 @@ describe("ESLintChunker", () => {
                 } as unknown as ESLintClass;
             });
 
-            const stats = await chunker.run();
+            const stats = await defaultChunker.run();
             expect(stats.filesWithWarnings).toBeGreaterThan(0);
         });
 
@@ -306,10 +318,9 @@ describe("ESLintChunker", () => {
             const chunker = new ESLintChunker({ continueOnError: false });
 
             // Directly override the processChunk method to throw
-            const processChunkSpy = safeCastTo<MockInstance<ESLintChunkerWithPrivate["processChunk"]>>(vi.spyOn(
-                chunker as ESLintChunkerWithPrivate,
-                "processChunk"
-            ));
+            const processChunkSpy = safeCastTo<
+                MockInstance<ESLintChunkerWithPrivate["processChunk"]>
+            >(vi.spyOn(chunker as ESLintChunkerWithPrivate, "processChunk"));
 
             processChunkSpy.mockRejectedValue(
                 new Error("ESLint critical failure")
@@ -338,7 +349,7 @@ describe("ESLintChunker", () => {
             vi.mocked(fg).mockResolvedValue(["test1.ts"]);
 
             // Create a proper mock for ESLint.outputFixes
-            const mockOutputFixes = vi.fn().mockResolvedValue(),
+            const mockOutputFixes = vi.fn().mockResolvedValue(undefined),
                 { ESLint } = await import("eslint");
             vi.mocked(ESLint).outputFixes = mockOutputFixes;
 
@@ -413,13 +424,17 @@ describe("ESLintChunker", () => {
             await chunker.run();
 
             // Check that warning count was logged (the second parameter should contain the message)
-            const warningCall = consoleLogSpy.mock.calls.find(
-                (call) =>
-                    call.length >= 2 &&
-                    call[1] &&
-                    typeof call[1] === "string" &&
-                    call[1].includes("1 warnings")
-            );
+            const warningCall = consoleLogSpy.mock.calls.find((call) => {
+                if (call.length < 2) {
+                    return false;
+                }
+
+                const maybeMessage = call[1];
+                return (
+                    typeof maybeMessage === "string" &&
+                    maybeMessage.includes("1 warnings")
+                );
+            });
             expect(warningCall).toBeDefined();
 
             consoleLogSpy.mockRestore();
@@ -456,13 +471,17 @@ describe("ESLintChunker", () => {
             await chunker.run();
 
             // Check that fixed count was logged in summary (the second parameter should contain the message)
-            const fixedCall = consoleLogSpy.mock.calls.find(
-                (call) =>
-                    call.length >= 2 &&
-                    call[1] &&
-                    typeof call[1] === "string" &&
-                    call[1].includes("🔧 Files fixed: 1")
-            );
+            const fixedCall = consoleLogSpy.mock.calls.find((call) => {
+                if (call.length < 2) {
+                    return false;
+                }
+
+                const maybeMessage = call[1];
+                return (
+                    typeof maybeMessage === "string" &&
+                    maybeMessage.includes("🔧 Files fixed: 1")
+                );
+            });
             expect(fixedCall).toBeDefined();
 
             consoleLogSpy.mockRestore();
@@ -491,13 +510,17 @@ describe("ESLintChunker", () => {
             await chunker.run();
 
             // Check that failed chunks count was logged in summary (the second parameter should contain the message)
-            const failedCall = consoleLogSpy.mock.calls.find(
-                (call) =>
-                    call.length >= 2 &&
-                    call[1] &&
-                    typeof call[1] === "string" &&
-                    call[1].includes("💥 Failed chunks:")
-            );
+            const failedCall = consoleLogSpy.mock.calls.find((call) => {
+                if (call.length < 2) {
+                    return false;
+                }
+
+                const maybeMessage = call[1];
+                return (
+                    typeof maybeMessage === "string" &&
+                    maybeMessage.includes("💥 Failed chunks:")
+                );
+            });
             expect(failedCall).toBeDefined();
 
             consoleLogSpy.mockRestore();
@@ -507,10 +530,14 @@ describe("ESLintChunker", () => {
             // Test the chunks[i] ?? [] fallback on lines 114-117
             const chunker = new ESLintChunker({ continueOnError: true }),
                 // Override the processChunk method to simulate failure
-                processChunkSpy = safeCastTo<MockInstance<ESLintChunkerWithPrivate["processChunk"]>>(vi.spyOn(
-                    chunker as ESLintChunkerWithPrivate,
-                    "processChunk"
-                ));
+                processChunkSpy = safeCastTo<
+                    MockInstance<ESLintChunkerWithPrivate["processChunk"]>
+                >(
+                    vi.spyOn(
+                        chunker as ESLintChunkerWithPrivate,
+                        "processChunk"
+                    )
+                );
 
             // Use mockRejectedValue since processChunk is async
             processChunkSpy.mockRejectedValue(
@@ -528,10 +555,14 @@ describe("ESLintChunker", () => {
         it("should handle non-Error objects in processChunk error handling", async () => {
             // Test the error instanceof Error ternary on line 201
             const chunker = new ESLintChunker({ continueOnError: true }),
-                processChunkSpy = safeCastTo<MockInstance<ESLintChunkerWithPrivate["processChunk"]>>(vi.spyOn(
-                    chunker as ESLintChunkerWithPrivate,
-                    "processChunk"
-                ));
+                processChunkSpy = safeCastTo<
+                    MockInstance<ESLintChunkerWithPrivate["processChunk"]>
+                >(
+                    vi.spyOn(
+                        chunker as ESLintChunkerWithPrivate,
+                        "processChunk"
+                    )
+                );
 
             // Throw a non-Error object to test the String(error) branch
             processChunkSpy.mockRejectedValue("String error, not Error object");

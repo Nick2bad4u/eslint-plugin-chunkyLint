@@ -1,6 +1,5 @@
+import { arrayFirst } from "ts-extras";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-
- 
 
 // Mock chalk to prevent console output issues
 vi.mock("chalk", () => ({
@@ -82,10 +81,11 @@ describe("CLI binary", () => {
         await import("../bin/eslint-chunker.js");
 
         // Verify all expected options are defined
-         
+
         const optionCalls = mockProgram.option.mock.calls,
-            options = optionCalls.map((call) => call[0]);
-         
+            options = optionCalls
+                .map((call) => arrayFirst(call))
+                .filter((value): value is string => typeof value === "string");
 
         expect(options).toContain("-c, --config <path>");
         expect(options).toContain("-s, --size <number>");

@@ -1,13 +1,15 @@
- 
 import type { ESLint } from "eslint";
 
 import fg from "fast-glob";
 import { resolve } from "node:path";
-import { safeCastTo } from "ts-extras";
+import { objectHasOwn, safeCastTo } from "ts-extras";
 
-import type { FileDiscoveryOptions, Logger } from "../types/index.js";
+import type {
+    FileDiscoveryOptions,
+    Logger,
+} from "../types/chunky-lint-types.js";
 
-import { loadESLintModule } from "./eslintLoader.js";
+import { loadESLintModule } from "./eslint-loader.js";
 
 /**
  * Default include patterns for common file extensions
@@ -40,14 +42,14 @@ const /**
 export class FileScanner {
     private readonly logger: Logger;
 
-    constructor(logger: Logger) {
+    public constructor(logger: Readonly<Logger>) {
         this.logger = logger;
     }
 
     /**
      * Split files into chunks
      */
-    chunkFiles(files: string[], chunkSize: number): string[][] {
+    public chunkFiles(files: readonly string[], chunkSize: number): string[][] {
         if (chunkSize <= 0) {
             throw new Error("Chunk size must be greater than 0");
         }
@@ -67,7 +69,9 @@ export class FileScanner {
     /**
      * Scan and discover files to lint
      */
-    async scanFiles(options: FileDiscoveryOptions = {}): Promise<string[]> {
+    public async scanFiles(
+        options: Readonly<FileDiscoveryOptions> = {}
+    ): Promise<string[]> {
         const {
             config,
             cwd = process.cwd(),
@@ -94,7 +98,7 @@ export class FileScanner {
             };
 
             // Only set overrideConfigFile if config is explicitly provided
-            if (config) {
+            if (typeof config === "string" && config.length > 0) {
                 eslintOptions.overrideConfigFile = config;
             }
 
@@ -106,7 +110,7 @@ export class FileScanner {
                 ),
                 // Combine ignore patterns
                 allIgnorePatterns = [...ignore, ...eslintIgnorePatterns].filter(
-                    Boolean
+                    (pattern): pattern is string => pattern.length > 0
                 );
 
             this.logger.debug("Combined ignore patterns:", allIgnorePatterns);
@@ -147,11 +151,11 @@ export class FileScanner {
      */
     private async filterIgnoredFiles(
         eslint: ESLint,
-        files: string[]
+        files: readonly string[]
     ): Promise<string[]> {
         const filteredFiles: string[] = [];
 
-        /* eslint-disable no-await-in-loop */
+        /* eslint-disable no-await-in-loop -- ESLint ignore checks must be awaited per file to preserve deterministic behavior. */
         for (const file of files) {
             try {
                 const isIgnored = await eslint.isPathIgnored(file);
@@ -169,7 +173,7 @@ export class FileScanner {
                 filteredFiles.push(file);
             }
         }
-        /* eslint-enable no-await-in-loop */
+        /* eslint-enable no-await-in-loop -- Restore the default rule after sequential ignore checks. */
 
         return filteredFiles;
     }
@@ -184,23 +188,30 @@ export class FileScanner {
         try {
             // Try to get ignore patterns from a sample file
             const sampleFile = resolve(cwd, "package.json");
-             
-            const config = await eslint.calculateConfigForFile(sampleFile);
-             
+
+            const config: unknown =
+                await eslint.calculateConfigForFile(sampleFile);
 
             // Extract ignore patterns from config
             const ignorePatterns: string[] = [];
 
             // Check for ignorePatterns in config
             if (
-                config &&
+                config !== null &&
                 typeof config === "object" &&
-                "ignorePatterns" in config
+                objectHasOwn(config, "ignorePatterns") === true
             ) {
-                const patterns = (safeCastTo<{ ignorePatterns?: string[] }>(config))
-                    .ignorePatterns;
+                const patterns =
+                    safeCastTo<Record<string, unknown>>(config)[
+                        "ignorePatterns"
+                    ];
                 if (Array.isArray(patterns)) {
-                    ignorePatterns.push(...patterns);
+                    ignorePatterns.push(
+                        ...patterns.filter(
+                            (pattern): pattern is string =>
+                                typeof pattern === "string"
+                        )
+                    );
                 }
             }
 

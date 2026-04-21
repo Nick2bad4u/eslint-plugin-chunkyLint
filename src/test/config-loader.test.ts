@@ -1,6 +1,8 @@
+import type { Promisable } from "type-fest";
+
 import { promises as fs } from "node:fs";
 import { join, resolve } from "node:path";
-import { arrayJoin, safeCastTo  } from "ts-extras";
+import { arrayJoin, safeCastTo } from "ts-extras";
 import {
     afterAll,
     afterEach,
@@ -12,17 +14,20 @@ import {
     vi,
 } from "vitest";
 
-import type { ChunkyLintConfig } from "../types/index.js";
+import type { ChunkyLintConfig } from "../types/chunky-lint-types.js";
 
-import { loadConfig, mergeConfig } from "../lib/configLoader.js";
+import { loadConfig, mergeConfig } from "../lib/config-loader.js";
 
- 
- 
-/* eslint-disable @typescript-eslint/no-explicit-any */
+type NodeFsModule = typeof import("node:fs");
+
+type GlobalWithImport = typeof globalThis & {
+    import?: (url: string) => Promisable<unknown>;
+};
+const globalWithImport = safeCastTo<GlobalWithImport>(globalThis);
 
 // Mock the fs module – expose real write/mkdir helpers for temp file tests
 vi.mock("node:fs", async () => {
-    const actualFs = await vi.importActual<typeof import("node:fs")>("node:fs");
+    const actualFs = await vi.importActual<NodeFsModule>("node:fs");
     return {
         promises: {
             access: vi.fn(), // Spied in tests
@@ -44,7 +49,7 @@ vi.mock("node:path", () => ({
 }));
 
 // Store original import
-const originalImport = (globalThis as any).import;
+const originalImport = globalWithImport.import;
 
 describe("ConfigLoader", () => {
     const mockFs = vi.mocked(fs),
@@ -59,11 +64,19 @@ describe("ConfigLoader", () => {
         mockResolve.mockImplementation((...parts) => arrayJoin(parts, "/"));
 
         // Reset global import
-        (globalThis as any).import = originalImport;
+        if (typeof originalImport === "function") {
+            globalWithImport.import = originalImport;
+        } else {
+            delete globalWithImport.import;
+        }
     });
 
     afterEach(() => {
-        (globalThis as any).import = originalImport;
+        if (typeof originalImport === "function") {
+            globalWithImport.import = originalImport;
+        } else {
+            delete globalWithImport.import;
+        }
     });
 
     describe("mergeConfig", () => {
@@ -121,11 +134,11 @@ describe("ConfigLoader", () => {
 
         it("should handle all config properties", () => {
             const cliConfig: Partial<ChunkyLintConfig> = {
-                    cacheLocation: "/tmp/cache",
+                    cacheLocation: "/project/cache",
                     concurrency: 4,
                     config: "/custom/eslint.config.js",
                     continueOnError: true,
-                    cwd: "/custom/dir",
+                    cwd: "/project/workspace",
                     fix: true,
                     ignore: ["**/dist/**"],
                     include: ["**/*.tsx"],
@@ -135,11 +148,11 @@ describe("ConfigLoader", () => {
                 result = mergeConfig(baseConfig, cliConfig);
 
             expect(result).toEqual({
-                cacheLocation: "/tmp/cache",
+                cacheLocation: "/project/cache",
                 concurrency: 4,
                 config: "/custom/eslint.config.js",
                 continueOnError: true,
-                cwd: "/custom/dir",
+                cwd: "/project/workspace",
                 fix: true,
                 ignore: ["**/dist/**"],
                 include: ["**/*.tsx"],
@@ -287,7 +300,7 @@ describe("ConfigLoader", () => {
             ): Promise<string> => {
                 await fs.mkdir(tmpRoot, { recursive: true });
                 const full = resolve(tmpRoot, fileName);
-                await fs.writeFile(full, contents, "utf-8");
+                await fs.writeFile(full, contents, "utf8");
                 return full;
             };
 
@@ -302,9 +315,9 @@ describe("ConfigLoader", () => {
                             const full = resolve(dir, entry);
                             try {
                                 const st = await fs.stat(full);
-                                await (st.isDirectory() ? removeDir(full) : fs
-                                        .unlink(full)
-                                        .catch(() => {}));
+                                await (st.isDirectory()
+                                    ? removeDir(full)
+                                    : fs.unlink(full).catch(() => {}));
                             } catch {
                                 // Ignore
                             }
@@ -376,16 +389,20 @@ describe("ConfigLoader", () => {
                     ".chunkylint.ts",
                     "export default { size: 12, verbose: true };\n"
                 );
-                const original = (globalThis as any).import;
-                (globalThis as any).import = vi.fn((url: string) => {
+                const original = globalWithImport.import;
+                globalWithImport.import = vi.fn((url: string) => {
                     if (url.includes(".chunkylint.ts")) {
                         return { default: { size: 12, verbose: true } };
                     }
-                    return (safeCastTo<(u: string) => unknown>(original))(url);
+
+                    if (typeof original === "function") {
+                        return original(url);
+                    }
+
+                    throw new Error("global import is unavailable");
                 });
                 const result = await loadConfig(".chunkylint.ts", tmpRoot);
                 expect(result).toEqual({ size: 12, verbose: true });
-                (globalThis as any).import = original;
             });
         });
 
@@ -425,7 +442,7 @@ describe("ConfigLoader", () => {
                 mockResolve.mockReturnValue("/project/.chunkylint.js");
                 mockFs.access.mockResolvedValue();
 
-                (globalThis as any).import = vi
+                globalWithImport.import = vi
                     .fn()
                     .mockRejectedValue(new Error("Module not found"));
 

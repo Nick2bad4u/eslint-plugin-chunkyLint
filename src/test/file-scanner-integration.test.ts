@@ -1,12 +1,6 @@
- 
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ConsoleLogger } from "../lib/logger.js";
-
- 
-
- 
- 
 
 /**
  * Integration tests focused on achieving specific code coverage for
@@ -102,7 +96,7 @@ vi.mock("fast-glob", () => ({
 }));
 
 describe("FileScanner Coverage Integration Tests", () => {
-    let mockLogger: ConsoleLogger;
+    let mockLogger: ConsoleLogger = new ConsoleLogger(true);
 
     beforeEach(() => {
         vi.clearAllMocks();
@@ -125,7 +119,7 @@ describe("FileScanner Coverage Integration Tests", () => {
 
         // Re-import to get fresh module with new mock
         const { FileScanner: FreshFileScanner } =
-                await import("../lib/fileScanner.js"),
+                await import("../lib/file-scanner.js"),
             freshScanner = new FreshFileScanner(mockLogger),
             files = await freshScanner.scanFiles({
                 config: "./eslint.config.js",
@@ -147,7 +141,7 @@ describe("FileScanner Coverage Integration Tests", () => {
 
         // Re-import to get fresh module with new mock
         const { FileScanner: FreshFileScanner } =
-                await import("../lib/fileScanner.js"),
+                await import("../lib/file-scanner.js"),
             freshScanner = new FreshFileScanner(mockLogger),
             files = await freshScanner.scanFiles({
                 config: "./eslint.config.js",
@@ -169,7 +163,7 @@ describe("FileScanner Coverage Integration Tests", () => {
 
         // Re-import to get fresh module with new mock
         const { FileScanner: FreshFileScanner } =
-                await import("../lib/fileScanner.js"),
+                await import("../lib/file-scanner.js"),
             freshScanner = new FreshFileScanner(mockLogger),
             files = await freshScanner.scanFiles({
                 config: "./eslint.config.js",
@@ -191,7 +185,7 @@ describe("FileScanner Coverage Integration Tests", () => {
 
         // Re-import to get fresh module with new mock
         const { FileScanner: FreshFileScanner } =
-                await import("../lib/fileScanner.js"),
+                await import("../lib/file-scanner.js"),
             freshScanner = new FreshFileScanner(mockLogger),
             files = await freshScanner.scanFiles({
                 config: "./eslint.config.js",

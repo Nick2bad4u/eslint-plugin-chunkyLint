@@ -2,17 +2,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ConsoleLogger } from "../lib/logger.js";
 
- 
-
- 
-
 // Mock fast-glob at the top level (the actual module used by FileScanner)
 vi.mock("fast-glob", () => ({
     default: vi.fn(),
 }));
 
 describe("FileScanner Coverage Tests - Targeting Specific Uncovered Lines", () => {
-    let mockLogger: ConsoleLogger;
+    let mockLogger: ConsoleLogger = new ConsoleLogger(true);
 
     beforeEach(async () => {
         vi.clearAllMocks();
@@ -62,7 +58,7 @@ describe("FileScanner Coverage Tests - Targeting Specific Uncovered Lines", () =
         }));
 
         // Import FileScanner after mocking
-        const { FileScanner } = await import("../lib/fileScanner.js"),
+        const { FileScanner } = await import("../lib/file-scanner.js"),
             scanner = new FileScanner(mockLogger),
             // This should trigger the catch block in getESLintIgnorePatterns and log the debug message (lines 147-152)
             result = await scanner.scanFiles({
@@ -106,7 +102,7 @@ describe("FileScanner Coverage Tests - Targeting Specific Uncovered Lines", () =
         }));
 
         // Import FileScanner after mocking
-        const { FileScanner } = await import("../lib/fileScanner.js"),
+        const { FileScanner } = await import("../lib/file-scanner.js"),
             scanner = new FileScanner(mockLogger),
             // This should trigger the verbose logging when a file is ignored (lines 170-171)
             result = await scanner.scanFiles({
@@ -150,7 +146,7 @@ describe("FileScanner Coverage Tests - Targeting Specific Uncovered Lines", () =
         }));
 
         // Import FileScanner after mocking
-        const { FileScanner } = await import("../lib/fileScanner.js"),
+        const { FileScanner } = await import("../lib/file-scanner.js"),
             scanner = new FileScanner(mockLogger),
             // This should trigger the debug logging when isPathIgnored fails (lines 174-179)
             result = await scanner.scanFiles({
@@ -192,7 +188,7 @@ describe("FileScanner Coverage Tests - Targeting Specific Uncovered Lines", () =
         }));
 
         // Import FileScanner after mocking
-        const { FileScanner } = await import("../lib/fileScanner.js"),
+        const { FileScanner } = await import("../lib/file-scanner.js"),
             scanner = new FileScanner(mockLogger),
             // This should trigger processing of ignore patterns (lines 138-143)
             result = await scanner.scanFiles({

@@ -1,0 +1,77 @@
+# yaml-language-server: $schema=https://www.schemastore.org/codecov.json
+
+codecov:
+    branch: main
+    max_report_age: "24h"
+    notify:
+        wait_for_ci: true
+    require_ci_to_pass: true
+    slug: Nick2bad4u/eslint-plugin-chunkyLint
+
+comment:
+    behavior: default
+    layout: "header, diff, flags, files, footer"
+    require_base: false
+    require_changes: false
+    require_head: true
+
+component_management:
+    default_rules:
+        statuses:
+            - target: auto
+              threshold: 2%
+              type: project
+    individual_components:
+        - component_id: entry
+          name: "Entry point"
+          paths:
+              - src/index.ts
+
+        - component_id: cli
+          name: "CLI binary"
+          paths:
+              - src/bin/**
+          statuses:
+              - target: auto
+                threshold: 2%
+                type: project
+              - target: 80%
+                threshold: 3%
+                type: patch
+
+        - component_id: lib
+          name: "Core library"
+          paths:
+              - src/lib/**
+          statuses:
+              - target: auto
+                threshold: 2%
+                type: project
+              - target: 80%
+                threshold: 3%
+                type: patch
+
+coverage:
+    precision: 2
+    range: "60...100"
+    round: down
+    status:
+        patch:
+            default:
+                target: 80%
+                threshold: 2%
+        project:
+            default:
+                target: auto
+                threshold: 2%
+
+ignore:
+    - "benchmarks/**"
+    - "coverage/**"
+    - "dist/**"
+    - "docs/**"
+    - "scripts/**"
+    - "src/test/**"
+    - "**/*.d.ts"
+    - "**/*.test.*"
+    - "**/*.spec.*"

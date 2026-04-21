@@ -1,14 +1,16 @@
-
-/* eslint-disable @typescript-eslint/unbound-method */
+import type { LiteralUnion } from "type-fest";
 
 import chalk from "chalk";
 import { Command } from "commander";
-import { arrayJoin, safeCastTo, stringSplit   } from "ts-extras";
+import { arrayIncludes, arrayJoin, stringSplit } from "ts-extras";
 
-import type { ChunkerOptions, ChunkyLintConfig } from "../types/index.js";
+import type {
+    ChunkerOptions,
+    ChunkyLintConfig,
+} from "../types/chunky-lint-types.js";
 
 import { ESLintChunker } from "../lib/chunker.js";
-import { loadConfig, mergeConfig } from "../lib/configLoader.js";
+import { loadConfig, mergeConfig } from "../lib/config-loader.js";
 
 interface CliOptions {
     banner?: boolean;
@@ -20,15 +22,129 @@ interface CliOptions {
     continueOnError?: boolean;
     cwd?: string;
     fix?: boolean;
-    fixTypes?: ("directive" | "layout" | "problem" | "suggestion")[];
+    fixTypes?: FixType[];
     ignore?: string[];
     include?: string[];
-    maxWorkers: "auto" | "off" | number;
+    maxWorkers: MaxWorkersInput;
     quiet?: boolean;
     size?: number;
     verbose?: boolean;
     warnIgnored?: boolean;
 }
+
+type FixType = "directive" | "layout" | "problem" | "suggestion";
+type MaxWorkersInput = LiteralUnion<"auto" | "off", string>;
+type MaxWorkersOption = "auto" | "off" | number;
+
+function isFixType(value: string): value is FixType {
+    return (
+        value === "directive" ||
+        value === "layout" ||
+        value === "problem" ||
+        value === "suggestion"
+    );
+}
+
+function handleUncaughtException(error: Readonly<Error>): void {
+    process.stderr.write(
+        `${chalk.red("Uncaught Exception:")} ${error.message}\n`
+    );
+}
+
+function handleUnhandledRejection(reason: unknown): void {
+    process.stderr.write(
+        `${chalk.red("Unhandled Promise Rejection:")} ${String(reason)}\n`
+    );
+}
+
+/**
+ * Parse array option (comma-separated values).
+ */
+function parseArrayOption(value: string): string[] {
+    return stringSplit(value, ",")
+        .map((item) => item.trim())
+        .filter((item) => item.length > 0);
+}
+
+/**
+ * Parse fix types option.
+ */
+function parseFixTypes(value: string): FixType[] {
+    const rawTypes = stringSplit(value, ",").map((type) => type.trim());
+    const validTypes = [
+        "directive",
+        "problem",
+        "suggestion",
+        "layout",
+    ] as const;
+
+    const parsedTypes: FixType[] = [];
+
+    for (const type of rawTypes) {
+        if (!isFixType(type) || arrayIncludes(validTypes, type) === false) {
+            throw new Error(
+                `Invalid fix type: ${type}. Valid types: ${arrayJoin(validTypes, ", ")}`
+            );
+        }
+        parsedTypes.push(type);
+    }
+
+    return parsedTypes;
+}
+
+/**
+ * Parse integer option.
+ */
+function parseIntOption(value: string): number {
+    const parsed = Number.parseInt(value, 10);
+    if (Number.isNaN(parsed) || parsed < 1) {
+        throw new Error(`Invalid number: ${value}`);
+    }
+
+    return parsed;
+}
+
+/**
+ * Parse workers option.
+ */
+function parseWorkersOption(value: string): MaxWorkersInput {
+    if (value === "auto" || value === "off") {
+        return value;
+    }
+
+    parseIntOption(value);
+    return value;
+}
+
+function toMaxWorkersOption(value: MaxWorkersInput): MaxWorkersOption {
+    if (value === "auto") {
+        return "auto";
+    }
+
+    if (value === "off") {
+        return "off";
+    }
+
+    return parseIntOption(value);
+}
+
+function removeProcessHandlers(): void {
+    process.off("unhandledRejection", handleUnhandledRejection);
+    process.off("uncaughtException", handleUncaughtException);
+    process.off("exit", removeProcessHandlers);
+}
+
+function writeErrorLine(line: string): void {
+    process.stderr.write(`${line}\n`);
+}
+
+function writeLine(line: string): void {
+    process.stdout.write(`${line}\n`);
+}
+
+process.on("unhandledRejection", handleUnhandledRejection);
+process.on("uncaughtException", handleUncaughtException);
+process.on("exit", removeProcessHandlers);
 
 const program = new Command();
 
@@ -79,18 +195,17 @@ program
         "--concurrency <n>",
         "Number of chunks to process concurrently",
         parseIntOption
-    );
+    )
+    .action(async (options: Readonly<CliOptions>) => {
+        const normalizedOptions: Readonly<CliOptions> = options;
 
-program.action(async (options: CliOptions) => {
-    try {
-        // Load config file if available
-        let configWarning: null | string = null,
-            fileConfig: ChunkyLintConfig | null = null;
+        let configWarning: null | string = null;
+        let fileConfig: ChunkyLintConfig | null = null;
 
         try {
             fileConfig = await loadConfig(
-                options.configFile,
-                options.cwd ?? process.cwd()
+                normalizedOptions.configFile,
+                normalizedOptions.cwd ?? process.cwd()
             );
         } catch (error) {
             const message =
@@ -98,222 +213,167 @@ program.action(async (options: CliOptions) => {
             configWarning = `⚠️ Config file warning: ${message}`;
         }
 
-        // Convert CLI options to config format (only include explicitly provided values)
         const cliConfig: Partial<ChunkyLintConfig> = {};
 
-        if (options.config !== undefined) cliConfig.config = options.config;
-        if (options.size !== undefined) cliConfig.size = options.size;
-        if (options.cacheLocation !== undefined)
-            cliConfig.cacheLocation = options.cacheLocation;
-        if (options.continueOnError !== undefined)
-            cliConfig.continueOnError = options.continueOnError;
-        if (options.fix !== undefined) cliConfig.fix = options.fix;
-        if (options.include !== undefined) cliConfig.include = options.include;
-        if (options.ignore !== undefined) cliConfig.ignore = options.ignore;
-        if (options.cwd !== undefined) cliConfig.cwd = options.cwd;
-        if (options.verbose !== undefined) cliConfig.verbose = options.verbose;
-        if (options.quiet !== undefined) cliConfig.quiet = options.quiet;
-        if (options.chunkLogs !== undefined)
-            cliConfig.chunkLogs = options.chunkLogs;
-        if (options.concurrency !== undefined)
-            cliConfig.concurrency = options.concurrency;
+        if (normalizedOptions.cacheLocation !== undefined) {
+            cliConfig.cacheLocation = normalizedOptions.cacheLocation;
+        }
 
-        // Merge file config with CLI options (CLI takes precedence)
-        const finalConfig = fileConfig
-            ? mergeConfig(fileConfig, cliConfig)
-            : cliConfig;
+        if (normalizedOptions.chunkLogs !== undefined) {
+            cliConfig.chunkLogs = normalizedOptions.chunkLogs;
+        }
 
-        const // Convert to ChunkerOptions with proper defaults
-            chunkerOptions: ChunkerOptions = {
-                cacheLocation: finalConfig.cacheLocation ?? ".eslintcache",
-                concurrency: finalConfig.concurrency ?? 1,
-                cwd: finalConfig.cwd ?? process.cwd(),
-                maxWorkers: options.maxWorkers ?? "off",
-                size: finalConfig.size ?? 200,
-            },
-            isQuiet = finalConfig.quiet ?? false;
+        if (normalizedOptions.concurrency !== undefined) {
+            cliConfig.concurrency = normalizedOptions.concurrency;
+        }
 
-        if (finalConfig.config !== undefined) {
-            chunkerOptions.config = finalConfig.config;
+        if (normalizedOptions.config !== undefined) {
+            cliConfig.config = normalizedOptions.config;
         }
-        if (finalConfig.continueOnError !== undefined) {
-            chunkerOptions.continueOnError = finalConfig.continueOnError;
+
+        if (normalizedOptions.continueOnError !== undefined) {
+            cliConfig.continueOnError = normalizedOptions.continueOnError;
         }
-        if (finalConfig.fix !== undefined) {
-            chunkerOptions.fix = finalConfig.fix;
+
+        if (normalizedOptions.cwd !== undefined) {
+            cliConfig.cwd = normalizedOptions.cwd;
         }
-        if (options.fixTypes !== undefined) {
-            chunkerOptions.fixTypes = options.fixTypes;
+
+        if (normalizedOptions.fix !== undefined) {
+            cliConfig.fix = normalizedOptions.fix;
         }
-        if (options.warnIgnored !== undefined) {
-            chunkerOptions.warnIgnored = options.warnIgnored;
+
+        if (normalizedOptions.ignore !== undefined) {
+            cliConfig.ignore = normalizedOptions.ignore;
         }
-        if (finalConfig.include !== undefined) {
-            chunkerOptions.include = finalConfig.include;
+
+        if (normalizedOptions.include !== undefined) {
+            cliConfig.include = normalizedOptions.include;
         }
-        if (finalConfig.ignore !== undefined) {
-            chunkerOptions.ignore = finalConfig.ignore;
+
+        if (normalizedOptions.quiet !== undefined) {
+            cliConfig.quiet = normalizedOptions.quiet;
         }
-        if (finalConfig.verbose !== undefined) {
-            chunkerOptions.verbose = finalConfig.verbose;
+
+        if (normalizedOptions.size !== undefined) {
+            cliConfig.size = normalizedOptions.size;
         }
-        if (finalConfig.quiet !== undefined) {
-            chunkerOptions.quiet = finalConfig.quiet;
+
+        if (normalizedOptions.verbose !== undefined) {
+            cliConfig.verbose = normalizedOptions.verbose;
         }
+
+        const finalConfig =
+            fileConfig === null
+                ? cliConfig
+                : mergeConfig(fileConfig, cliConfig);
+
+        const maxWorkersOption: MaxWorkersOption = toMaxWorkersOption(
+            normalizedOptions.maxWorkers
+        );
+
+        const chunkerOptions: ChunkerOptions = {
+            cacheLocation: finalConfig.cacheLocation ?? ".eslintcache",
+            concurrency: finalConfig.concurrency ?? 1,
+            cwd: finalConfig.cwd ?? process.cwd(),
+            maxWorkers: maxWorkersOption,
+            size: finalConfig.size ?? 200,
+        };
+
         if (finalConfig.chunkLogs !== undefined) {
             chunkerOptions.chunkLogs = finalConfig.chunkLogs;
         }
 
+        if (finalConfig.config !== undefined) {
+            chunkerOptions.config = finalConfig.config;
+        }
+
+        if (finalConfig.continueOnError !== undefined) {
+            chunkerOptions.continueOnError = finalConfig.continueOnError;
+        }
+
+        if (finalConfig.fix !== undefined) {
+            chunkerOptions.fix = finalConfig.fix;
+        }
+
+        if (normalizedOptions.fixTypes !== undefined) {
+            chunkerOptions.fixTypes = normalizedOptions.fixTypes;
+        }
+
+        if (finalConfig.ignore !== undefined) {
+            chunkerOptions.ignore = finalConfig.ignore;
+        }
+
+        if (finalConfig.include !== undefined) {
+            chunkerOptions.include = finalConfig.include;
+        }
+
+        if (finalConfig.quiet !== undefined) {
+            chunkerOptions.quiet = finalConfig.quiet;
+        }
+
+        if (finalConfig.verbose !== undefined) {
+            chunkerOptions.verbose = finalConfig.verbose;
+        }
+
+        if (normalizedOptions.warnIgnored !== undefined) {
+            chunkerOptions.warnIgnored = normalizedOptions.warnIgnored;
+        }
+
         const chunker = new ESLintChunker(chunkerOptions);
+        const isQuiet = finalConfig.quiet === true;
+        const showBanner = normalizedOptions.banner !== false;
 
-        if (!isQuiet) {
-            if (options.banner !== false) {
-                console.log(chalk.blue("🚀 ESLint Chunker"));
-                console.log();
+        if (isQuiet || !showBanner) {
+            // no-op
+        } else {
+            writeLine(chalk.blue("🚀 ESLint Chunker"));
+            writeLine("");
 
-                if (fileConfig && finalConfig.verbose) {
-                    console.log(
-                        chalk.gray(
-                            `📋 Loaded config from ${options.configFile ?? "auto-detected config file"}`
-                        )
-                    );
-                }
-            }
-
-            if (configWarning) {
-                console.warn(chalk.yellow(configWarning));
+            if (fileConfig !== null && finalConfig.verbose === true) {
+                const loadedFrom =
+                    normalizedOptions.configFile ?? "auto-detected config file";
+                writeLine(chalk.gray(`📋 Loaded config from ${loadedFrom}`));
             }
         }
 
-        const stats = isQuiet
-            ? await runWithStdoutSuppressed(async () => chunker.run())
-            : await chunker.run();
+        if (!isQuiet && configWarning !== null) {
+            writeErrorLine(chalk.yellow(configWarning));
+        }
+
+        const stats = await chunker.run();
 
         if (isQuiet) {
             const avgTimePerFile =
-                    stats.totalFiles > 0
-                        ? Math.round(stats.totalTime / stats.totalFiles)
-                        : 0,
-                totalTime = Math.round(stats.totalTime);
+                stats.totalFiles > 0
+                    ? Math.round(stats.totalTime / stats.totalFiles)
+                    : 0;
+            const totalTime = Math.round(stats.totalTime);
 
-            console.log(
-                chalk.blue("ℹ"),
-                chalk.green("✅ ESLint chunker completed!")
+            writeLine(
+                `${chalk.blue("ℹ")} ${chalk.green("✅ ESLint chunker completed!")}`
             );
-            console.log(
-                chalk.blue("ℹ"),
-                `📊 Processed ${stats.totalFiles} files in ${stats.totalChunks} chunks`
+            writeLine(
+                `${chalk.blue("ℹ")} 📊 Processed ${stats.totalFiles.toString()} files in ${stats.totalChunks.toString()} chunks`
             );
-            console.log(
-                chalk.blue("ℹ"),
-                `⏱️  Total time: ${totalTime}ms (~${avgTimePerFile}ms per file)`
+            writeLine(
+                `${chalk.blue("ℹ")} ⏱️  Total time: ${totalTime.toString()}ms (~${avgTimePerFile.toString()}ms per file)`
             );
         }
 
-        // Exit with error code if there were failures
         if (stats.failedChunks > 0) {
-            process.exit(1);
+            throw new Error(`${stats.failedChunks.toString()} chunks failed`);
         }
-    } catch (error) {
-        console.error();
-        console.error(chalk.red("❌ ESLint chunker failed:"));
-        console.error(error instanceof Error ? error.message : String(error));
+    });
 
-        if (options.verbose && error instanceof Error && error.stack) {
-            console.error(chalk.gray(error.stack));
-        }
+void program.parseAsync().catch((error: unknown) => {
+    writeLine("");
+    writeErrorLine(chalk.red("❌ ESLint chunker failed:"));
+    writeErrorLine(error instanceof Error ? error.message : String(error));
 
-        process.exit(1);
+    if (error instanceof Error && typeof error.stack === "string") {
+        writeErrorLine(chalk.gray(error.stack));
     }
+
+    process.exitCode = 1;
 });
-
-/**
- * Parse array option (comma-separated values)
- */
-function parseArrayOption(value: string): string[] {
-    return stringSplit(value, ",")
-        .map((item) => item.trim())
-        .filter(Boolean);
-}
-
-/**
- * Parse fix types option
- */
-function parseFixTypes(
-    value: string
-): ("directive" | "layout" | "problem" | "suggestion")[] {
-    const types = stringSplit(value, ",").map((type) => type.trim()),
-        validTypes = [
-            "directive",
-            "problem",
-            "suggestion",
-            "layout",
-        ] as const;
-
-    for (const type of types) {
-        if (
-            !validTypes.includes(
-                safeCastTo<"directive" | "layout" | "problem" | "suggestion">(type)
-            )
-        ) {
-            throw new Error(
-                `Invalid fix type: ${type}. Valid types: ${arrayJoin(validTypes, ", ")}`
-            );
-        }
-    }
-
-    return safeCastTo<("directive" | "layout" | "problem" | "suggestion")[]>(types);
-}
-
-/**
- * Parse integer option
- */
-function parseIntOption(value: string): number {
-    const parsed = Number.parseInt(value, 10);
-    if (Number.isNaN(parsed) || parsed < 1) {
-        throw new Error(`Invalid number: ${value}`);
-    }
-    return parsed;
-}
-
-/**
- * Parse workers option
- */
-function parseWorkersOption(value: string): "auto" | "off" | number {
-    if (value === "auto" || value === "off") {
-        return value;
-    }
-    return parseIntOption(value);
-}
-
-/**
- * Run an async operation while suppressing stdout output.
- */
-async function runWithStdoutSuppressed<T>(
-    operation: () => Promise<T>
-): Promise<T> {
-    const originalWrite = process.stdout.write;
-
-    process.stdout.write = () =>
-        true;
-
-    try {
-        return await operation();
-    } finally {
-        process.stdout.write = originalWrite;
-    }
-}
-
-// Handle unhandled promise rejections
-process.on("unhandledRejection", (reason, _promise) => {
-    console.error(chalk.red("Unhandled Promise Rejection:"), reason);
-    process.exit(1);
-});
-
-// Handle uncaught exceptions
-process.on("uncaughtException", (error) => {
-    console.error(chalk.red("Uncaught Exception:"), error);
-    process.exit(1);
-});
-
-program.parse();

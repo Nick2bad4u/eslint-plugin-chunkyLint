@@ -6,6 +6,7 @@
         "erasableSyntaxOnly": true,
         "isolatedDeclarations": false,
         "noEmit": true,
+        "rootDir": ".",
         "tsBuildInfoFile": "./.cache/tsbuildinfo/tsconfig.js.tsbuildinfo",
         "types": [
             "node"

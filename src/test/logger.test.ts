@@ -2,8 +2,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ConsoleLogger } from "../lib/logger.js";
 
- 
- 
 interface ConsoleSpy {
     error: ReturnType<typeof vi.spyOn>;
     log: ReturnType<typeof vi.spyOn>;
@@ -22,17 +20,21 @@ vi.mock("chalk", () => ({
 }));
 
 describe("ConsoleLogger", () => {
-    let consoleSpy!: ConsoleSpy, logger: ConsoleLogger;
+    let logger: ConsoleLogger = new ConsoleLogger(false);
+    let consoleSpy: ConsoleSpy = {
+        error: vi.spyOn(console, "error").mockImplementation(() => {}),
+        log: vi.spyOn(console, "log").mockImplementation(() => {}),
+        warn: vi.spyOn(console, "warn").mockImplementation(() => {}),
+    };
 
     beforeEach(() => {
         logger = new ConsoleLogger(false);
-         
+
         consoleSpy = {
             error: vi.spyOn(console, "error").mockImplementation(() => {}),
             log: vi.spyOn(console, "log").mockImplementation(() => {}),
             warn: vi.spyOn(console, "warn").mockImplementation(() => {}),
         };
-         
     });
 
     afterEach(() => {

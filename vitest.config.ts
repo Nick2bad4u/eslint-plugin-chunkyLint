@@ -2,8 +2,8 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
     test: {
+        clearMocks: true,
         coverage: {
-            all: true,
             exclude: [
                 "**/dist/**",
                 "**/node_modules/**",
@@ -31,8 +31,10 @@ export default defineConfig({
             "node_modules/**",
             "coverage/**",
         ],
-        globals: true,
+        globals: false,
         include: ["src/test/**/*.test.ts"],
+        restoreMocks: true,
+        slowTestThreshold: 2000,
         watch: false,
     },
 });
