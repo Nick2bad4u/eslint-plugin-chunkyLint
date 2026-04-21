@@ -46,7 +46,7 @@ jobs:
               run: npm ci --force
 
             - name: Run release verification
-              run: npm run release:verify
+              run: npm run release:check
 
     test:
         name: Test (${{ matrix.label }})
