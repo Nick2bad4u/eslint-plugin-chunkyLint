@@ -155,7 +155,7 @@
     },
     "sonarlint.connectedMode.project": {
         "connectionId": "nick2bad4u",
-        "projectKey": "Nick2bad4u_Uptime-Watcher"
+        "projectKey": "Nick2bad4u_eslint-plugin-chunkyLint"
     },
     "sonarlint.pathsToExclude": [
         "**/node_modules/**",
