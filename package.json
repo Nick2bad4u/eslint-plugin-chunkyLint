@@ -122,7 +122,7 @@
         "madge:orphans": "madge --orphans --no-spinner --ts-config tsconfig.json --extensions ts,tsx,js,jsx,mjs,cjs,cts,mts ./src --exclude \"(^|[\\/])(test|dist|node_modules|cache|.cache|coverage|build|eslint-inspector|temp|.docusaurus)($|[\\/])|\\.css$\"",
         "pack:dry": "npm pack --dry-run",
         "prepublishOnly": "npm run build",
-        "release:check": "npm run lint && npm run lint:actions && npm run typecheck && vitest run --coverage && npm run build:clean && npm run build && npm run chmod && npm run lint:package:strict && npm run pack:dry",
+        "release:check": "npm run lint && npm run lint:actions && npm run build:clean && npm run build && npm run typecheck && vitest run --coverage && npm run chmod && npm run lint:package:strict && npm run pack:dry",
         "release:verify": "npm run release:check",
         "sync:node-version-files": "node scripts/sync-node-version-files.mjs",
         "sync:peer-eslint-range": "node scripts/sync-peer-eslint-range.mjs",
