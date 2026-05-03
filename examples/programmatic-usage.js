@@ -1,26 +1,35 @@
 #!/usr/bin/env node
 
 /**
- * Example script showing how to use ESLint Chunker programmatically
+ * Example script showing how to use ESLint Chunker programmatically.
+ *
+ * @typedef {import("../src/chunky-lint.ts").ChunkerOptions} ChunkerOptions
+ *
+ * @typedef {import("../src/chunky-lint.ts").ChunkResult} ChunkResult
  */
 
-import { ESLintChunker } from "../dist/index.js";
-
+import process from "node:process";
 async function main() {
     console.log("🚀 ESLint Chunker - Programmatic Example\n");
 
     try {
+        const { ESLintChunker } = await import("../dist/chunky-lint.js");
+
         // Create chunker with custom options
         const chunker = new ESLintChunker({
-            size: 5,
             cacheLocation: ".custom-eslintcache",
-            verbose: true,
             continueOnError: true,
             include: ["src/**/*.ts"],
+            size: 5,
+            verbose: true,
         });
 
-        // Run with progress callback
-        const stats = await chunker.run((processed, total, currentChunk) => {
+        /**
+         * @param {number} processed
+         * @param {number} total
+         * @param {null | Readonly<ChunkResult>} currentChunk
+         */
+        const onProgress = (processed, total, currentChunk) => {
             const percentage = Math.round((processed / total) * 100);
             console.log(
                 `📊 Progress: ${processed}/${total} chunks (${percentage}%)`
@@ -37,7 +46,10 @@ async function main() {
                     );
                 }
             }
-        });
+        };
+
+        // Run with progress callback
+        const stats = await chunker.run(onProgress);
 
         // Display final statistics
         console.log("\n📈 Final Statistics:");

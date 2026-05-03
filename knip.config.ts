@@ -3,10 +3,11 @@
  *
  * @packageDocumentation
  */
-type KnipConfig = {
-    readonly $schema?: string;
+interface KnipConfig {
     readonly [key: string]: unknown;
-};
+    // eslint-disable-next-line perfectionist/sort-interfaces -- Member Ordering
+    readonly $schema?: string;
+}
 
 /**
  * Knip configuration that scopes entry points and dependency heuristics to the
