@@ -8,12 +8,12 @@ import type { ESLint as ESLintClass } from "eslint";
  * avoid inline `import()` type annotations that are disallowed by
  * `@typescript-eslint/consistent-type-imports`.
  */
-export type ESLintModule = {
+export interface ESLintModule {
     readonly ESLint: {
         readonly outputFixes: typeof ESLintClass.outputFixes;
         new (options?: Readonly<ESLintClass.Options>): ESLintClass;
     };
-};
+}
 
 /**
  * Loads ESLint at runtime and provides a friendly error when the peer
@@ -25,6 +25,8 @@ const importESLint: ESLintImporter = async () => import("eslint");
 
 /**
  * Load the ESLint module using the provided importer function.
+ *
+ * @throws - When ESLint cannot be imported.
  */
 export async function loadESLintModule(
     importer: ESLintImporter = importESLint

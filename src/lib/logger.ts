@@ -1,7 +1,7 @@
 import type { UnknownArray } from "type-fest";
 
-import chalk from "chalk";
 import { formatWithOptions } from "node:util";
+import colors from "yoctocolors";
 
 import type { Logger } from "../types/chunky-lint-types.js";
 
@@ -47,7 +47,7 @@ export class ConsoleLogger implements Logger {
 
     public debug(message: string, ...args: Readonly<UnknownArray>): void {
         if (this.verboseMode && !this.quietMode) {
-            ConsoleLogger.writeStdout(chalk.gray("🐛"), message, ...args);
+            ConsoleLogger.writeStdout(colors.gray("🐛"), message, ...args);
         }
     }
 
@@ -56,7 +56,7 @@ export class ConsoleLogger implements Logger {
             // Keep errors visible even in quiet mode.
         }
 
-        ConsoleLogger.writeStderr(chalk.red("✖"), message, ...args);
+        ConsoleLogger.writeStderr(colors.red("✖"), message, ...args);
     }
 
     public info(message: string, ...args: Readonly<UnknownArray>): void {
@@ -64,7 +64,7 @@ export class ConsoleLogger implements Logger {
             return;
         }
 
-        ConsoleLogger.writeStdout(chalk.blue("ℹ"), message, ...args);
+        ConsoleLogger.writeStdout(colors.blue("ℹ"), message, ...args);
     }
 
     public setQuiet(quiet: boolean): void {
@@ -77,7 +77,7 @@ export class ConsoleLogger implements Logger {
 
     public verbose(message: string, ...args: Readonly<UnknownArray>): void {
         if (this.verboseMode && !this.quietMode) {
-            ConsoleLogger.writeStdout(chalk.gray("📝"), message, ...args);
+            ConsoleLogger.writeStdout(colors.gray("📝"), message, ...args);
         }
     }
 
@@ -86,6 +86,6 @@ export class ConsoleLogger implements Logger {
             return;
         }
 
-        ConsoleLogger.writeStderr(chalk.yellow("⚠"), message, ...args);
+        ConsoleLogger.writeStderr(colors.yellow("⚠"), message, ...args);
     }
 }

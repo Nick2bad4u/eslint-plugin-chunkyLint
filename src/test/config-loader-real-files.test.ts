@@ -1,21 +1,16 @@
 import { promises as fs } from "node:fs";
-import path from "node:path";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import * as path from "node:path";
+import { describe, expect, it } from "vitest";
 
 import { loadConfig } from "../lib/config-loader.js";
 
-describe("ConfigLoader Real File Tests - targeting uncovered lines", () => {
-    const configPaths: string[] = [],
-        testDir = path.join(process.cwd(), "temp-config-test");
+describe("configLoader Real File Tests - targeting uncovered lines", () => {
+    const configPaths: string[] = [];
+    const testDir = path.join(process.cwd(), "temp-config-test");
 
-    beforeEach(async () => {
-        // Create test directory
-        await fs.mkdir(testDir, { recursive: true });
-    });
-
-    afterEach(async () => {
+    const cleanupTestFiles = async (): Promise<void> => {
         // Clean up config files
-        /* eslint-disable no-await-in-loop -- Cleanup intentionally awaits each unlink to keep deterministic teardown order. */
+
         for (const configPath of configPaths) {
             try {
                 await fs.unlink(configPath);
@@ -23,7 +18,7 @@ describe("ConfigLoader Real File Tests - targeting uncovered lines", () => {
                 // Ignore cleanup errors
             }
         }
-        /* eslint-enable no-await-in-loop -- Re-enable loop await linting after deterministic cleanup block. */
+
         configPaths.length = 0;
 
         try {
@@ -31,7 +26,7 @@ describe("ConfigLoader Real File Tests - targeting uncovered lines", () => {
         } catch {
             // Ignore cleanup errors
         }
-    });
+    };
 
     const createConfigFile = async (
         filename: string,
@@ -44,100 +39,110 @@ describe("ConfigLoader Real File Tests - targeting uncovered lines", () => {
     };
 
     it("should handle function config exports (covers lines 130, 134-138)", async () => {
-        // Create a JavaScript config file with a function export
-        const configPath = await createConfigFile(
-                ".chunkyLint.js",
-                `
-            export default function() {
-                return {
-                    size: 100,
-                    concurrency: 4,
-                    include: ["**/*.js"],
-                    ignore: ["node_modules/**"]
-                };
-            }
-        `
-            ),
-            config = await loadConfig(configPath);
+        expect.hasAssertions();
 
-        expect(config).toBeDefined();
-        expect(config?.size).toBe(100);
-        expect(config?.concurrency).toBe(4);
-        expect(config?.include).toEqual(["**/*.js"]);
-        expect(config?.ignore).toEqual(["node_modules/**"]);
+        await fs.mkdir(testDir, { recursive: true });
+        try {
+            // Create a JavaScript config file with a function export
+            const configPath = await createConfigFile(
+                ".chunkyLint.js",
+                '\n            export default function() {\n                return {\n                    size: 100,\n                    concurrency: 4,\n                    include: ["**/*.js"],\n                    ignore: ["node_modules/**"]\n                };\n            }\n        '
+            );
+            const config = await loadConfig(configPath);
+
+            expect(config).toBeDefined();
+            expect(config?.size).toBe(100);
+            expect(config?.concurrency).toBe(4);
+            expect(config?.include).toStrictEqual(["**/*.js"]);
+            expect(config?.ignore).toStrictEqual(["node_modules/**"]);
+        } finally {
+            await cleanupTestFiles();
+        }
     });
 
     it("should handle async function config exports", async () => {
-        // Create a JavaScript config file with an async function export
-        const configPath = await createConfigFile(
-                ".chunkyLintAsync.js",
-                `
-            export default async function() {
-                // Simulate async operation
-                await new Promise(resolve => setTimeout(resolve, 1));
-                return {
-                    size: 200,
-                    concurrency: 8,
-                    include: ["**/*.ts"],
-                    ignore: ["dist/**"]
-                };
-            }
-        `
-            ),
-            config = await loadConfig(configPath);
+        expect.hasAssertions();
 
-        expect(config).toBeDefined();
-        expect(config?.size).toBe(200);
-        expect(config?.concurrency).toBe(8);
-        expect(config?.include).toEqual(["**/*.ts"]);
-        expect(config?.ignore).toEqual(["dist/**"]);
+        await fs.mkdir(testDir, { recursive: true });
+        try {
+            // Create a JavaScript config file with an async function export
+            const configPath = await createConfigFile(
+                ".chunkyLintAsync.js",
+                '\n            export default async function() {\n                // Simulate async operation\n                await new Promise(resolve => setTimeout(resolve, 1));\n                return {\n                    size: 200,\n                    concurrency: 8,\n                    include: ["**/*.ts"],\n                    ignore: ["dist/**"]\n                };\n            }\n        '
+            );
+            const config = await loadConfig(configPath);
+
+            expect(config).toBeDefined();
+            expect(config?.size).toBe(200);
+            expect(config?.concurrency).toBe(8);
+            expect(config?.include).toStrictEqual(["**/*.ts"]);
+            expect(config?.ignore).toStrictEqual(["dist/**"]);
+        } finally {
+            await cleanupTestFiles();
+        }
     });
 
     it("should handle object config exports", async () => {
-        // Create a JavaScript config file with an object export
-        const configPath = await createConfigFile(
-                ".chunkyLintObject.js",
-                `
-            export default {
-                size: 300,
-                concurrency: 1,
-                include: ["**/*.jsx"],
-                ignore: ["build/**"]
-            };
-        `
-            ),
-            config = await loadConfig(configPath);
+        expect.hasAssertions();
 
-        expect(config).toBeDefined();
-        expect(config?.size).toBe(300);
-        expect(config?.concurrency).toBe(1);
-        expect(config?.include).toEqual(["**/*.jsx"]);
-        expect(config?.ignore).toEqual(["build/**"]);
+        await fs.mkdir(testDir, { recursive: true });
+        try {
+            // Create a JavaScript config file with an object export
+            const configPath = await createConfigFile(
+                ".chunkyLintObject.js",
+                '\n            export default {\n                size: 300,\n                concurrency: 1,\n                include: ["**/*.jsx"],\n                ignore: ["build/**"]\n            };\n        '
+            );
+            const config = await loadConfig(configPath);
+
+            expect(config).toBeDefined();
+            expect(config?.size).toBe(300);
+            expect(config?.concurrency).toBe(1);
+            expect(config?.include).toStrictEqual(["**/*.jsx"]);
+            expect(config?.ignore).toStrictEqual(["build/**"]);
+        } finally {
+            await cleanupTestFiles();
+        }
     });
 
     it("should handle auto-discovery returning null (covers lines 52-53)", async () => {
-        // Test auto-discovery when no config file exists
-        const nonExistentDir = path.join(testDir, "empty");
-        await fs.mkdir(nonExistentDir, { recursive: true });
+        expect.hasAssertions();
 
-        const config = await loadConfig(undefined, nonExistentDir);
-        expect(config).toBeNull();
+        await fs.mkdir(testDir, { recursive: true });
+        try {
+            // Test auto-discovery when no config file exists
+            const nonExistentDir = path.join(testDir, "empty");
+            await fs.mkdir(nonExistentDir, { recursive: true });
 
-        await fs.rmdir(nonExistentDir);
+            const config = await loadConfig(undefined, nonExistentDir);
+
+            expect(config).toBeNull();
+
+            await fs.rmdir(nonExistentDir);
+        } finally {
+            await cleanupTestFiles();
+        }
     });
 
     it("should handle auto-discovery file found but not accessible (covers lines 52-53)", async () => {
-        // Create a config file then delete it to simulate race condition
-        const configPath = await createConfigFile(
-            ".chunkyLint.json",
-            '{"size": 50}'
-        );
+        expect.hasAssertions();
 
-        // Delete the file to simulate it being found by findConfigFile but not accessible
-        await fs.unlink(configPath);
+        await fs.mkdir(testDir, { recursive: true });
+        try {
+            // Create a config file then delete it to simulate race condition
+            const configPath = await createConfigFile(
+                ".chunkyLint.json",
+                '{"size": 50}'
+            );
 
-        // This should trigger the fs.access failure during auto-discovery
-        const config = await loadConfig(undefined, testDir);
-        expect(config).toBeNull();
+            // Delete the file to simulate it being found by findConfigFile but not accessible
+            await fs.unlink(configPath);
+
+            // This should trigger the fs.access failure during auto-discovery
+            const config = await loadConfig(undefined, testDir);
+
+            expect(config).toBeNull();
+        } finally {
+            await cleanupTestFiles();
+        }
     });
 });

@@ -1,8 +1,8 @@
 import type { LiteralUnion } from "type-fest";
 
-import chalk from "chalk";
 import { Command } from "commander";
 import { arrayIncludes, arrayJoin, isDefined, stringSplit } from "ts-extras";
+import colors from "yoctocolors";
 
 import type {
     ChunkerOptions,
@@ -34,6 +34,10 @@ interface CliOptions {
 
 type FixType = "directive" | "layout" | "problem" | "suggestion";
 type MaxWorkersInput = LiteralUnion<"auto" | "off", string>;
+type ResolvedMaxWorkers = Exclude<ChunkerOptions["maxWorkers"], undefined>;
+
+const isMaxWorkersKeyword = (value: MaxWorkersInput): value is "auto" | "off" =>
+    value === "auto" || value === "off";
 
 function buildCliConfig(
     normalizedOptions: Readonly<CliOptions>
@@ -96,18 +100,17 @@ function createChunkerOptions(
     normalizedOptions: Readonly<CliOptions>
 ): ChunkerOptions {
     const maxWorkers = normalizedOptions.maxWorkers,
-        resolvedMaxWorkers =
-            maxWorkers === "auto" || maxWorkers === "off"
-                ? (maxWorkers as "auto" | "off")
-                : (() => {
-                      const parsed = Number.parseInt(maxWorkers, 10);
+        resolvedMaxWorkers: ResolvedMaxWorkers = isMaxWorkersKeyword(maxWorkers)
+            ? maxWorkers
+            : (() => {
+                  const parsed = Number.parseInt(maxWorkers, 10);
 
-                      if (Number.isNaN(parsed) || parsed < 1) {
-                          throw new Error(`Invalid number: ${maxWorkers}`);
-                      }
+                  if (Number.isNaN(parsed) || parsed < 1) {
+                      throw new Error(`Invalid number: ${maxWorkers}`);
+                  }
 
-                      return parsed;
-                  })();
+                  return parsed;
+              })();
     const chunkerOptions: ChunkerOptions = {
         cacheLocation: finalConfig.cacheLocation ?? ".eslintcache",
         concurrency: finalConfig.concurrency ?? 1,
@@ -161,13 +164,13 @@ function createChunkerOptions(
 
 function handleUncaughtException(error: Readonly<Error>): void {
     process.stderr.write(
-        `${chalk.red("Uncaught Exception:")} ${error.message}\n`
+        `${colors.red("Uncaught Exception:")} ${error.message}\n`
     );
 }
 
 function handleUnhandledRejection(reason: unknown): void {
     process.stderr.write(
-        `${chalk.red("Unhandled Promise Rejection:")} ${String(reason)}\n`
+        `${colors.red("Unhandled Promise Rejection:")} ${String(reason)}\n`
     );
 }
 
@@ -215,14 +218,16 @@ function parseArrayOption(value: string): string[] {
 
 /**
  * Parse fix types option.
+ *
+ * @throws - When any supplied fix type is invalid.
  */
 function parseFixTypes(value: string): FixType[] {
     const rawTypes = stringSplit(value, ",").map((type) => type.trim());
     const validTypes = [
         "directive",
+        "layout",
         "problem",
         "suggestion",
-        "layout",
     ] as const;
 
     const parsedTypes: FixType[] = [];
@@ -241,6 +246,8 @@ function parseFixTypes(value: string): FixType[] {
 
 /**
  * Parse integer option.
+ *
+ * @throws - When value is not a positive integer.
  */
 function parseIntOption(value: string): number {
     const parsed = Number.parseInt(value, 10);
@@ -281,13 +288,13 @@ function writeBanner(
         return;
     }
 
-    process.stdout.write(`${chalk.blue("🚀 ESLint Chunker")}\n`);
+    process.stdout.write(`${colors.blue("🚀 ESLint Chunker")}\n`);
     process.stdout.write("\n");
 
     if (fileConfig !== null && finalConfig.verbose === true) {
         const loadedFrom =
                 normalizedOptions.configFile ?? "auto-detected config file",
-            message = chalk.gray(`📋 Loaded config from ${loadedFrom}`);
+            message = colors.gray(`📋 Loaded config from ${loadedFrom}`);
         process.stdout.write(`${message}\n`);
     }
 }
@@ -372,7 +379,7 @@ program
         writeBanner(normalizedOptions, fileConfig, finalConfig);
 
         if (!isQuiet && configWarning !== null) {
-            writeErrorLine(chalk.yellow(configWarning));
+            writeErrorLine(colors.yellow(configWarning));
         }
 
         const stats = await chunker.run();
@@ -385,13 +392,13 @@ program
             const totalTime = Math.round(stats.totalTime);
 
             writeLine(
-                `${chalk.blue("ℹ")} ${chalk.green("✅ ESLint chunker completed!")}`
+                `${colors.blue("ℹ")} ${colors.green("✅ ESLint chunker completed!")}`
             );
             writeLine(
-                `${chalk.blue("ℹ")} 📊 Processed ${stats.totalFiles.toString()} files in ${stats.totalChunks.toString()} chunks`
+                `${colors.blue("ℹ")} 📊 Processed ${stats.totalFiles.toString()} files in ${stats.totalChunks.toString()} chunks`
             );
             writeLine(
-                `${chalk.blue("ℹ")} ⏱️  Total time: ${totalTime.toString()}ms (~${avgTimePerFile.toString()}ms per file)`
+                `${colors.blue("ℹ")} ⏱️  Total time: ${totalTime.toString()}ms (~${avgTimePerFile.toString()}ms per file)`
             );
         }
 
@@ -404,11 +411,11 @@ try {
     await program.parseAsync();
 } catch (error: unknown) {
     writeLine("");
-    writeErrorLine(chalk.red("❌ ESLint chunker failed:"));
+    writeErrorLine(colors.red("❌ ESLint chunker failed:"));
     writeErrorLine(error instanceof Error ? error.message : String(error));
 
     if (error instanceof Error && typeof error.stack === "string") {
-        writeErrorLine(chalk.gray(error.stack));
+        writeErrorLine(colors.gray(error.stack));
     }
 
     process.exitCode = 1;

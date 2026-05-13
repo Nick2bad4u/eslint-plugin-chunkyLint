@@ -1,10 +1,10 @@
 import type { ESLint as ESLintType } from "eslint";
 import type { Except } from "type-fest";
 
-import chalk from "chalk";
 import { performance } from "node:perf_hooks";
 import pLimit from "p-limit";
 import { isEmpty, isInteger, safeCastTo, stringSplit } from "ts-extras";
+import colors from "yoctocolors";
 
 import type {
     ChunkerOptions,
@@ -135,6 +135,8 @@ export class ESLintChunker {
 
     /**
      * Run ESLint in chunked mode.
+     *
+     * @throws - When ESLint loading, file discovery, or chunk processing fails.
      */
     public async run(
         progressCallback?: ProgressCallback
@@ -219,24 +221,24 @@ export class ESLintChunker {
             message += ` - ${result.files.length.toString()} files, ${time.toString()}ms`;
 
             if (result.errorCount > 0) {
-                message += chalk.red(
+                message += colors.red(
                     ` - ${result.errorCount.toString()} errors`
                 );
             }
 
             if (result.warningCount > 0) {
-                message += chalk.yellow(
+                message += colors.yellow(
                     ` - ${result.warningCount.toString()} warnings`
                 );
             }
 
             if (result.fixedCount > 0) {
-                message += chalk.green(
+                message += colors.green(
                     ` - ${result.fixedCount.toString()} fixed`
                 );
             }
         } else {
-            message += chalk.red(
+            message += colors.red(
                 ` - FAILED: ${result.error ?? "Unknown failure"}`
             );
         }
@@ -256,7 +258,7 @@ export class ESLintChunker {
         const totalTime = Math.round(stats.totalTime);
 
         this.logger.info("");
-        this.logger.info(chalk.green("✅ ESLint chunker completed!"));
+        this.logger.info(colors.green("✅ ESLint chunker completed!"));
         this.logger.info(
             `📊 Processed ${stats.totalFiles.toString()} files in ${stats.totalChunks.toString()} chunks`
         );
@@ -266,7 +268,7 @@ export class ESLintChunker {
 
         if (stats.filesWithErrors > 0) {
             this.logger.info(
-                chalk.red(
+                colors.red(
                     `❌ Files with errors: ${stats.filesWithErrors.toString()}`
                 )
             );
@@ -274,7 +276,7 @@ export class ESLintChunker {
 
         if (stats.filesWithWarnings > 0) {
             this.logger.info(
-                chalk.yellow(
+                colors.yellow(
                     `⚠️  Files with warnings: ${stats.filesWithWarnings.toString()}`
                 )
             );
@@ -282,13 +284,13 @@ export class ESLintChunker {
 
         if (stats.filesFixed > 0) {
             this.logger.info(
-                chalk.green(`🔧 Files fixed: ${stats.filesFixed.toString()}`)
+                colors.green(`🔧 Files fixed: ${stats.filesFixed.toString()}`)
             );
         }
 
         if (stats.failedChunks > 0) {
             this.logger.info(
-                chalk.red(`💥 Failed chunks: ${stats.failedChunks.toString()}`)
+                colors.red(`💥 Failed chunks: ${stats.failedChunks.toString()}`)
             );
         }
     }

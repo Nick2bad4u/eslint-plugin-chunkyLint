@@ -10,53 +10,34 @@
  *
  * @typedef {object} CommitlintConfig
  *
- * @property {string} [$schema]
- * @property {boolean} [defaultIgnores]
- * @property {string[]} [extends]
- * @property {string} [helpUrl]
- * @property {unknown[]} [ignores]
- * @property {Record<string, unknown>} [prompt]
- * @property {Record<string, unknown>} [rules]
+ * @property {string} [$schema] JSON schema URL for editor tooling.
+ * @property {boolean} [defaultIgnores] Whether built-in ignore patterns are
+ *   enabled.
+ * @property {string[]} [extends] Base commitlint presets to extend.
+ * @property {string} [helpUrl] URL shown to users when validation fails.
+ * @property {unknown[]} [ignores] Predicates for commits that should be
+ *   ignored.
+ * @property {Record<string, unknown>} [prompt] Interactive prompt
+ *   configuration.
+ * @property {Record<string, unknown>} [rules] Rule severity and option mapping.
  *
  * @see {@link https://commitlint.js.org/ | Commitlint Documentation}
  * @see {@link https://www.conventionalcommits.org/ | Conventional Commits Specification}
  */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types -- This is a runtime .mjs config file; TypeScript annotations are not available. */
 
-/**
- * @param {string} commit
- *
- * @returns {boolean}
- */
-function isDependencyBumpCommit(commit) {
-    return /^build\(deps.*\): bump/v.test(commit);
-}
+/** @type {(commit: string) => boolean} */
+const isDependencyBumpCommit = (commit) =>
+    /^build\(deps.*\): bump/v.test(commit);
 
-/**
- * @param {string} commit
- *
- * @returns {boolean}
- */
-function isMergeCommit(commit) {
-    return commit.includes("Merge");
-}
+/** @type {(commit: string) => boolean} */
+const isMergeCommit = (commit) => commit.includes("Merge");
 
-/**
- * @param {string} commit
- *
- * @returns {boolean}
- */
-function isReleaseCommit(commit) {
-    return commit.startsWith("chore(release)");
-}
+/** @type {(commit: string) => boolean} */
+const isReleaseCommit = (commit) => commit.startsWith("chore(release)");
 
-/**
- * @param {string} commit
- *
- * @returns {boolean}
- */
-function isRevertCommit(commit) {
-    return commit.includes("Revert");
-}
+/** @type {(commit: string) => boolean} */
+const isRevertCommit = (commit) => commit.includes("Revert");
 
 const commitlintConfig = /** @type {CommitlintConfig} */ ({
     $schema: "https://www.schemastore.org/commitlintrc.json",
@@ -162,7 +143,7 @@ const commitlintConfig = /** @type {CommitlintConfig} */ ({
                     "🔧 [build]": {
                         description:
                             "Changes that affect the build system or external dependencies",
-                        emoji: "�",
+                        emoji: "🔧",
                         title: "Builds",
                     },
                     "🧪 [test]": {
@@ -363,3 +344,4 @@ const commitlintConfig = /** @type {CommitlintConfig} */ ({
 });
 
 export default commitlintConfig;
+/* eslint-enable @typescript-eslint/explicit-module-boundary-types -- Re-enable for subsequent files after this .mjs config. */

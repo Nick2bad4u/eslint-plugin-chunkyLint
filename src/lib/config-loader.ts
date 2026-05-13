@@ -1,7 +1,15 @@
+import type { Promisable, UnknownRecord } from "type-fest";
+
 import { promises as fs } from "node:fs";
-import { join, resolve } from "node:path";
+import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { isDefined, isInteger, safeCastTo, stringSplit } from "ts-extras";
+import {
+    isDefined,
+    isInteger,
+    objectHasOwn,
+    safeCastTo,
+    stringSplit,
+} from "ts-extras";
 
 import type { ChunkyLintConfig } from "../types/chunky-lint-types.js";
 
@@ -9,14 +17,14 @@ import type { ChunkyLintConfig } from "../types/chunky-lint-types.js";
  * Possible config file names in order of preference.
  */
 const CONFIG_FILE_NAMES = [
-    ".chunkylint.ts",
     ".chunkylint.js",
-    ".chunkylint.mjs",
     ".chunkylint.json",
-    "chunkylint.config.ts",
+    ".chunkylint.mjs",
+    ".chunkylint.ts",
     "chunkylint.config.js",
-    "chunkylint.config.mjs",
     "chunkylint.config.json",
+    "chunkylint.config.mjs",
+    "chunkylint.config.ts",
 ] as const;
 
 const validateConfig = (config: unknown): ChunkyLintConfig => {
@@ -79,9 +87,18 @@ const validateConfig = (config: unknown): ChunkyLintConfig => {
     return normalizedConfig;
 };
 
+const isConfigFactory = (
+    candidate: unknown
+): candidate is () => Promisable<unknown> => typeof candidate === "function";
+
+const isUnknownRecord = (value: unknown): value is UnknownRecord =>
+    value !== null && typeof value === "object";
+
 const loadJsonConfig = async (filePath: string): Promise<ChunkyLintConfig> => {
     try {
-        const content = await fs.readFile(filePath);
+        const fileUrl = pathToFileURL(filePath);
+        // eslint-disable-next-line security/detect-non-literal-fs-filename -- Config path is resolved from explicit user input or controlled discovery.
+        const content = await fs.readFile(fileUrl);
         const config = JSON.parse(content.toString()) as unknown;
         return validateConfig(config);
     } catch (error) {
@@ -93,7 +110,9 @@ const loadJsonConfig = async (filePath: string): Promise<ChunkyLintConfig> => {
 };
 
 const findConfigFile = async (cwd: string): Promise<null | string> => {
-    const candidates = CONFIG_FILE_NAMES.map((fileName) => join(cwd, fileName));
+    const candidates = CONFIG_FILE_NAMES.map((fileName) =>
+        path.join(cwd, fileName)
+    );
 
     const checks = await Promise.all(
         candidates.map(async (filePath) => {
@@ -116,6 +135,8 @@ const findConfigFile = async (cwd: string): Promise<null | string> => {
  * @param filePath - Absolute path to the config file.
  *
  * @returns Parsed and validated chunky-lint config.
+ *
+ * @throws - When import or validation fails.
  */
 export async function loadJsConfig(
     filePath: string
@@ -123,10 +144,17 @@ export async function loadJsConfig(
     try {
         const fileUrl = pathToFileURL(filePath).href;
         // eslint-disable-next-line no-unsanitized/method -- Dynamic import target is derived from a validated local filesystem path.
-        const module = await import(fileUrl);
-        const exportedConfig = module.default ?? module;
+        const loadedModule: unknown = await import(fileUrl);
+        const moduleRecord = isUnknownRecord(loadedModule)
+            ? loadedModule
+            : null;
+        const hasDefaultExport =
+            moduleRecord !== null && objectHasOwn(moduleRecord, "default");
+        const exportedConfig = hasDefaultExport
+            ? moduleRecord.default
+            : loadedModule;
 
-        if (typeof exportedConfig === "function") {
+        if (isConfigFactory(exportedConfig)) {
             return validateConfig(await exportedConfig());
         }
 
@@ -160,6 +188,8 @@ const loadConfigFile = async (filePath: string): Promise<ChunkyLintConfig> => {
  * @param cwd - Working directory used for path resolution and discovery.
  *
  * @returns Parsed config object or `null` when no config is found.
+ *
+ * @throws - When discovery, reading, parsing, or validation fails.
  */
 export async function loadConfig(
     configPath?: string,
@@ -170,7 +200,7 @@ export async function loadConfig(
             typeof configPath === "string" && configPath.length > 0;
 
         const targetPath = hasExplicitConfigPath
-            ? resolve(cwd, configPath)
+            ? path.resolve(cwd, configPath)
             : await findConfigFile(cwd);
 
         if (targetPath === null) {

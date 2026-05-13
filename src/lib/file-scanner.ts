@@ -1,8 +1,8 @@
 import type { ESLint } from "eslint";
 import type { UnknownRecord } from "type-fest";
 
-import fg from "fast-glob";
-import { resolve } from "node:path";
+import path from "node:path";
+import { glob } from "tinyglobby";
 import { objectHasOwn, safeCastTo } from "ts-extras";
 
 import type {
@@ -49,6 +49,8 @@ export class FileScanner {
 
     /**
      * Split files into chunks
+     *
+     * @throws - When `chunkSize` is less than 1.
      */
     public chunkFiles(files: readonly string[], chunkSize: number): string[][] {
         if (chunkSize <= 0) {
@@ -69,6 +71,8 @@ export class FileScanner {
 
     /**
      * Scan and discover files to lint
+     *
+     * @throws - When ESLint loading or file discovery fails.
      */
     public async scanFiles(
         options: Readonly<FileDiscoveryOptions> = {}
@@ -103,30 +107,30 @@ export class FileScanner {
                 eslintOptions.overrideConfigFile = config;
             }
 
-            const eslint = new ESLint(eslintOptions),
-                // Get ignore patterns from ESLint configuration
-                eslintIgnorePatterns = await this.getESLintIgnorePatterns(
-                    eslint,
-                    cwd
-                ),
-                // Combine ignore patterns
-                allIgnorePatterns = [...ignore, ...eslintIgnorePatterns].filter(
-                    (pattern): pattern is string => pattern.length > 0
-                );
+            const eslint = new ESLint(eslintOptions);
+            // Get ignore patterns from ESLint configuration
+            const eslintIgnorePatterns = await this.getESLintIgnorePatterns(
+                eslint,
+                cwd
+            );
+            // Combine ignore patterns
+            const allIgnorePatterns = [
+                ...ignore,
+                ...eslintIgnorePatterns,
+            ].filter((pattern): pattern is string => pattern.length > 0);
 
             this.logger.debug("Combined ignore patterns:", allIgnorePatterns);
 
             // Use fast-glob to find files
-            const files = await fg(include, {
-                    absolute: true,
-                    cwd,
-                    followSymbolicLinks: followSymlinks,
-                    ignore: allIgnorePatterns,
-                    onlyFiles: true,
-                    suppressErrors: false,
-                }),
-                // Filter out files that ESLint would ignore
-                filteredFiles = await this.filterIgnoredFiles(eslint, files);
+            const files = await glob(include, {
+                absolute: true,
+                cwd,
+                followSymbolicLinks: followSymlinks,
+                ignore: allIgnorePatterns,
+                onlyFiles: true,
+            });
+            // Filter out files that ESLint would ignore
+            const filteredFiles = await this.filterIgnoredFiles(eslint, files);
 
             this.logger.info(
                 `Discovered ${filteredFiles.length.toString()} files to lint (${(
@@ -188,7 +192,7 @@ export class FileScanner {
     ): Promise<string[]> {
         try {
             // Try to get ignore patterns from a sample file
-            const sampleFile = resolve(cwd, "package.json");
+            const sampleFile = path.resolve(cwd, "package.json");
 
             const config: unknown =
                 await eslint.calculateConfigForFile(sampleFile);

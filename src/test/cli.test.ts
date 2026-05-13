@@ -1,92 +1,118 @@
-import { arrayFirst } from "ts-extras";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+/* eslint-disable vitest/prefer-import-in-mock, vitest/prefer-mock-return-shorthand -- String-specifier and constructor mock implementations are required for strict Vitest+TS compatibility in this test file. */
+import type { UnknownArray, UnknownRecord } from "type-fest";
 
-// Mock chalk to prevent console output issues
-vi.mock("chalk", () => ({
+import { arrayFirst } from "ts-extras";
+import { describe, expect, it, vi } from "vitest";
+
+type Colorizer = (text: string) => string;
+type UnknownFn = (...args: Readonly<UnknownArray>) => unknown;
+
+// Mock yoctocolors to prevent console output issues
+vi.mock("yoctocolors", () => ({
     default: {
-        blue: vi.fn((text: string) => text),
-        gray: vi.fn((text: string) => text),
-        green: vi.fn((text: string) => text),
-        red: vi.fn((text: string) => text),
+        blue: vi.fn<Colorizer>((text: string) => text),
+        gray: vi.fn<Colorizer>((text: string) => text),
+        green: vi.fn<Colorizer>((text: string) => text),
+        red: vi.fn<Colorizer>((text: string) => text),
     },
 }));
 
 // Mock commander before importing CLI
 const mockProgram = {
-    action: vi.fn().mockReturnThis(),
-    description: vi.fn().mockReturnThis(),
-    name: vi.fn().mockReturnThis(),
-    option: vi.fn().mockReturnThis(),
-    parse: vi.fn().mockReturnThis(),
-    parseAsync: vi.fn().mockImplementation(async () => {}),
-    version: vi.fn().mockReturnThis(),
+    action: vi.fn<UnknownFn>().mockReturnThis(),
+    description: vi.fn<UnknownFn>().mockReturnThis(),
+    name: vi.fn<UnknownFn>().mockReturnThis(),
+    option: vi.fn<UnknownFn>().mockReturnThis(),
+    parse: vi.fn<UnknownFn>().mockReturnThis(),
+    parseAsync: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
+    version: vi.fn<UnknownFn>().mockReturnThis(),
 };
 
 vi.mock("commander", () => ({
-    Command: vi.fn().mockImplementation(function MockCommand() {
-        return mockProgram;
-    }),
+    Command: vi
+        .fn<() => UnknownRecord>()
+        .mockImplementation(function MockCommand() {
+            return mockProgram;
+        }),
 }));
 
 // Mock ESLintChunker
 const mockChunker = {
-    run: vi.fn().mockResolvedValue({
-        failedChunks: 0,
-        filesFixed: 0,
-        filesWithErrors: 1,
-        filesWithWarnings: 2,
-        totalChunks: 2,
-        totalFiles: 10,
-        totalTime: 1000,
-    }),
+    run: vi
+        .fn<
+            () => Promise<{
+                failedChunks: number;
+                filesFixed: number;
+                filesWithErrors: number;
+                filesWithWarnings: number;
+                totalChunks: number;
+                totalFiles: number;
+                totalTime: number;
+            }>
+        >()
+        .mockResolvedValue({
+            failedChunks: 0,
+            filesFixed: 0,
+            filesWithErrors: 1,
+            filesWithWarnings: 2,
+            totalChunks: 2,
+            totalFiles: 10,
+            totalTime: 1000,
+        }),
 };
 
 vi.mock("../lib/chunker.js", () => ({
-    ESLintChunker: vi.fn().mockImplementation(function MockESLintChunker() {
-        return mockChunker;
-    }),
+    ESLintChunker: vi
+        .fn<() => UnknownRecord>()
+        .mockImplementation(function MockESLintChunker() {
+            return mockChunker;
+        }),
 }));
 
-describe("CLI binary", () => {
-    beforeEach(() => {
-        // Reset all mocks
-        vi.clearAllMocks();
+const resetCliTestState = (): void => {
+    vi.clearAllMocks();
+    vi.resetModules();
+    mockProgram.name.mockReturnThis();
+    mockProgram.description.mockReturnThis();
+    mockProgram.version.mockReturnThis();
+    mockProgram.option.mockReturnThis();
+    mockProgram.action.mockReturnThis();
+    mockProgram.parse.mockReturnThis();
+    mockProgram.parseAsync.mockResolvedValue(undefined);
+};
 
-        // Reset the mock functions to return this for chaining
-        mockProgram.name.mockReturnThis();
-        mockProgram.description.mockReturnThis();
-        mockProgram.version.mockReturnThis();
-        mockProgram.option.mockReturnThis();
-        mockProgram.action.mockReturnThis();
-        mockProgram.parse.mockReturnThis();
-        mockProgram.parseAsync.mockImplementation(async () => {});
-    });
-
-    afterEach(() => {
-        // Clean up any module imports
-        vi.resetModules();
-    });
-
+describe("cli binary", () => {
     it("should set up CLI program correctly", async () => {
+        expect.hasAssertions();
+
+        resetCliTestState();
+
         // Import and execute the CLI module
         await import("../bin/eslint-chunker.js");
 
         expect(mockProgram.name).toHaveBeenCalledWith("eslint-chunker");
-        expect(mockProgram.description).toHaveBeenCalled();
-        expect(mockProgram.version).toHaveBeenCalled();
+        expect(mockProgram.description).toHaveBeenCalledWith(
+            expect.any(String)
+        );
+        expect(mockProgram.version).toHaveBeenCalledWith(expect.any(String));
         expect(mockProgram.option).toHaveBeenCalledTimes(20); // All CLI options including quiet/verbose, chunk-log toggles, banner toggle, and --config-file
-        expect(mockProgram.action).toHaveBeenCalled();
-        expect(mockProgram.parseAsync).toHaveBeenCalled();
+        expect(mockProgram.action).toHaveBeenCalledWith(expect.any(Function));
+        expect(mockProgram.parseAsync).toHaveBeenCalledWith();
     });
 
     it("should handle CLI option parsing", async () => {
+        expect.hasAssertions();
+
+        resetCliTestState();
+
         await import("../bin/eslint-chunker.js");
 
         // Verify all expected options are defined
 
-        const optionCalls = mockProgram.option.mock.calls,
+        const optionCalls: readonly Readonly<UnknownArray>[] =
+                mockProgram.option.mock.calls,
             options = optionCalls
-                .map((call) => arrayFirst(call))
+                .map((call): unknown => arrayFirst(call))
                 .filter((value): value is string => typeof value === "string");
 
         expect(options).toContain("-c, --config <path>");
@@ -112,6 +138,10 @@ describe("CLI binary", () => {
     });
 
     it("should process fix types correctly", async () => {
+        expect.hasAssertions();
+
+        resetCliTestState();
+
         await import("../bin/eslint-chunker.js");
 
         // Test the parseFixTypes function indirectly by checking if it's used
@@ -123,3 +153,5 @@ describe("CLI binary", () => {
         );
     });
 });
+
+/* eslint-enable vitest/prefer-import-in-mock, vitest/prefer-mock-return-shorthand -- Re-enable standard lint rules after compatibility-focused mocks. */

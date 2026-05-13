@@ -11,8 +11,10 @@ import type {
     ProgressCallback,
 } from "../types/chunky-lint-types.js";
 
-describe("Type definitions", () => {
+describe("type definitions", () => {
     it("should define ChunkerOptions interface correctly", () => {
+        expect.hasAssertions();
+
         const options: ChunkerOptions = {
             cacheLocation: ".cache/.eslintcache",
             chunkLogs: true,
@@ -35,20 +37,22 @@ describe("Type definitions", () => {
         expect(options.size).toBe(100);
         expect(options.cacheLocation).toBe(".cache/.eslintcache");
         expect(options.maxWorkers).toBe(4);
-        expect(options.continueOnError).toBe(true);
-        expect(options.fix).toBe(true);
-        expect(options.fixTypes).toEqual(["directive", "problem"]);
-        expect(options.warnIgnored).toBe(false);
-        expect(options.include).toEqual(["src/**/*.ts"]);
-        expect(options.ignore).toEqual(["dist/**"]);
+        expect(options.continueOnError).toBeTruthy();
+        expect(options.fix).toBeTruthy();
+        expect(options.fixTypes).toStrictEqual(["directive", "problem"]);
+        expect(options.warnIgnored).toBeFalsy();
+        expect(options.include).toStrictEqual(["src/**/*.ts"]);
+        expect(options.ignore).toStrictEqual(["dist/**"]);
         expect(options.cwd).toBe(process.cwd());
-        expect(options.verbose).toBe(true);
-        expect(options.quiet).toBe(false);
-        expect(options.chunkLogs).toBe(true);
+        expect(options.verbose).toBeTruthy();
+        expect(options.quiet).toBeFalsy();
+        expect(options.chunkLogs).toBeTruthy();
         expect(options.concurrency).toBe(2);
     });
 
     it("should define ChunkingStats interface correctly", () => {
+        expect.hasAssertions();
+
         const stats: ChunkingStats = {
             failedChunks: 0,
             filesFixed: 5,
@@ -69,6 +73,8 @@ describe("Type definitions", () => {
     });
 
     it("should define ChunkResult interface correctly", () => {
+        expect.hasAssertions();
+
         const result: ChunkResult = {
             chunkIndex: 1,
             errorCount: 2,
@@ -80,15 +86,17 @@ describe("Type definitions", () => {
         };
 
         expect(result.chunkIndex).toBe(1);
-        expect(result.files).toEqual(["file1.ts", "file2.ts"]);
+        expect(result.files).toStrictEqual(["file1.ts", "file2.ts"]);
         expect(result.errorCount).toBe(2);
         expect(result.warningCount).toBe(1);
         expect(result.fixedCount).toBe(3);
         expect(result.processingTime).toBe(500);
-        expect(result.success).toBe(true);
+        expect(result.success).toBeTruthy();
     });
 
     it("should define FileDiscoveryOptions interface correctly", () => {
+        expect.hasAssertions();
+
         const options: FileDiscoveryOptions = {
             config: "./eslint.config.js",
             cwd: process.cwd(),
@@ -98,13 +106,15 @@ describe("Type definitions", () => {
         };
 
         expect(options.config).toBe("./eslint.config.js");
-        expect(options.include).toEqual(["src/**/*.ts"]);
-        expect(options.ignore).toEqual(["dist/**"]);
+        expect(options.include).toStrictEqual(["src/**/*.ts"]);
+        expect(options.ignore).toStrictEqual(["dist/**"]);
         expect(options.cwd).toBe(process.cwd());
-        expect(options.followSymlinks).toBe(true);
+        expect(options.followSymlinks).toBeTruthy();
     });
 
     it("should define ProgressCallback type correctly", () => {
+        expect.hasAssertions();
+
         const progressHandler: ProgressCallback = (
             processed: number,
             total: number,
@@ -115,7 +125,8 @@ describe("Type definitions", () => {
             expect(currentChunk === null || currentChunk.success).toBeDefined();
         };
 
-        expect(typeof progressHandler).toBe("function");
+        expect(progressHandler).toBeTypeOf("function");
+
         // Test that the callback can be called with expected parameters
         const mockChunk: ChunkResult = {
             chunkIndex: 1,
@@ -126,6 +137,7 @@ describe("Type definitions", () => {
             success: true,
             warningCount: 0,
         };
+
         expect(() => {
             progressHandler(1, 10, mockChunk);
         }).not.toThrow();
@@ -135,6 +147,8 @@ describe("Type definitions", () => {
     });
 
     it("should define Logger interface correctly", () => {
+        expect.hasAssertions();
+
         const logger: Logger = {
             debug: (...args: Readonly<UnknownArray>) => {
                 expect(args).toBeDefined();
@@ -153,11 +167,11 @@ describe("Type definitions", () => {
             },
         };
 
-        expect(typeof logger.info).toBe("function");
-        expect(typeof logger.warn).toBe("function");
-        expect(typeof logger.error).toBe("function");
-        expect(typeof logger.debug).toBe("function");
-        expect(typeof logger.verbose).toBe("function");
+        expect(logger.info).toBeTypeOf("function");
+        expect(logger.warn).toBeTypeOf("function");
+        expect(logger.error).toBeTypeOf("function");
+        expect(logger.debug).toBeTypeOf("function");
+        expect(logger.verbose).toBeTypeOf("function");
 
         // Test that the logger methods can be called
         expect(() => {
@@ -178,6 +192,8 @@ describe("Type definitions", () => {
     });
 
     it("should allow partial ChunkerOptions", () => {
+        expect.hasAssertions();
+
         const partialOptions: ChunkerOptions = {
             size: 50,
         };
@@ -187,6 +203,8 @@ describe("Type definitions", () => {
     });
 
     it("should allow maxWorkers as string values", () => {
+        expect.hasAssertions();
+
         const optionsAuto: ChunkerOptions = { maxWorkers: "auto" },
             optionsOff: ChunkerOptions = { maxWorkers: "off" };
 
@@ -195,6 +213,8 @@ describe("Type definitions", () => {
     });
 
     it("should allow all fix types", () => {
+        expect.hasAssertions();
+
         const options: ChunkerOptions = {
             fixTypes: [
                 "directive",
@@ -204,7 +224,7 @@ describe("Type definitions", () => {
             ],
         };
 
-        expect(options.fixTypes).toEqual([
+        expect(options.fixTypes).toStrictEqual([
             "directive",
             "problem",
             "suggestion",

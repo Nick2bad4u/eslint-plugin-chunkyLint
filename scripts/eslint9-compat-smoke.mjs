@@ -31,6 +31,8 @@ const compatConfigPath = fileURLToPath(
  * @param {readonly string[]} argumentList
  *
  * @returns {{ expectedEslintMajor: number | null }}
+ *
+ * @throws {TypeError} When an argument is unknown or has an invalid value.
  */
 const parseArguments = (argumentList) => {
     /** @type {number | null} */
@@ -88,27 +90,30 @@ const parseArguments = (argumentList) => {
  * Resolve installed ESLint runtime version.
  *
  * @returns {{ major: number; version: string }}
+ *
+ * @throws {TypeError} When the installed ESLint version cannot be parsed.
  */
 const resolveInstalledEslintVersion = () => {
-    /** @type {{ version?: unknown }} */
+    /** @type {Record<string, unknown>} */
     const eslintPackageJson = require("eslint/package.json");
+    const versionValue = eslintPackageJson["version"];
 
-    if (typeof eslintPackageJson.version !== "string") {
+    if (typeof versionValue !== "string") {
         throw new TypeError("Unable to resolve installed eslint version.");
     }
 
-    const [majorSegment] = eslintPackageJson.version.split(".");
+    const [majorSegment] = versionValue.split(".");
     const major = Number.parseInt(majorSegment ?? "", 10);
 
     if (!Number.isInteger(major)) {
         throw new TypeError(
-            `Unable to parse eslint major from version ${eslintPackageJson.version}.`
+            `Unable to parse eslint major from version ${versionValue}.`
         );
     }
 
     return {
         major,
-        version: eslintPackageJson.version,
+        version: versionValue,
     };
 };
 

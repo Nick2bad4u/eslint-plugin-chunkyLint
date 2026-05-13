@@ -10,8 +10,10 @@ import type {
     ProgressCallback,
 } from "../types/chunky-lint-types.js";
 
-describe("Types coverage test", () => {
-    it("uses all exported types in executable paths", () => {
+describe("types coverage test", () => {
+    it("validates ChunkerOptions shape", () => {
+        expect.hasAssertions();
+
         const options: ChunkerOptions = {
             cacheLocation: ".eslintcache",
             chunkLogs: true,
@@ -30,21 +32,27 @@ describe("Types coverage test", () => {
             warnIgnored: true,
         };
 
-        expect(options.cacheLocation).toBe(".eslintcache");
-        expect(options.chunkLogs).toBe(true);
-        expect(options.concurrency).toBe(2);
-        expect(options.config).toBe("eslint.config.mjs");
-        expect(options.continueOnError).toBe(false);
-        expect(options.cwd).toBe(process.cwd());
-        expect(options.fix).toBe(true);
-        expect(options.fixTypes).toEqual(["problem", "suggestion"]);
-        expect(options.ignore).toEqual(["dist/**"]);
-        expect(options.include).toEqual(["src/**/*.ts"]);
-        expect(options.maxWorkers).toBe(2);
-        expect(options.quiet).toBe(false);
-        expect(options.size).toBe(10);
-        expect(options.verbose).toBe(true);
-        expect(options.warnIgnored).toBe(true);
+        expect(options).toMatchObject({
+            cacheLocation: ".eslintcache",
+            chunkLogs: true,
+            concurrency: 2,
+            config: "eslint.config.mjs",
+            continueOnError: false,
+            cwd: process.cwd(),
+            fix: true,
+            fixTypes: ["problem", "suggestion"],
+            ignore: ["dist/**"],
+            include: ["src/**/*.ts"],
+            maxWorkers: 2,
+            quiet: false,
+            size: 10,
+            verbose: true,
+            warnIgnored: true,
+        });
+    });
+
+    it("validates ChunkingStats and ChunkResult shapes", () => {
+        expect.hasAssertions();
 
         const stats: ChunkingStats = {
             failedChunks: 1,
@@ -56,13 +64,15 @@ describe("Types coverage test", () => {
             totalTime: 5000,
         };
 
-        expect(stats.failedChunks).toBe(1);
-        expect(stats.filesFixed).toBe(3);
-        expect(stats.filesWithErrors).toBe(2);
-        expect(stats.filesWithWarnings).toBe(5);
-        expect(stats.totalChunks).toBe(10);
-        expect(stats.totalFiles).toBe(100);
-        expect(stats.totalTime).toBe(5000);
+        expect(stats).toMatchObject({
+            failedChunks: 1,
+            filesFixed: 3,
+            filesWithErrors: 2,
+            filesWithWarnings: 5,
+            totalChunks: 10,
+            totalFiles: 100,
+            totalTime: 5000,
+        });
 
         const result: ChunkResult = {
             chunkIndex: 0,
@@ -75,14 +85,20 @@ describe("Types coverage test", () => {
             warningCount: 0,
         };
 
-        expect(result.chunkIndex).toBe(0);
-        expect(result.error).toBe("");
-        expect(result.errorCount).toBe(0);
-        expect(result.files).toEqual(["test.js"]);
-        expect(result.fixedCount).toBe(1);
-        expect(result.processingTime).toBe(1000);
-        expect(result.success).toBe(true);
-        expect(result.warningCount).toBe(0);
+        expect(result).toMatchObject({
+            chunkIndex: 0,
+            error: "",
+            errorCount: 0,
+            files: ["test.js"],
+            fixedCount: 1,
+            processingTime: 1000,
+            success: true,
+            warningCount: 0,
+        });
+    });
+
+    it("validates FileDiscoveryOptions and Logger contracts", () => {
+        expect.hasAssertions();
 
         const discoveryOptions: FileDiscoveryOptions = {
             config: "eslint.config.mjs",
@@ -92,11 +108,13 @@ describe("Types coverage test", () => {
             include: ["**/*.js"],
         };
 
-        expect(discoveryOptions.config).toBe("eslint.config.mjs");
-        expect(discoveryOptions.cwd).toBe(process.cwd());
-        expect(discoveryOptions.followSymlinks).toBe(false);
-        expect(discoveryOptions.ignore).toEqual(["node_modules/**"]);
-        expect(discoveryOptions.include).toEqual(["**/*.js"]);
+        expect(discoveryOptions).toMatchObject({
+            config: "eslint.config.mjs",
+            cwd: process.cwd(),
+            followSymlinks: false,
+            ignore: ["node_modules/**"],
+            include: ["**/*.js"],
+        });
 
         const logger: Logger = {
             debug: () => {},
@@ -106,11 +124,26 @@ describe("Types coverage test", () => {
             warn: () => {},
         };
 
-        expect(typeof logger.debug).toBe("function");
-        expect(typeof logger.error).toBe("function");
-        expect(typeof logger.info).toBe("function");
-        expect(typeof logger.verbose).toBe("function");
-        expect(typeof logger.warn).toBe("function");
+        expect(logger.debug).toBeTypeOf("function");
+        expect(logger.error).toBeTypeOf("function");
+        expect(logger.info).toBeTypeOf("function");
+        expect(logger.verbose).toBeTypeOf("function");
+        expect(logger.warn).toBeTypeOf("function");
+    });
+
+    it("validates ProgressCallback and ChunkyLintConfig contracts", () => {
+        expect.hasAssertions();
+
+        const result: ChunkResult = {
+            chunkIndex: 0,
+            error: "",
+            errorCount: 0,
+            files: ["test.js"],
+            fixedCount: 1,
+            processingTime: 1000,
+            success: true,
+            warningCount: 0,
+        };
 
         const progressHandler: ProgressCallback = (
             current,
@@ -140,18 +173,20 @@ describe("Types coverage test", () => {
             verbose: true,
         };
 
-        expect(config.cacheLocation).toBe(".eslintcache");
-        expect(config.chunkLogs).toBe(true);
-        expect(config.concurrency).toBe(2);
-        expect(config.config).toBe("eslint.config.mjs");
-        expect(config.continueOnError).toBe(true);
-        expect(config.cwd).toBe(process.cwd());
-        expect(config.fix).toBe(true);
-        expect(config.followSymlinks).toBe(false);
-        expect(config.ignore).toEqual(["dist/**"]);
-        expect(config.include).toEqual(["src/**/*.ts"]);
-        expect(config.quiet).toBe(false);
-        expect(config.size).toBe(25);
-        expect(config.verbose).toBe(true);
+        expect(config).toMatchObject({
+            cacheLocation: ".eslintcache",
+            chunkLogs: true,
+            concurrency: 2,
+            config: "eslint.config.mjs",
+            continueOnError: true,
+            cwd: process.cwd(),
+            fix: true,
+            followSymlinks: false,
+            ignore: ["dist/**"],
+            include: ["src/**/*.ts"],
+            quiet: false,
+            size: 25,
+            verbose: true,
+        });
     });
 });
