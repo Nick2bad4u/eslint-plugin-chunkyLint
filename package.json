@@ -142,29 +142,29 @@
     },
     "devDependencies": {
         "@arethetypeswrong/cli": "^0.18.2",
-        "@types/node": "^25.6.0",
-        "@vitest/coverage-v8": "^4.1.5",
+        "@types/node": "^25.7.0",
+        "@vitest/coverage-v8": "^4.1.6",
         "cross-env": "^10.1.0",
         "esbuild": "^0.28.0",
         "eslint": "^10.3.0",
-        "eslint-config-nick2bad4u": "^1.0.11",
+        "eslint-config-nick2bad4u": "^1.0.16",
         "git-cliff": "^2.13.1",
         "npm-package-json-lint": "^10.4.0",
         "prettier": "^3.8.3",
-        "prettier-config-nick2bad4u": "^1.0.9",
-        "publint": "^0.3.18",
-        "secretlint": "^12.3.1",
-        "secretlint-config-nick2bad4u": "^1.0.3",
+        "prettier-config-nick2bad4u": "^1.0.12",
+        "publint": "^0.3.21",
+        "secretlint": "^13.0.0",
+        "secretlint-config-nick2bad4u": "^1.0.4",
         "shx": "^0.4.0",
         "tsx": "^4.21.0",
         "typescript": "^6.0.3",
-        "typescript-eslint": "^8.59.1",
-        "vitest": "^4.1.5"
+        "typescript-eslint": "^8.59.3",
+        "vitest": "^4.1.6"
     },
     "peerDependencies": {
         "eslint": "^10.1.0 || ^10.3.0"
     },
-    "packageManager": "npm@11.13.0",
+    "packageManager": "npm@11.14.1",
     "engines": {
         "node": ">=20.0.0"
     },
