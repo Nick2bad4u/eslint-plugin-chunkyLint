@@ -1,7 +1,7 @@
 import type { ESLint } from "eslint";
 import type { UnknownRecord } from "type-fest";
 
-import path from "node:path";
+import * as path from "node:path";
 import { glob } from "tinyglobby";
 import { objectHasOwn, safeCastTo } from "ts-extras";
 

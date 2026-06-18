@@ -1,6 +1,6 @@
 # Configuration Files
 
-ChunkyLint supports configuration files to avoid having to pass many command-line flags. This makes it easier to maintain consistent settings across your project.
+ChunkyLint supports configuration files to avoid having to pass repeated command-line flags. This makes it easier to maintain consistent settings across your project.
 
 ## Supported File Types
 
@@ -93,7 +93,7 @@ export default config;
 ### JavaScript Configuration (`.chunkylint.js`)
 
 ```javascript
-/** @type {import('eslint-plugin-chunkylint').ChunkyLintConfig} */
+/** @type {import("eslint-plugin-chunkylint").ChunkyLintConfig} */
 const config = {
  size: 8,
  concurrency: 2,
@@ -189,5 +189,5 @@ When no configuration is provided (either via file or command line), ChunkyLint 
 2. **Keep configs in version control** to ensure consistent settings across team members
 3. **Use environment variables** in function-based configs for different environments
 4. **Start with small chunk sizes** and increase based on your system's performance
-5. **Use concurrency wisely** - too many concurrent chunks can overwhelm the system
+5. **Use concurrency wisely** - excessive concurrent chunks can overwhelm the system
 6. **Include explicit patterns** - ChunkyLint requires include patterns to discover files

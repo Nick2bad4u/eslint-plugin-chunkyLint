@@ -114,8 +114,8 @@ All components have been tested and validated:
 - ✅ CLI functionality (all options working)
 - ✅ Programmatic API (working with progress callbacks)
 - ✅ File discovery (respects ESLint ignore patterns)
-- ✅ Chunking logic (handles various chunk sizes)
+- ✅ Chunking logic (handles different chunk sizes)
 - ✅ Error handling (graceful failure and recovery)
 - ✅ Statistics reporting (accurate metrics)
 
-This package provides a production-ready solution for ESLint chunking with modern tooling and excellent developer experience.
+This package provides a production-ready solution for ESLint chunking with modern tooling and a polished developer experience.

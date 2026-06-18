@@ -1,0 +1,8 @@
+node_modules/
+dist/
+coverage/
+.cache/
+.github/
+CHANGELOG.md
+AGENTS.md
+docs/AGENTS.md

@@ -1,7 +1,7 @@
 import type { Promisable, UnknownRecord } from "type-fest";
 
 import { promises as fs } from "node:fs";
-import path from "node:path";
+import * as path from "node:path";
 import { pathToFileURL } from "node:url";
 import {
     isDefined,
@@ -178,7 +178,7 @@ const loadConfigFile = async (filePath: string): Promise<ChunkyLintConfig> => {
         return loadJsConfig(filePath);
     }
 
-    throw new Error(`Unsupported config file type: ${ext}`);
+    throw new Error(`Unsupported config file type: ${ext ?? "<none>"}`);
 };
 
 /**

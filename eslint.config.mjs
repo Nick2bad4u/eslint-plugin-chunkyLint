@@ -1,10 +1,50 @@
 import nickTwoBadFourU from "eslint-config-nick2bad4u";
+import * as path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const rootDirectory = path.dirname(fileURLToPath(import.meta.url));
 
 /** @type {import("eslint").Linter.Config[]} */
 const config = [
-    ...nickTwoBadFourU.configs.all,
+    ...nickTwoBadFourU.createConfig({
+        plugins: {
+            "test-signal": false,
+        },
+        rootDirectory,
+        tsconfigPaths: [
+            "./tsconfig.eslint.json",
+            "./tsconfig.js.json",
+            "./tsconfig.test.json",
+        ],
+    }),
 
-    // Add repository-specific config entries below as needed.
+    {
+        files: ["**/*.{cjs,cts,js,jsx,mjs,mts,ts,tsx}"],
+        languageOptions: {
+            parserOptions: {
+                project: ["./tsconfig.eslint.json"],
+                projectService: false,
+                tsconfigRootDir: rootDirectory,
+            },
+        },
+        name: "chunkylint/typed-eslint-project",
+    },
+    {
+        files: ["eslint.config.mjs"],
+        name: "chunkylint/eslint-config-node20",
+        rules: {
+            "unicorn/prefer-import-meta-properties": "off",
+        },
+    },
+    {
+        files: ["src/chunky-lint.ts"],
+        name: "chunkylint/public-entrypoint",
+        rules: {
+            "canonical/no-re-export": "off",
+            "no-barrel-files/no-barrel-files": "off",
+            "unicorn/prefer-export-from": "off",
+        },
+    },
 ];
 
 export default config;

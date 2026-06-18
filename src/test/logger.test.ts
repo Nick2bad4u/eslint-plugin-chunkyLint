@@ -1,7 +1,13 @@
 /* eslint-disable vitest/prefer-import-in-mock -- String-specifier mocks are required for strict Vitest+TS compatibility in this test file. */
-import type { MockInstance } from "vitest";
-
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+    afterEach,
+    beforeEach,
+    describe,
+    expect,
+    it,
+    type MockInstance,
+    vi,
+} from "vitest";
 
 import { ConsoleLogger } from "../lib/logger.js";
 

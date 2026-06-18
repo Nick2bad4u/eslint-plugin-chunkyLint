@@ -4,17 +4,17 @@
 
 1. Ensure clean build
 
-```bash
-npm ci
-npm run build
-npm run pack:dry
-```
+   ```bash
+   npm ci
+   npm run build
+   npm run pack:dry
+   ```
 
 2. Publish
 
-```bash
-npm publish --access public
-```
+   ```bash
+   npm publish --access public
+   ```
 
 ## Deprecate Old Package (Optional but Recommended)
 

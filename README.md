@@ -145,7 +145,7 @@ const { ESLintChunker } = require("eslint-plugin-chunkylint");
 
 ### 📄 Configuration Files
 
-ESLint Chunker supports configuration files to avoid passing many command-line flags. Create a config file in your project root:
+ESLint Chunker supports configuration files to avoid passing repeated command-line flags. Create a config file in your project root:
 
 ```json
 // .chunkylint.json
@@ -193,7 +193,7 @@ module.exports = {
 };
 ```
 
-**Supported config files (in order of precedence):**
+#### Supported Config Files
 
 - `.chunkylint.ts` - TypeScript config
 - `.chunkylint.js` - JavaScript config
@@ -201,7 +201,7 @@ module.exports = {
 - `.chunkylint.json` - JSON config
 - `chunkylint.config.*` - Alternative naming
 
-**CLI options always override config file settings.**
+CLI options always override config file settings.
 
 See the [Configuration Guide](./docs/configuration.md) for detailed examples and advanced usage.
 
@@ -375,7 +375,7 @@ MIT © [Nick2bad4u](https://github.com/Nick2bad4u)
 ## 🙏 Acknowledgments
 
 - [ESLint](https://eslint.org/) - The amazing linting tool this package enhances
-- [Commander.js](https://github.com/tj/commander.js) - Excellent CLI framework
+- [Commander.js](https://github.com/tj/commander.js) - CLI framework
 - [fast-glob](https://github.com/mrmlnc/fast-glob) - Fast and efficient file globbing
 - [chalk](https://github.com/chalk/chalk) - Beautiful terminal colors
 

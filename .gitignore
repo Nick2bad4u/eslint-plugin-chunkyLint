@@ -100,6 +100,8 @@ pids/
 # Yarn Integrity file
 .yarn-integrity
 .github/instructions/
+!.github/instructions/
+!.github/instructions/copilot-instructions.md
 .prettier-cache
 tsconfig.tsbuildinfo
 tsconfig.build.cjs.tsbuildinfo

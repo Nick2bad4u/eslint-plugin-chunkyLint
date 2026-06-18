@@ -26,9 +26,11 @@ import type {
     ProgressCallback as ProgressCallbackType,
 } from "./types/chunky-lint-types.js";
 
-import { ESLintChunker as InternalESLintChunker } from "./lib/chunker.js";
-import { FileScanner as InternalFileScanner } from "./lib/file-scanner.js";
-import { ConsoleLogger as InternalConsoleLogger } from "./lib/logger.js";
+import { ESLintChunker } from "./lib/chunker.js";
+
+export { ESLintChunker } from "./lib/chunker.js";
+export { FileScanner } from "./lib/file-scanner.js";
+export { ConsoleLogger } from "./lib/logger.js";
 
 /**
  * Chunker options contract.
@@ -59,21 +61,6 @@ export type Logger = LoggerType;
  * Progress callback signature.
  */
 export type ProgressCallback = ProgressCallbackType;
-
-/**
- * Console logger implementation used by the chunker runtime.
- */
-export class ConsoleLogger extends InternalConsoleLogger {}
-
-/**
- * ESLint chunking orchestrator.
- */
-export class ESLintChunker extends InternalESLintChunker {}
-
-/**
- * File discovery and chunking utility.
- */
-export class FileScanner extends InternalFileScanner {}
 
 /**
  * Default export for convenience.
