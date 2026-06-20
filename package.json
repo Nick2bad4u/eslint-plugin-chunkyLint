@@ -1,194 +1,195 @@
 {
-    "name": "eslint-plugin-chunkylint",
-    "version": "1.7.3",
-    "private": false,
-    "description": "Auto-chunking ESLint runner that updates cache incrementally based on your ESLint config. Perfect for large codebases.",
-    "keywords": [
-        "eslint",
-        "chunking",
-        "cache",
-        "cli",
-        "linting",
-        "performance",
-        "typescript",
-        "large-codebase"
-    ],
-    "homepage": "https://github.com/Nick2bad4u/eslint-plugin-chunkyLint#readme",
-    "bugs": {
-        "url": "https://github.com/Nick2bad4u/eslint-plugin-chunkyLint/issues"
-    },
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/Nick2bad4u/eslint-plugin-chunkyLint.git"
-    },
-    "license": "MIT",
-    "author": "Nick2bad4u",
-    "contributors": [
-        {
-            "name": "Nick2bad4u"
-        }
-    ],
-    "sideEffects": false,
-    "type": "module",
-    "exports": {
-        ".": {
-            "import": {
-                "types": "./dist/chunky-lint.d.ts",
-                "default": "./dist/chunky-lint.js"
-            },
-            "require": {
-                "types": "./dist/chunky-lint.d.cts",
-                "default": "./dist/chunky-lint.cjs"
-            },
-            "default": "./dist/chunky-lint.js"
-        }
-    },
-    "main": "./dist/chunky-lint.cjs",
-    "module": "./dist/chunky-lint.js",
-    "types": "./dist/chunky-lint.d.cts",
-    "bin": {
-        "chunky-lint": "dist/bin/eslint-chunker.js",
-        "chunkylint": "dist/bin/eslint-chunker.js",
-        "eslint-chunker": "dist/bin/eslint-chunker.js",
-        "eslint-plugin-chunkylint": "dist/bin/eslint-chunker.js"
-    },
-    "files": [
-        "dist"
-    ],
-    "scripts": {
-        "build": "tsc -b tsconfig.build.json --force && npm run build:types:cjs && npm run build:cjs && npm run build:bin:shebang",
-        "build:bin:shebang": "node scripts/write-bin-shebang.mjs",
-        "build:cjs": "esbuild dist/chunky-lint.js --bundle --format=cjs --platform=node --packages=external --sourcemap --outfile=dist/chunky-lint.cjs --footer:js=\"module.exports = module.exports.default;\"",
-        "build:clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\"",
-        "build:types:cjs": "node -e \"require('node:fs').copyFileSync('dist/chunky-lint.d.ts','dist/chunky-lint.d.cts')\"",
-        "build:watch": "tsc --watch",
-        "changelog:all": "git-cliff --config cliff.toml --output CHANGELOG.md",
-        "changelog:release-notes": "git-cliff --config cliff.toml --current --strip all",
-        "chmod": "shx chmod u+x ./dist/bin/eslint-chunker.js",
-        "deprecate:old": "npm deprecate \"eslint-chunker@*\" \"Renamed to eslint-plugin-chunkylint. Please migrate.\"",
-        "dev": "tsx src/bin/eslint-chunker.ts",
-        "lint": "cross-env NODE_OPTIONS=--max_old_space_size=16384 eslint . --cache --cache-strategy content --cache-location .cache/.eslintcache",
-        "lint:action": "npm run lint:actions",
-        "lint:actions": "cross-env NODE_OPTIONS=--max_old_space_size=16384 eslint --cache --cache-strategy content --cache-location .cache/.eslintcache \".github/workflows/**/*.{yml,yaml}\" && echo \"GitHub Actions lint done!\"",
-        "lint:all": "npm run lint && npm run lint:actions && npm run lint:prettier && npm run lint:remark && npm run lint:package && npm run lint:gitleaks && npm run lint:secretlint && npm run lint:yaml && npm run lint:yamllint && npm run lint:circular && npm run typecheck",
-        "lint:all:fix": "npm run lint:fix && npm run lint:prettier:fix && npm run lint:remark:fix && npm run lint:package && npm run lint:secretlint && npm run lint:yaml:fix && npm run lint:actions && npm run lint:circular && npm run typecheck",
-        "lint:all:fix:quiet": "npm run lint:fix:quiet && npm run lint:prettier:fix && npm run lint:remark:fix && npm run lint:package && npm run lint:secretlint && npm run lint:yaml:fix && npm run lint:actions && npm run lint:circular && npm run typecheck",
-        "lint:circular": "npm run madge:circular",
-        "lint:compat:eslint9": "node scripts/eslint9-compat-smoke.mjs",
-        "lint:config:build": "npm run build:eslint-inspector",
-        "lint:config:inspect": "npx eslint --inspect-config",
-        "lint:css": "stylelint --cache --config stylelint.config.mjs --cache-strategy content --cache-location .cache/stylelintcache src/ docs/ --custom-formatter stylelint-formatter-pretty && echo \"Stylelint done!\"",
-        "lint:css:fix": "stylelint --cache --config stylelint.config.mjs --cache-strategy content --cache-location .cache/stylelintcache src/ docs/ --custom-formatter stylelint-formatter-pretty --fix && echo \"Stylelint done!\"",
-        "lint:depcheck": "depcheck",
-        "lint:deps": "depcheck && npm run knip",
-        "lint:dupes": "jscpd src/ --config jscpd.json",
-        "lint:dupes:all": "jscpd src/ --config jscpd.json --min-lines 3",
-        "lint:dupes:skiplocal": "jscpd src/ --skipLocal --config jscpd.json",
-        "lint:dupes:skiplocal:all": "jscpd src/ --skipLocal --config jscpd.json --min-lines 3",
-        "lint:duplicates": "npm run lint:dupes",
-        "lint:exports": "ts-unused-exports tsconfig.json src/plugin.ts --excludePathsFromReport=plugin.ts",
-        "lint:fix": "npm run lint -- --fix",
-        "lint:fix:quiet": "cross-env ESLINT_PROGRESS=off NODE_OPTIONS=--max_old_space_size=16384 eslint . --cache --cache-strategy content --cache-location .cache/.eslintcache --fix && echo \"Eslint fix done!\"",
-        "lint:gitleaks": "gitleaks dir --config .gitleaks.toml .",
-        "lint:grype": "grype . -c .grype.yaml --name eslint-plugin-chunkyLint",
-        "lint:knip": "npm run knip",
-        "lint:knip:exports": "npm run knip -- --include exports,nsExports,classMembers,types,nsTypes,enumMembers,duplicates",
-        "lint:knip:unused:exports": "npm run knip -- --dependencies --exports",
-        "lint:leaves": "npm run madge:leaves",
-        "lint:metrics": "npm run sloc",
-        "lint:nocache": "cross-env NODE_OPTIONS=--max_old_space_size=16384 eslint .",
-        "lint:node-version-files": "node scripts/sync-node-version-files.mjs --check",
-        "lint:orphans": "npm run madge:orphans",
-        "lint:package": "npm run lint:node-version-files && npm run lint:package-sort && npm run lint:packagelintrc && echo \"Package.json lint done!\"",
-        "lint:package:strict": "npm run lint:node-version-files && npm run lint:package-sort && npm run lint:package-check:strict && npm run lint:packagelintrc && echo \"Package.json lint done!\"",
-        "lint:package-check": "publint && attw --pack .",
-        "lint:package-check:strict": "publint && attw --pack . --profile strict",
-        "lint:package-sort": "sort-package-json \"./package.json\"",
-        "lint:package-sort-check": "sort-package-json --check \"./package.json\"",
-        "lint:packagelintrc": "npmPkgJsonLint . --config .npmpackagejsonlintrc.json",
-        "lint:prettier": "prettier . --log-level warn --cache --cache-location=.cache/.prettier-cache --cache-strategy=content --check",
-        "lint:prettier:fix": "prettier . --log-level warn --cache --cache-location=.cache/.prettier-cache --cache-strategy=content --write",
-        "lint:publint": "publint",
-        "lint:quiet": "cross-env ESLINT_PROGRESS=nofile NODE_OPTIONS=--max_old_space_size=16384 eslint . --cache --cache-strategy content --cache-location .cache/.eslintcache && echo \"Eslint done!\"",
-        "lint:remark": "remark --rc-path .remarkrc.mjs --silently-ignore --ignore-path .remarkignore --frail \"*.{md,mdx}\" \"docs/**/*.{md,mdx}\" --quiet",
-        "lint:remark:fix": "prettier --log-level warn --ignore-path prettierignore.remark --cache --cache-location=.cache/.prettier-cache --cache-strategy=content --no-error-on-unmatched-pattern --write \"*.{md,mdx}\" \"docs/**/*.{md,mdx}\" && npm run remark:fix",
-        "lint:secretlint": "secretlint --secretlintrc .secretlintrc.cjs --secretlintignore .secretlintignore \"./*\" \".vscode/**\" \"assets/**\" \"src/**\" \"electron/**\" \"shared/**\" \"config/**\" \"scripts/**\" \"playwright/**\" \"storybook/**\" \".storybook\" \"tests/**\" \"benchmarks/**\" \".devin/**\" \"public/**\" \".github/**\" \"docs/Architecture/**\" \"docs/*\" \"docs/assets/**\" \"docs/Guides/**\" \"docs/Testing/**\" \"docs/TSDoc/**\" \"docs/docusaurus/src/**\" \"docs/docusaurus/static/**\" \"docs/docusaurus/blog/**\" \"docs/docusaurus/docs/**\" \"docs/docusaurus/docs/*\"",
-        "lint:secrets": "detect-secrets scan",
-        "lint:unused": "npm run knip -- --include unlisted,unresolved,duplicates",
-        "lint:unused-deps": "depcheck --ignores='@types/*,@testing-library/*,@vitest/*'",
-        "lint:yaml": "cross-env NODE_OPTIONS=--max_old_space_size=16384 eslint --cache --cache-strategy content --cache-location .cache/.eslintcache \"**/*.{yml,yaml}\" && echo \"YAML lint done!\"",
-        "lint:yaml:fix": "cross-env NODE_OPTIONS=--max_old_space_size=16384 eslint --cache --cache-strategy content --cache-location .cache/.eslintcache --fix \"**/*.{yml,yaml}\" && echo \"YAML lint (fix) done!\"",
-        "lint:yamllint": "yamllint -c .yamllint .",
-        "madge:circular": "madge --circular --no-spinner --ts-config tsconfig.json --extensions ts,tsx,js,jsx,mjs,cjs,cts,mts ./src --exclude \"(^|[\\/])(test|dist|node_modules|cache|.cache|coverage|build|eslint-inspector|temp|.docusaurus)($|[\\/])|\\.css$\"",
-        "madge:leaves": "madge --leaves --no-spinner --ts-config tsconfig.json --extensions ts,tsx,js,jsx,mjs,cjs,cts,mts ./src --exclude \"(^|[\\/])(test|dist|node_modules|cache|.cache|coverage|build|eslint-inspector|temp|.docusaurus)($|[\\/])|\\.css$\"",
-        "madge:orphans": "madge --orphans --no-spinner --ts-config tsconfig.json --extensions ts,tsx,js,jsx,mjs,cjs,cts,mts ./src --exclude \"(^|[\\/])(test|dist|node_modules|cache|.cache|coverage|build|eslint-inspector|temp|.docusaurus)($|[\\/])|\\.css$\"",
-        "pack:dry": "npm pack --dry-run",
-        "prepublishOnly": "npm run build",
-        "release:check": "npm run build:clean && npm run build && npm run lint:all && vitest run --coverage && npm run chmod && npm run lint:package:strict && npm run pack:dry",
-        "release:verify": "npm run release:check",
-        "sync:node-version-files": "node scripts/sync-node-version-files.mjs",
-        "sync:peer-eslint-range": "node scripts/sync-peer-eslint-range.mjs",
-        "test": "vitest",
-        "test:coverage": "vitest --coverage",
-        "type-check": "npm run typecheck",
-        "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.eslint.json --noEmit && tsc -p tsconfig.js.json --noEmit && tsc --noEmit --project tsconfig.test.json",
-        "update-actions": "npx actions-up --yes --style sha",
-        "update-deps": "npx ncu -i --install never && npm run sync:peer-eslint-range && npm install --force"
-    },
-    "dependencies": {
-        "commander": "^15.0.0",
-        "p-limit": "^7.3.0",
-        "tinyglobby": "^0.2.16",
-        "ts-extras": "^1.0.0",
-        "type-fest": "^5.6.0",
-        "yoctocolors": "^2.1.2"
-    },
-    "devDependencies": {
-        "@arethetypeswrong/cli": "^0.18.3",
-        "@types/node": "^25.9.1",
-        "@vitest/coverage-v8": "^4.1.7",
-        "cross-env": "^10.1.0",
-        "esbuild": "^0.28.0",
-        "eslint": "^10.4.1",
-        "eslint-config-nick2bad4u": "^1.2.3",
-        "git-cliff": "^2.13.1",
-        "gitleaks-config-nick2bad4u": "^1.0.2",
-        "madge": "^8.0.0",
-        "npm-package-json-lint": "^10.4.0",
-        "npm-package-json-lint-config-nick2bad4u": "^1.0.3",
-        "prettier": "^3.8.3",
-        "prettier-config-nick2bad4u": "^1.0.13",
-        "publint": "^0.3.21",
-        "remark": "^15.0.1",
-        "remark-cli": "^12.0.1",
-        "remark-config-nick2bad4u": "^1.0.8",
-        "secretlint": "^13.0.2",
-        "secretlint-config-nick2bad4u": "^1.0.5",
-        "shx": "^0.4.0",
-        "tsx": "^4.22.3",
-        "typescript": "^6.0.3",
-        "typescript-eslint": "^8.59.3",
-        "vitest": "^4.1.6",
-        "yamllint-config-nick2bad4u": "^1.0.2"
-    },
-    "peerDependencies": {
-        "eslint": "^10.1.0 || ^10.4.1"
-    },
-    "packageManager": "npm@11.14.1",
-    "engines": {
-        "node": ">=20.0.0"
-    },
-    "devEngines": {
-        "packageManager": {
-            "name": "npm",
-            "version": ">=10"
-        },
-        "runtime": {
-            "name": "node",
-            "version": ">=20.0.0"
-        }
-    },
-    "publishConfig": {
-        "provenance": true
+  "name": "eslint-plugin-chunkylint",
+  "version": "1.7.3",
+  "private": false,
+  "description": "Auto-chunking ESLint runner that updates cache incrementally based on your ESLint config. Perfect for large codebases.",
+  "keywords": [
+    "eslint",
+    "chunking",
+    "cache",
+    "cli",
+    "linting",
+    "performance",
+    "typescript",
+    "large-codebase"
+  ],
+  "homepage": "https://github.com/Nick2bad4u/eslint-plugin-chunkyLint#readme",
+  "bugs": {
+    "url": "https://github.com/Nick2bad4u/eslint-plugin-chunkyLint/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Nick2bad4u/eslint-plugin-chunkyLint.git"
+  },
+  "license": "MIT",
+  "author": "Nick2bad4u",
+  "contributors": [
+    {
+      "name": "Nick2bad4u"
     }
+  ],
+  "sideEffects": false,
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/chunky-lint.d.ts",
+        "default": "./dist/chunky-lint.js"
+      },
+      "require": {
+        "types": "./dist/chunky-lint.d.cts",
+        "default": "./dist/chunky-lint.cjs"
+      },
+      "default": "./dist/chunky-lint.js"
+    }
+  },
+  "main": "./dist/chunky-lint.cjs",
+  "module": "./dist/chunky-lint.js",
+  "types": "./dist/chunky-lint.d.cts",
+  "bin": {
+    "chunky-lint": "dist/bin/eslint-chunker.js",
+    "chunkylint": "dist/bin/eslint-chunker.js",
+    "eslint-chunker": "dist/bin/eslint-chunker.js",
+    "eslint-plugin-chunkylint": "dist/bin/eslint-chunker.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -b tsconfig.build.json --force && npm run build:types:cjs && npm run build:cjs && npm run build:bin:shebang",
+    "build:bin:shebang": "node scripts/write-bin-shebang.mjs",
+    "build:cjs": "esbuild dist/chunky-lint.js --bundle --format=cjs --platform=node --packages=external --sourcemap --outfile=dist/chunky-lint.cjs --footer:js=\"module.exports = module.exports.default;\"",
+    "build:clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\"",
+    "build:types:cjs": "node -e \"require('node:fs').copyFileSync('dist/chunky-lint.d.ts','dist/chunky-lint.d.cts')\"",
+    "build:watch": "tsc --watch",
+    "changelog:all": "git-cliff --config cliff.toml --output CHANGELOG.md",
+    "changelog:release-notes": "git-cliff --config cliff.toml --current --strip all",
+    "chmod": "shx chmod u+x ./dist/bin/eslint-chunker.js",
+    "deprecate:old": "npm deprecate \"eslint-chunker@*\" \"Renamed to eslint-plugin-chunkylint. Please migrate.\"",
+    "dev": "tsx src/bin/eslint-chunker.ts",
+    "lint": "cross-env NODE_OPTIONS=--max_old_space_size=16384 eslint . --cache --cache-strategy content --cache-location .cache/.eslintcache",
+    "lint:action": "npm run lint:actions",
+    "lint:actions": "cross-env NODE_OPTIONS=--max_old_space_size=16384 eslint --cache --cache-strategy content --cache-location .cache/.eslintcache \".github/workflows/**/*.{yml,yaml}\" && echo \"GitHub Actions lint done!\"",
+    "lint:all": "npm run lint && npm run lint:actions && npm run lint:prettier && npm run lint:remark && npm run lint:package && npm run lint:gitleaks && npm run lint:secretlint && npm run lint:yaml && npm run lint:yamllint && npm run lint:circular && npm run typecheck",
+    "lint:all:fix": "npm run lint:fix && npm run lint:prettier:fix && npm run lint:remark:fix && npm run lint:package && npm run lint:secretlint && npm run lint:yaml:fix && npm run lint:actions && npm run lint:circular && npm run typecheck",
+    "lint:all:fix:quiet": "npm run lint:fix:quiet && npm run lint:prettier:fix && npm run lint:remark:fix && npm run lint:package && npm run lint:secretlint && npm run lint:yaml:fix && npm run lint:actions && npm run lint:circular && npm run typecheck",
+    "lint:circular": "npm run madge:circular",
+    "lint:compat:eslint9": "node scripts/eslint9-compat-smoke.mjs",
+    "lint:config:build": "npm run build:eslint-inspector",
+    "lint:config:inspect": "npx eslint --inspect-config",
+    "lint:css": "stylelint --cache --config stylelint.config.mjs --cache-strategy content --cache-location .cache/stylelintcache src/ docs/ --custom-formatter stylelint-formatter-pretty && echo \"Stylelint done!\"",
+    "lint:css:fix": "stylelint --cache --config stylelint.config.mjs --cache-strategy content --cache-location .cache/stylelintcache src/ docs/ --custom-formatter stylelint-formatter-pretty --fix && echo \"Stylelint done!\"",
+    "lint:depcheck": "depcheck",
+    "lint:deps": "depcheck && npm run knip",
+    "lint:dupes": "jscpd src/ --config jscpd.json",
+    "lint:dupes:all": "jscpd src/ --config jscpd.json --min-lines 3",
+    "lint:dupes:skiplocal": "jscpd src/ --skipLocal --config jscpd.json",
+    "lint:dupes:skiplocal:all": "jscpd src/ --skipLocal --config jscpd.json --min-lines 3",
+    "lint:duplicates": "npm run lint:dupes",
+    "lint:exports": "ts-unused-exports tsconfig.json src/plugin.ts --excludePathsFromReport=plugin.ts",
+    "lint:fix": "npm run lint -- --fix",
+    "lint:fix:quiet": "cross-env ESLINT_PROGRESS=off NODE_OPTIONS=--max_old_space_size=16384 eslint . --cache --cache-strategy content --cache-location .cache/.eslintcache --fix && echo \"Eslint fix done!\"",
+    "lint:gitleaks": "gitleaks dir --config .gitleaks.toml .",
+    "lint:grype": "grype . -c .grype.yaml --name eslint-plugin-chunkyLint",
+    "lint:knip": "npm run knip",
+    "lint:knip:exports": "npm run knip -- --include exports,nsExports,classMembers,types,nsTypes,enumMembers,duplicates",
+    "lint:knip:unused:exports": "npm run knip -- --dependencies --exports",
+    "lint:leaves": "npm run madge:leaves",
+    "lint:metrics": "npm run sloc",
+    "lint:nocache": "cross-env NODE_OPTIONS=--max_old_space_size=16384 eslint .",
+    "lint:node-version-files": "node scripts/sync-node-version-files.mjs --check",
+    "lint:orphans": "npm run madge:orphans",
+    "lint:package": "npm run lint:node-version-files && npm run lint:package-sort && npm run lint:packagelintrc && echo \"Package.json lint done!\"",
+    "lint:package:strict": "npm run lint:node-version-files && npm run lint:package-sort && npm run lint:package-check:strict && npm run lint:packagelintrc && echo \"Package.json lint done!\"",
+    "lint:package-check": "publint && attw --pack .",
+    "lint:package-check:strict": "publint && attw --pack . --profile strict",
+    "lint:package-sort": "sort-package-json \"./package.json\"",
+    "lint:package-sort-check": "sort-package-json --check \"./package.json\"",
+    "lint:packagelintrc": "npmPkgJsonLint . --config .npmpackagejsonlintrc.json",
+    "lint:prettier": "prettier . --log-level warn --cache --cache-location=.cache/.prettier-cache --cache-strategy=content --check",
+    "lint:prettier:fix": "prettier . --log-level warn --cache --cache-location=.cache/.prettier-cache --cache-strategy=content --write",
+    "lint:publint": "publint",
+    "lint:quiet": "cross-env ESLINT_PROGRESS=nofile NODE_OPTIONS=--max_old_space_size=16384 eslint . --cache --cache-strategy content --cache-location .cache/.eslintcache && echo \"Eslint done!\"",
+    "lint:remark": "remark --rc-path .remarkrc.mjs --silently-ignore --ignore-path .remarkignore --frail \"*.{md,mdx}\" \"docs/**/*.{md,mdx}\" --quiet",
+    "lint:remark:fix": "prettier --log-level warn --ignore-path prettierignore.remark --cache --cache-location=.cache/.prettier-cache --cache-strategy=content --no-error-on-unmatched-pattern --write \"*.{md,mdx}\" \"docs/**/*.{md,mdx}\" && npm run remark:fix",
+    "lint:secretlint": "secretlint --secretlintrc .secretlintrc.cjs --secretlintignore .secretlintignore \"./*\" \".vscode/**\" \"assets/**\" \"src/**\" \"electron/**\" \"shared/**\" \"config/**\" \"scripts/**\" \"playwright/**\" \"storybook/**\" \".storybook\" \"tests/**\" \"benchmarks/**\" \".devin/**\" \"public/**\" \".github/**\" \"docs/Architecture/**\" \"docs/*\" \"docs/assets/**\" \"docs/Guides/**\" \"docs/Testing/**\" \"docs/TSDoc/**\" \"docs/docusaurus/src/**\" \"docs/docusaurus/static/**\" \"docs/docusaurus/blog/**\" \"docs/docusaurus/docs/**\" \"docs/docusaurus/docs/*\"",
+    "lint:secrets": "detect-secrets scan",
+    "lint:unused": "npm run knip -- --include unlisted,unresolved,duplicates",
+    "lint:unused-deps": "depcheck --ignores='@types/*,@testing-library/*,@vitest/*'",
+    "lint:yaml": "cross-env NODE_OPTIONS=--max_old_space_size=16384 eslint --cache --cache-strategy content --cache-location .cache/.eslintcache \"**/*.{yml,yaml}\" && echo \"YAML lint done!\"",
+    "lint:yaml:fix": "cross-env NODE_OPTIONS=--max_old_space_size=16384 eslint --cache --cache-strategy content --cache-location .cache/.eslintcache --fix \"**/*.{yml,yaml}\" && echo \"YAML lint (fix) done!\"",
+    "lint:yamllint": "yamllint -c .yamllint .",
+    "madge:circular": "madge --circular --no-spinner --ts-config tsconfig.json --extensions ts,tsx,js,jsx,mjs,cjs,cts,mts ./src --exclude \"(^|[\\/])(test|dist|node_modules|cache|.cache|coverage|build|eslint-inspector|temp|.docusaurus)($|[\\/])|\\.css$\"",
+    "madge:leaves": "madge --leaves --no-spinner --ts-config tsconfig.json --extensions ts,tsx,js,jsx,mjs,cjs,cts,mts ./src --exclude \"(^|[\\/])(test|dist|node_modules|cache|.cache|coverage|build|eslint-inspector|temp|.docusaurus)($|[\\/])|\\.css$\"",
+    "madge:orphans": "madge --orphans --no-spinner --ts-config tsconfig.json --extensions ts,tsx,js,jsx,mjs,cjs,cts,mts ./src --exclude \"(^|[\\/])(test|dist|node_modules|cache|.cache|coverage|build|eslint-inspector|temp|.docusaurus)($|[\\/])|\\.css$\"",
+    "pack:dry": "npm pack --dry-run",
+    "prepublishOnly": "npm run build",
+    "release:check": "npm run build:clean && npm run build && npm run lint:all && vitest run --coverage && npm run chmod && npm run lint:package:strict && npm run pack:dry",
+    "release:verify": "npm run release:check",
+    "sync:node-version-files": "node scripts/sync-node-version-files.mjs",
+    "sync:peer-eslint-range": "node scripts/sync-peer-eslint-range.mjs",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage",
+    "type-check": "npm run typecheck",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.eslint.json --noEmit && tsc -p tsconfig.js.json --noEmit && tsc --noEmit --project tsconfig.test.json",
+    "update-actions": "npx actions-up --yes --style sha",
+    "update-deps": "npx ncu -i --install never && npm run sync:peer-eslint-range && npm install --force"
+  },
+  "dependencies": {
+    "commander": "^15.0.0",
+    "p-limit": "^7.3.0",
+    "tinyglobby": "^0.2.16",
+    "ts-extras": "^1.0.0",
+    "type-fest": "^5.6.0",
+    "yoctocolors": "^2.1.2"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.3",
+    "@types/node": "^25.9.1",
+    "@vitest/coverage-v8": "^4.1.7",
+    "cross-env": "^10.1.0",
+    "esbuild": "^0.28.0",
+    "eslint": "^10.5.0",
+    "eslint-config-nick2bad4u": "^2.0.4",
+    "git-cliff": "^2.13.1",
+    "gitleaks-config-nick2bad4u": "^1.0.2",
+    "madge": "^8.0.0",
+    "npm-package-json-lint": "^10.4.0",
+    "npm-package-json-lint-config-nick2bad4u": "^1.0.3",
+    "prettier": "^3.8.3",
+    "prettier-config-nick2bad4u": "^1.0.13",
+    "publint": "^0.3.21",
+    "remark": "^15.0.1",
+    "remark-cli": "^12.0.1",
+    "remark-config-nick2bad4u": "^1.0.8",
+    "secretlint": "^13.0.2",
+    "secretlint-config-nick2bad4u": "^1.0.5",
+    "shx": "^0.4.0",
+    "storybook": "^10.4.6",
+    "tsx": "^4.22.3",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.59.3",
+    "vitest": "^4.1.6",
+    "yamllint-config-nick2bad4u": "^1.0.2"
+  },
+  "peerDependencies": {
+    "eslint": "^10.1.0 || ^10.4.1"
+  },
+  "packageManager": "npm@11.14.1",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "devEngines": {
+    "packageManager": {
+      "name": "npm",
+      "version": ">=10"
+    },
+    "runtime": {
+      "name": "node",
+      "version": ">=20.0.0"
+    }
+  },
+  "publishConfig": {
+    "provenance": true
+  }
 }
