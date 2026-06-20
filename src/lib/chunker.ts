@@ -91,7 +91,7 @@ export class ESLintChunker {
         }
 
         const [majorSegment] = stringSplit(version, ".");
-        const major = Number.parseInt(majorSegment ?? "", 10);
+        const major = Number(majorSegment);
 
         return isInteger(major) ? major : null;
     }
@@ -145,30 +145,9 @@ export class ESLintChunker {
         this.logger.info("Starting ESLint chunker...");
 
         try {
-            const fileDiscoveryOptions: {
-                config?: string;
-                cwd: string;
-                ignore?: string[];
-                include?: string[];
-            } = { cwd: this.options.cwd };
-
-            if (
-                typeof this.options.config === "string" &&
-                this.options.config.length > 0
-            ) {
-                fileDiscoveryOptions.config = this.options.config;
-            }
-
-            if (Array.isArray(this.options.include)) {
-                fileDiscoveryOptions.include = this.options.include;
-            }
-
-            if (Array.isArray(this.options.ignore)) {
-                fileDiscoveryOptions.ignore = this.options.ignore;
-            }
-
-            const files =
-                await this.fileScanner.scanFiles(fileDiscoveryOptions);
+            const files = await this.fileScanner.scanFiles(
+                this.createFileDiscoveryOptions()
+            );
 
             if (isEmpty(files)) {
                 this.logger.warn("No files found to lint");
@@ -204,6 +183,73 @@ export class ESLintChunker {
             this.logger.error("ESLint chunker failed:", error);
             throw error;
         }
+    }
+
+    private createFileDiscoveryOptions(): {
+        config?: string;
+        cwd: string;
+        ignore?: string[];
+        include?: string[];
+    } {
+        const fileDiscoveryOptions: {
+            config?: string;
+            cwd: string;
+            ignore?: string[];
+            include?: string[];
+        } = { cwd: this.options.cwd };
+
+        if (
+            typeof this.options.config === "string" &&
+            this.options.config.length > 0
+        ) {
+            fileDiscoveryOptions.config = this.options.config;
+        }
+
+        if (Array.isArray(this.options.include)) {
+            fileDiscoveryOptions.include = this.options.include;
+        }
+
+        if (Array.isArray(this.options.ignore)) {
+            fileDiscoveryOptions.ignore = this.options.ignore;
+        }
+
+        return fileDiscoveryOptions;
+    }
+
+    private async lintChunkFiles(
+        files: readonly string[]
+    ): Promise<ESLintType.LintResult[]> {
+        const { ESLint } = await loadESLintModule();
+        const eslintMajorVersion = ESLintChunker.getEslintMajorVersion(ESLint);
+
+        const eslintOptions: ESLintType.Options = {
+            cache: true,
+            cacheLocation: this.options.cacheLocation,
+            cwd: this.options.cwd,
+            fix: this.options.fix,
+            fixTypes: this.options.fixTypes,
+            warnIgnored: this.options.warnIgnored,
+        };
+
+        if (eslintMajorVersion !== null && eslintMajorVersion >= 10) {
+            eslintOptions.concurrency = this.options.maxWorkers;
+        }
+
+        if (
+            typeof this.options.config === "string" &&
+            this.options.config.length > 0
+        ) {
+            eslintOptions.overrideConfigFile = this.options.config;
+        }
+
+        const eslint = new ESLint(eslintOptions);
+        const results = await eslint.lintFiles([...files]);
+
+        if (this.options.fix) {
+            await ESLint.outputFixes(results);
+        }
+
+        return results;
     }
 
     private logChunkProgress(
@@ -305,64 +351,9 @@ export class ESLintChunker {
             `Processing chunk ${(chunkIndex + 1).toString()} with ${files.length.toString()} files`
         );
 
+        let results: ESLintType.LintResult[];
         try {
-            const { ESLint } = await loadESLintModule();
-            const eslintMajorVersion =
-                ESLintChunker.getEslintMajorVersion(ESLint);
-
-            const eslintOptions: ESLintType.Options = {
-                cache: true,
-                cacheLocation: this.options.cacheLocation,
-                cwd: this.options.cwd,
-                fix: this.options.fix,
-                fixTypes: this.options.fixTypes,
-                warnIgnored: this.options.warnIgnored,
-            };
-
-            if (eslintMajorVersion !== null && eslintMajorVersion >= 10) {
-                eslintOptions.concurrency = this.options.maxWorkers;
-            }
-
-            if (
-                typeof this.options.config === "string" &&
-                this.options.config.length > 0
-            ) {
-                eslintOptions.overrideConfigFile = this.options.config;
-            }
-
-            const eslint = new ESLint(eslintOptions);
-            const results = await eslint.lintFiles([...files]);
-
-            if (this.options.fix) {
-                await ESLint.outputFixes(results);
-            }
-
-            const errorCount = results.reduce(
-                (sum: number, result: Readonly<ESLintType.LintResult>) =>
-                    sum + result.errorCount,
-                0
-            );
-            const fixedCount = results.reduce(
-                (sum: number, result: Readonly<ESLintType.LintResult>) =>
-                    sum + (typeof result.output === "string" ? 1 : 0),
-                0
-            );
-            const warningCount = results.reduce(
-                (sum: number, result: Readonly<ESLintType.LintResult>) =>
-                    sum + result.warningCount,
-                0
-            );
-            const processingTime = performance.now() - startTime;
-
-            return {
-                chunkIndex,
-                errorCount,
-                files: [...files],
-                fixedCount,
-                processingTime,
-                success: true,
-                warningCount,
-            };
+            results = await this.lintChunkFiles(files);
         } catch (error) {
             const processingTime = performance.now() - startTime;
             return {
@@ -376,6 +367,33 @@ export class ESLintChunker {
                 warningCount: 0,
             };
         }
+
+        const errorCount = results.reduce(
+            (sum: number, result: Readonly<ESLintType.LintResult>) =>
+                sum + result.errorCount,
+            0
+        );
+        const fixedCount = results.reduce(
+            (sum: number, result: Readonly<ESLintType.LintResult>) =>
+                sum + (typeof result.output === "string" ? 1 : 0),
+            0
+        );
+        const warningCount = results.reduce(
+            (sum: number, result: Readonly<ESLintType.LintResult>) =>
+                sum + result.warningCount,
+            0
+        );
+        const processingTime = performance.now() - startTime;
+
+        return {
+            chunkIndex,
+            errorCount,
+            files: [...files],
+            fixedCount,
+            processingTime,
+            success: true,
+            warningCount,
+        };
     }
 
     private async processChunks(

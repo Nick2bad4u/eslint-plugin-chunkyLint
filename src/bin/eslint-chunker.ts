@@ -1,7 +1,13 @@
 import type { LiteralUnion } from "type-fest";
 
 import { Command } from "commander";
-import { arrayIncludes, arrayJoin, isDefined, stringSplit } from "ts-extras";
+import {
+    arrayJoin,
+    isDefined,
+    isInteger,
+    setHas,
+    stringSplit,
+} from "ts-extras";
 import colors from "yoctocolors";
 
 import type {
@@ -35,6 +41,14 @@ interface CliOptions {
 type FixType = "directive" | "layout" | "problem" | "suggestion";
 type MaxWorkersInput = LiteralUnion<"auto" | "off", string>;
 type ResolvedMaxWorkers = Exclude<ChunkerOptions["maxWorkers"], undefined>;
+
+const FIX_TYPES = [
+    "directive",
+    "layout",
+    "problem",
+    "suggestion",
+] as const;
+const FIX_TYPE_SET = new Set<string>(FIX_TYPES);
 
 const isMaxWorkersKeyword = (value: MaxWorkersInput): value is "auto" | "off" =>
     value === "auto" || value === "off";
@@ -103,9 +117,9 @@ function createChunkerOptions(
         resolvedMaxWorkers: ResolvedMaxWorkers = isMaxWorkersKeyword(maxWorkers)
             ? maxWorkers
             : (() => {
-                  const parsed = Number.parseInt(maxWorkers, 10);
+                  const parsed = Number(maxWorkers);
 
-                  if (Number.isNaN(parsed) || parsed < 1) {
+                  if (!isInteger(parsed) || parsed < 1) {
                       throw new Error(`Invalid number: ${maxWorkers}`);
                   }
 
@@ -175,12 +189,7 @@ function handleUnhandledRejection(reason: unknown): void {
 }
 
 function isFixType(value: string): value is FixType {
-    return (
-        value === "directive" ||
-        value === "layout" ||
-        value === "problem" ||
-        value === "suggestion"
-    );
+    return setHas(FIX_TYPE_SET, value);
 }
 
 async function loadFileConfigWithWarning(
@@ -223,19 +232,12 @@ function parseArrayOption(value: string): string[] {
  */
 function parseFixTypes(value: string): FixType[] {
     const rawTypes = stringSplit(value, ",").map((type) => type.trim());
-    const validTypes = [
-        "directive",
-        "layout",
-        "problem",
-        "suggestion",
-    ] as const;
-
     const parsedTypes: FixType[] = [];
 
     for (const type of rawTypes) {
-        if (!isFixType(type) || !arrayIncludes(validTypes, type)) {
+        if (!isFixType(type)) {
             throw new Error(
-                `Invalid fix type: ${type}. Valid types: ${arrayJoin(validTypes, ", ")}`
+                `Invalid fix type: ${type}. Valid types: ${arrayJoin(FIX_TYPES, ", ")}`
             );
         }
         parsedTypes.push(type);
@@ -250,8 +252,8 @@ function parseFixTypes(value: string): FixType[] {
  * @throws - When value is not a positive integer.
  */
 function parseIntOption(value: string): number {
-    const parsed = Number.parseInt(value, 10);
-    if (Number.isNaN(parsed) || parsed < 1) {
+    const parsed = Number(value);
+    if (!isInteger(parsed) || parsed < 1) {
         throw new Error(`Invalid number: ${value}`);
     }
 

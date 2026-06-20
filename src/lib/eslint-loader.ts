@@ -37,13 +37,13 @@ export async function loadESLintModule(
         const message = error instanceof Error ? error.message : String(error),
             normalizedMessage = message.toLowerCase();
 
-        const missingEslint =
+        const isMissingEslint =
             normalizedMessage.includes("cannot find package 'eslint'") ||
             normalizedMessage.includes('cannot find package "eslint"') ||
             normalizedMessage.includes("cannot find module 'eslint'") ||
             normalizedMessage.includes('cannot find module "eslint"');
 
-        if (missingEslint) {
+        if (isMissingEslint) {
             throw new Error(
                 "Missing peer dependency 'eslint'. Install it in your project (for example: npm i -D eslint@^10).",
                 { cause: error }

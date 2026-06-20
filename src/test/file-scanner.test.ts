@@ -7,7 +7,7 @@ import { describe, expect, it, vi } from "vitest";
 import { FileScanner } from "../lib/file-scanner.js";
 import { ConsoleLogger } from "../lib/logger.js";
 
-// Mock tinyglobby and eslint at the module level
+// Mock tinyglobby and ESLint at the module level
 vi.mock("tinyglobby", () => ({
     glob: vi
         .fn<
@@ -169,7 +169,7 @@ describe(FileScanner, () => {
 
             const files = await fileScanner.scanFiles({});
 
-            expect(Array.isArray(files)).toBeTruthy();
+            expect(Array.isArray(files)).toBe(true);
         });
 
         it("should handle custom working directory", async () => {
@@ -182,7 +182,7 @@ describe(FileScanner, () => {
                     cwd: customCwd,
                 });
 
-            expect(Array.isArray(files)).toBeTruthy();
+            expect(Array.isArray(files)).toBe(true);
         });
 
         it("should follow symlinks when specified", async () => {
@@ -194,7 +194,7 @@ describe(FileScanner, () => {
                 followSymlinks: true,
             });
 
-            expect(Array.isArray(files)).toBeTruthy();
+            expect(Array.isArray(files)).toBe(true);
         });
 
         it("should not follow symlinks when disabled", async () => {
@@ -206,7 +206,7 @@ describe(FileScanner, () => {
                 followSymlinks: false,
             });
 
-            expect(Array.isArray(files)).toBeTruthy();
+            expect(Array.isArray(files)).toBe(true);
         });
 
         it("should handle basic file scanning", async () => {
@@ -216,7 +216,7 @@ describe(FileScanner, () => {
 
             const files = await fileScanner.scanFiles();
 
-            expect(Array.isArray(files)).toBeTruthy();
+            expect(Array.isArray(files)).toBe(true);
         });
 
         it("should handle custom include patterns", async () => {
@@ -228,7 +228,7 @@ describe(FileScanner, () => {
                 include: ["**/*.ts", "**/*.js"],
             });
 
-            expect(Array.isArray(files)).toBeTruthy();
+            expect(Array.isArray(files)).toBe(true);
         });
 
         it("should handle custom ignore patterns", async () => {
@@ -240,7 +240,7 @@ describe(FileScanner, () => {
                 ignore: ["dist/**", "node_modules/**"],
             });
 
-            expect(Array.isArray(files)).toBeTruthy();
+            expect(Array.isArray(files)).toBe(true);
         });
 
         it("should handle config file path", async () => {
@@ -252,7 +252,7 @@ describe(FileScanner, () => {
                 config: "./eslint.config.js",
             });
 
-            expect(Array.isArray(files)).toBeTruthy();
+            expect(Array.isArray(files)).toBe(true);
         });
 
         it("should handle file discovery errors by throwing", async () => {

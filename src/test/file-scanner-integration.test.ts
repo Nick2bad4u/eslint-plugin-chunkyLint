@@ -159,7 +159,7 @@ describe("fileScanner Coverage Integration Tests", () => {
             config: "./eslint.config.js",
         });
 
-        expect(Array.isArray(files)).toBeTruthy();
+        expect(Array.isArray(files)).toBe(true);
 
         // Clean up module mock
         cleanupEslintMock();
@@ -187,7 +187,7 @@ describe("fileScanner Coverage Integration Tests", () => {
             config: "./eslint.config.js",
         });
 
-        expect(Array.isArray(files)).toBeTruthy();
+        expect(Array.isArray(files)).toBe(true);
 
         // Clean up module mock
         cleanupEslintMock();
@@ -215,7 +215,7 @@ describe("fileScanner Coverage Integration Tests", () => {
             config: "./eslint.config.js",
         });
 
-        expect(Array.isArray(files)).toBeTruthy();
+        expect(Array.isArray(files)).toBe(true);
 
         // Clean up module mock
         cleanupEslintMock();
@@ -243,7 +243,7 @@ describe("fileScanner Coverage Integration Tests", () => {
             config: "./eslint.config.js",
         });
 
-        expect(Array.isArray(files)).toBeTruthy();
+        expect(Array.isArray(files)).toBe(true);
 
         // Clean up module mock
         cleanupEslintMock();

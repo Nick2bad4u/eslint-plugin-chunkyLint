@@ -19,11 +19,9 @@ import type {
 
 import { ESLintChunker } from "../lib/chunker.js";
 
-// Minimal interface describing only the members we touch on mocked ESLint instances
-// Inline shapes used directly in mocks; no exported aggregate interface needed.
+// Minimal interface describing only the members we touch on mocked ESLint instances Inline shapes used directly in mocks; no exported aggregate interface needed.
 
-// We purposefully do NOT implement the full ESLint surface; keep mocks as structured objects
-// We will cast mock objects to ESLintClass using unknown to satisfy TypeScript without relying on 'any'.
+// We purposefully do NOT implement the full ESLint surface; keep mocks as structured objects We will cast mock objects to ESLintClass using unknown to satisfy TypeScript without relying on 'any'.
 
 // Helper type to spy on private method in tests without using 'any'
 type ESLintChunkerWithPrivate = ESLintChunker & {
@@ -234,9 +232,11 @@ describe(ESLintChunker, () => {
 
             await defaultChunker.run();
 
+            const lastCall = arrayAt(vi.mocked(ESLint).mock.calls, -1);
+            const firstArgument = arrayFirst(lastCall ?? []);
             const lastCallOptions = safeCastTo<
                 undefined | { overrideConfigFile?: unknown }
-            >(arrayFirst(arrayAt(vi.mocked(ESLint).mock.calls, -1) ?? []));
+            >(firstArgument);
 
             expect(lastCallOptions?.overrideConfigFile).toBeUndefined();
         });
@@ -250,9 +250,11 @@ describe(ESLintChunker, () => {
 
             await chunkerWithConfig.run();
 
+            const lastCall = arrayAt(vi.mocked(ESLint).mock.calls, -1);
+            const firstArgument = arrayFirst(lastCall ?? []);
             const lastCallOptions = safeCastTo<
                 undefined | { overrideConfigFile?: unknown }
-            >(arrayFirst(arrayAt(vi.mocked(ESLint).mock.calls, -1) ?? []));
+            >(firstArgument);
 
             expect(lastCallOptions?.overrideConfigFile).toBe(configPath);
         });
@@ -766,7 +768,7 @@ describe(ESLintChunker, () => {
                     typeof message === "string" && message.includes("Chunk ")
             );
 
-            expect(hasChunkLog).toBeFalsy();
+            expect(hasChunkLog).toBe(false);
 
             stdoutSpy.mockRestore();
         });

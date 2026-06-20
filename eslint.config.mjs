@@ -28,6 +28,9 @@ const config = [
             },
         },
         name: "chunkylint/typed-eslint-project",
+        rules: {
+            "unicorn/consistent-class-member-order": "off",
+        },
     },
     {
         files: ["eslint.config.mjs"],

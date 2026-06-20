@@ -12,9 +12,9 @@ export class ConsoleLogger implements Logger {
     private quietMode: boolean;
     private verboseMode: boolean;
 
-    public constructor(verbose = false, quiet = false) {
-        this.verboseMode = verbose;
-        this.quietMode = quiet;
+    public constructor(isVerbose = false, isQuiet = false) {
+        this.verboseMode = isVerbose;
+        this.quietMode = isQuiet;
     }
 
     private static writeStderr(
@@ -67,12 +67,12 @@ export class ConsoleLogger implements Logger {
         ConsoleLogger.writeStdout(colors.blue("ℹ"), message, ...args);
     }
 
-    public setQuiet(quiet: boolean): void {
-        this.quietMode = quiet;
+    public setQuiet(isQuiet: boolean): void {
+        this.quietMode = isQuiet;
     }
 
-    public setVerbose(verbose: boolean): void {
-        this.verboseMode = verbose;
+    public setVerbose(isVerbose: boolean): void {
+        this.verboseMode = isVerbose;
     }
 
     public verbose(message: string, ...args: Readonly<UnknownArray>): void {

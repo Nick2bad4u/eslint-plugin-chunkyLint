@@ -37,16 +37,16 @@ describe("type definitions", () => {
         expect(options.size).toBe(100);
         expect(options.cacheLocation).toBe(".cache/.eslintcache");
         expect(options.maxWorkers).toBe(4);
-        expect(options.continueOnError).toBeTruthy();
-        expect(options.fix).toBeTruthy();
+        expect(options.continueOnError).toBe(true);
+        expect(options.fix).toBe(true);
         expect(options.fixTypes).toStrictEqual(["directive", "problem"]);
-        expect(options.warnIgnored).toBeFalsy();
+        expect(options.warnIgnored).toBe(false);
         expect(options.include).toStrictEqual(["src/**/*.ts"]);
         expect(options.ignore).toStrictEqual(["dist/**"]);
         expect(options.cwd).toBe(process.cwd());
-        expect(options.verbose).toBeTruthy();
-        expect(options.quiet).toBeFalsy();
-        expect(options.chunkLogs).toBeTruthy();
+        expect(options.verbose).toBe(true);
+        expect(options.quiet).toBe(false);
+        expect(options.chunkLogs).toBe(true);
         expect(options.concurrency).toBe(2);
     });
 
@@ -91,7 +91,7 @@ describe("type definitions", () => {
         expect(result.warningCount).toBe(1);
         expect(result.fixedCount).toBe(3);
         expect(result.processingTime).toBe(500);
-        expect(result.success).toBeTruthy();
+        expect(result.success).toBe(true);
     });
 
     it("should define FileDiscoveryOptions interface correctly", () => {
@@ -109,7 +109,7 @@ describe("type definitions", () => {
         expect(options.include).toStrictEqual(["src/**/*.ts"]);
         expect(options.ignore).toStrictEqual(["dist/**"]);
         expect(options.cwd).toBe(process.cwd());
-        expect(options.followSymlinks).toBeTruthy();
+        expect(options.followSymlinks).toBe(true);
     });
 
     it("should define ProgressCallback type correctly", () => {

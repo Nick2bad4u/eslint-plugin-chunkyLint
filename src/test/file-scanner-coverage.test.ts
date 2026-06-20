@@ -82,7 +82,7 @@ describe("fileScanner Coverage Tests - Targeting Specific Uncovered Lines", () =
             config: "./eslint.config.js",
         });
 
-        expect(Array.isArray(result)).toBeTruthy();
+        expect(Array.isArray(result)).toBe(true);
         expect(mockESLint.calculateConfigForFile).toHaveBeenCalledWith(
             expect.stringContaining("package.json")
         );
@@ -143,7 +143,7 @@ describe("fileScanner Coverage Tests - Targeting Specific Uncovered Lines", () =
             config: "./eslint.config.js",
         });
 
-        expect(Array.isArray(result)).toBeTruthy();
+        expect(Array.isArray(result)).toBe(true);
         expect(mockESLint.isPathIgnored).toHaveBeenCalledTimes(3);
 
         cleanupDynamicEslintMock();
@@ -202,7 +202,7 @@ describe("fileScanner Coverage Tests - Targeting Specific Uncovered Lines", () =
             config: "./eslint.config.js",
         });
 
-        expect(Array.isArray(result)).toBeTruthy();
+        expect(Array.isArray(result)).toBe(true);
         expect(mockESLint.isPathIgnored).toHaveBeenCalledTimes(3);
 
         cleanupDynamicEslintMock();
@@ -261,7 +261,7 @@ describe("fileScanner Coverage Tests - Targeting Specific Uncovered Lines", () =
             config: "./eslint.config.js",
         });
 
-        expect(Array.isArray(result)).toBeTruthy();
+        expect(Array.isArray(result)).toBe(true);
         expect(mockESLint.calculateConfigForFile).toHaveBeenCalledWith(
             expect.stringContaining("package.json")
         );

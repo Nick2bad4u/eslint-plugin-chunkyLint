@@ -4,6 +4,7 @@ import { promises as fs } from "node:fs";
 import * as path from "node:path";
 import { pathToFileURL } from "node:url";
 import {
+    arrayIncludes,
     isDefined,
     isInteger,
     objectHasOwn,
@@ -36,7 +37,7 @@ const validateConfig = (config: unknown): ChunkyLintConfig => {
 
     if (
         isDefined(normalizedConfig.size) &&
-        (!isInteger(normalizedConfig.size) || normalizedConfig.size <= 0)
+        (!isInteger(normalizedConfig.size) || normalizedConfig.size === 0)
     ) {
         throw new Error("size must be a positive integer");
     }
@@ -94,6 +95,14 @@ const isConfigFactory = (
 const isUnknownRecord = (value: unknown): value is UnknownRecord =>
     value !== null && typeof value === "object";
 
+const getExportedConfig = (loadedModule: unknown): unknown => {
+    const moduleRecord = isUnknownRecord(loadedModule) ? loadedModule : null;
+    const hasDefaultExport =
+        moduleRecord !== null && objectHasOwn(moduleRecord, "default");
+
+    return hasDefaultExport ? moduleRecord.default : loadedModule;
+};
+
 const loadJsonConfig = async (filePath: string): Promise<ChunkyLintConfig> => {
     try {
         const fileUrl = pathToFileURL(filePath);
@@ -145,14 +154,7 @@ export async function loadJsConfig(
         const fileUrl = pathToFileURL(filePath).href;
         // eslint-disable-next-line no-unsanitized/method -- Dynamic import target is derived from a validated local filesystem path.
         const loadedModule: unknown = await import(fileUrl);
-        const moduleRecord = isUnknownRecord(loadedModule)
-            ? loadedModule
-            : null;
-        const hasDefaultExport =
-            moduleRecord !== null && objectHasOwn(moduleRecord, "default");
-        const exportedConfig = hasDefaultExport
-            ? moduleRecord.default
-            : loadedModule;
+        const exportedConfig = getExportedConfig(loadedModule);
 
         if (isConfigFactory(exportedConfig)) {
             return validateConfig(await exportedConfig());
@@ -174,11 +176,51 @@ const loadConfigFile = async (filePath: string): Promise<ChunkyLintConfig> => {
         return loadJsonConfig(filePath);
     }
 
-    if (ext === "js" || ext === "mjs" || ext === "ts") {
+    if (
+        arrayIncludes(
+            [
+                "js",
+                "mjs",
+                "ts",
+            ],
+            ext ?? ""
+        )
+    ) {
         return loadJsConfig(filePath);
     }
 
     throw new Error(`Unsupported config file type: ${ext ?? "<none>"}`);
+};
+
+const resolveConfigTarget = async (
+    configPath: string | undefined,
+    cwd: string
+): Promise<{
+    hasExplicitConfigPath: boolean;
+    targetPath: null | string;
+}> => {
+    const hasExplicitConfigPath =
+        typeof configPath === "string" && configPath.length > 0;
+    const targetPath = hasExplicitConfigPath
+        ? path.resolve(cwd, configPath)
+        : await findConfigFile(cwd);
+
+    return { hasExplicitConfigPath, targetPath };
+};
+
+const canAccessConfigTarget = async (
+    hasExplicitConfigPath: boolean,
+    targetPath: string
+): Promise<boolean> => {
+    try {
+        await fs.access(targetPath);
+        return true;
+    } catch {
+        if (hasExplicitConfigPath) {
+            throw new Error(`Config file not found: ${targetPath}`);
+        }
+        return false;
+    }
 };
 
 /**
@@ -196,23 +238,16 @@ export async function loadConfig(
     cwd: string = process.cwd()
 ): Promise<ChunkyLintConfig | null> {
     try {
-        const hasExplicitConfigPath =
-            typeof configPath === "string" && configPath.length > 0;
-
-        const targetPath = hasExplicitConfigPath
-            ? path.resolve(cwd, configPath)
-            : await findConfigFile(cwd);
+        const { hasExplicitConfigPath, targetPath } = await resolveConfigTarget(
+            configPath,
+            cwd
+        );
 
         if (targetPath === null) {
             return null;
         }
 
-        try {
-            await fs.access(targetPath);
-        } catch {
-            if (hasExplicitConfigPath) {
-                throw new Error(`Config file not found: ${targetPath}`);
-            }
+        if (!(await canAccessConfigTarget(hasExplicitConfigPath, targetPath))) {
             return null;
         }
 

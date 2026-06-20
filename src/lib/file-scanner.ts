@@ -37,6 +37,27 @@ const /**
         "**/*.vue",
     ];
 
+const extractIgnorePatterns = (config: unknown): string[] => {
+    const ignorePatterns: string[] = [];
+
+    if (
+        config !== null &&
+        typeof config === "object" &&
+        objectHasOwn(config, "ignorePatterns")
+    ) {
+        const patterns = safeCastTo<UnknownRecord>(config)["ignorePatterns"];
+        if (Array.isArray(patterns)) {
+            ignorePatterns.push(
+                ...patterns.filter(
+                    (pattern): pattern is string => typeof pattern === "string"
+                )
+            );
+        }
+    }
+
+    return ignorePatterns;
+};
+
 /**
  * File scanner that discovers files to lint based on ESLint configuration
  */
@@ -197,28 +218,7 @@ export class FileScanner {
             const config: unknown =
                 await eslint.calculateConfigForFile(sampleFile);
 
-            // Extract ignore patterns from config
-            const ignorePatterns: string[] = [];
-
-            // Check for ignorePatterns in config
-            if (
-                config !== null &&
-                typeof config === "object" &&
-                objectHasOwn(config, "ignorePatterns")
-            ) {
-                const patterns =
-                    safeCastTo<UnknownRecord>(config)["ignorePatterns"];
-                if (Array.isArray(patterns)) {
-                    ignorePatterns.push(
-                        ...patterns.filter(
-                            (pattern): pattern is string =>
-                                typeof pattern === "string"
-                        )
-                    );
-                }
-            }
-
-            return ignorePatterns;
+            return extractIgnorePatterns(config);
         } catch (error) {
             this.logger.debug(
                 "Could not extract ignore patterns from ESLint config:",

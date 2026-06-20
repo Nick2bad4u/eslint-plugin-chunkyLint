@@ -1,6 +1,6 @@
 import { promises as fs } from "node:fs";
 import * as path from "node:path";
-import { isEmpty, safeCastTo } from "ts-extras";
+import { isEmpty } from "ts-extras";
 /*
  * Focused coverage tests to exercise branches not touched by primary spec:
  *  - Auto discovery returning null
@@ -25,9 +25,12 @@ describe("configLoader Coverage Tests - Missing Lines", () => {
     };
 
     const cleanDir = async (): Promise<void> => {
-        const entries = await fs
-            .readdir(projectDir)
-            .catch(() => safeCastTo<string[]>([]));
+        let entries: string[];
+        try {
+            entries = await fs.readdir(projectDir);
+        } catch {
+            entries = [];
+        }
         if (isEmpty(entries)) return;
         await Promise.all(
             entries.map(async (entry) => {
