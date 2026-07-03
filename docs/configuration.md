@@ -179,8 +179,8 @@ When no configuration is provided (either via file or command line), ChunkyLint 
 - **cacheLocation**: '.eslintcache'
 - **fix**: false
 - **continueOnError**: false
-- **include**: [] (must be specified to find files)
-- **ignore**: []
+- **include**: \[] (must be specified to find files)
+- **ignore**: \[]
 - **cwd**: current working directory
 
 ## Best Practices

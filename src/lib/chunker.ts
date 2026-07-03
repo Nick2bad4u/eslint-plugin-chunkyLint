@@ -14,6 +14,7 @@ import type {
     ProgressCallback,
 } from "../types/chunky-lint-types.js";
 
+import { getErrorMessage } from "./errors.js";
 import { loadESLintModule } from "./eslint-loader.js";
 import { FileScanner } from "./file-scanner.js";
 import { ConsoleLogger } from "./logger.js";
@@ -358,7 +359,7 @@ export class ESLintChunker {
             const processingTime = performance.now() - startTime;
             return {
                 chunkIndex,
-                error: error instanceof Error ? error.message : String(error),
+                error: getErrorMessage(error),
                 errorCount: 0,
                 files: [...files],
                 fixedCount: 0,

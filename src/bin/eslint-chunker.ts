@@ -17,6 +17,7 @@ import type {
 
 import { ESLintChunker } from "../lib/chunker.js";
 import { loadConfig, mergeConfig } from "../lib/config-loader.js";
+import { getErrorMessage, getErrorStack } from "../lib/errors.js";
 
 interface CliOptions {
     banner?: boolean;
@@ -207,7 +208,7 @@ async function loadFileConfigWithWarning(
             ),
         };
     } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
+        const message = getErrorMessage(error);
 
         return {
             configWarning: `⚠️ Config file warning: ${message}`,
@@ -414,10 +415,11 @@ try {
 } catch (error: unknown) {
     writeLine("");
     writeErrorLine(colors.red("❌ ESLint chunker failed:"));
-    writeErrorLine(error instanceof Error ? error.message : String(error));
+    writeErrorLine(getErrorMessage(error));
 
-    if (error instanceof Error && typeof error.stack === "string") {
-        writeErrorLine(colors.gray(error.stack));
+    const stack = getErrorStack(error);
+    if (isDefined(stack)) {
+        writeErrorLine(colors.gray(stack));
     }
 
     process.exitCode = 1;

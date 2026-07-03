@@ -2,7 +2,13 @@
 import type { ESLint as ESLintClass } from "eslint";
 import type { UnknownArray } from "type-fest";
 
-import { arrayAt, arrayFirst, isFinite, safeCastTo } from "ts-extras";
+import {
+    arrayAt,
+    arrayFirst,
+    isFinite,
+    objectAssign,
+    safeCastTo,
+} from "ts-extras";
 import {
     beforeEach,
     describe,
@@ -19,9 +25,9 @@ import type {
 
 import { ESLintChunker } from "../lib/chunker.js";
 
-// Minimal interface describing only the members we touch on mocked ESLint instances Inline shapes used directly in mocks; no exported aggregate interface needed.
+// Inline shapes keep mocks narrow without exporting aggregate interfaces.
 
-// We purposefully do NOT implement the full ESLint surface; keep mocks as structured objects We will cast mock objects to ESLintClass using unknown to satisfy TypeScript without relying on 'any'.
+// Mock objects are cast through unknown instead of relying on any.
 
 // Helper type to spy on private method in tests without using 'any'
 type ESLintChunkerWithPrivate = ESLintChunker & {
@@ -96,18 +102,21 @@ function getProcessChunkMethod(
 }
 
 // Mock ESLint module
-vi.mock("eslint", () => ({
-    ESLint: Object.assign(
-        vi
-            .fn<(...args: Readonly<UnknownArray>) => unknown>()
-            .mockImplementation(function MockESLint() {
-                return createMockESLintInstance();
-            }),
-        {
+vi.mock("eslint", () => {
+    const ESLint = vi
+        .fn<(...args: Readonly<UnknownArray>) => unknown>()
+        .mockImplementation(function MockESLint() {
+            return createMockESLintInstance();
+        }) as unknown as {
+        outputFixes?: ReturnType<typeof vi.fn<() => Promise<void>>>;
+    };
+
+    return {
+        ESLint: objectAssign(ESLint, {
             outputFixes: vi.fn<() => Promise<void>>().mockResolvedValue(),
-        }
-    ),
-}));
+        }),
+    };
+});
 
 // Mock tinyglobby
 vi.mock("tinyglobby", () => ({

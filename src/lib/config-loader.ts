@@ -14,6 +14,8 @@ import {
 
 import type { ChunkyLintConfig } from "../types/chunky-lint-types.js";
 
+import { getErrorMessage } from "./errors.js";
+
 /**
  * Possible config file names in order of preference.
  */
@@ -111,7 +113,7 @@ const loadJsonConfig = async (filePath: string): Promise<ChunkyLintConfig> => {
         const config = JSON.parse(content.toString()) as unknown;
         return validateConfig(config);
     } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
+        const message = getErrorMessage(error);
         throw new Error(`Failed to parse JSON config: ${message}`, {
             cause: error,
         });
@@ -162,7 +164,7 @@ export async function loadJsConfig(
 
         return validateConfig(exportedConfig);
     } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
+        const message = getErrorMessage(error);
         throw new Error(`Failed to load JS/TS config: ${message}`, {
             cause: error,
         });
@@ -253,7 +255,7 @@ export async function loadConfig(
 
         return await loadConfigFile(targetPath);
     } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
+        const message = getErrorMessage(error);
         throw new Error(`Failed to load config: ${message}`, { cause: error });
     }
 }

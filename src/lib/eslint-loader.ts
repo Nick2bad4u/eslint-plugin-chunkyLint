@@ -1,5 +1,7 @@
 import type { ESLint as ESLintClass } from "eslint";
 
+import { getErrorMessage } from "./errors.js";
+
 /**
  * Shape of the dynamically-loaded `eslint` module used by this package.
  *
@@ -34,7 +36,7 @@ export async function loadESLintModule(
     try {
         return await importer();
     } catch (error) {
-        const message = error instanceof Error ? error.message : String(error),
+        const message = getErrorMessage(error),
             normalizedMessage = message.toLowerCase();
 
         const isMissingEslint =

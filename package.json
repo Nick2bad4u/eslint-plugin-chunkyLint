@@ -126,6 +126,7 @@
         "prepublishOnly": "npm run build",
         "release:check": "npm run build:clean && npm run build && npm run lint:all && vitest run --coverage && npm run chmod && npm run lint:package:strict && npm run pack:dry",
         "release:verify": "npm run release:check",
+        "remark:fix": "remark --rc-path .remarkrc.mjs --silently-ignore --ignore-path .remarkignore --frail --quiet --output -- \"*.{md,mdx}\" \"docs/**/*.{md,mdx}\"",
         "sync:node-version-files": "node scripts/sync-node-version-files.mjs",
         "sync:peer-eslint-range": "node scripts/sync-peer-eslint-range.mjs",
         "test": "vitest",
@@ -173,9 +174,9 @@
         "yamllint-config-nick2bad4u": "^1.1.0"
     },
     "peerDependencies": {
-        "eslint": "^10.1.0 || ^10.4.1"
+        "eslint": "^10.1.0 || ^10.6.0"
     },
-    "packageManager": "npm@11.14.1",
+    "packageManager": "npm@11.18.0",
     "engines": {
         "node": ">=20.0.0"
     },

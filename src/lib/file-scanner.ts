@@ -10,6 +10,7 @@ import type {
     Logger,
 } from "../types/chunky-lint-types.js";
 
+import { getErrorMessage } from "./errors.js";
 import { loadESLintModule } from "./eslint-loader.js";
 
 /**
@@ -164,9 +165,7 @@ export class FileScanner {
         } catch (error) {
             this.logger.error("Error during file discovery:", error);
             throw new Error(
-                `File discovery failed: ${
-                    error instanceof Error ? error.message : String(error)
-                }`,
+                `File discovery failed: ${getErrorMessage(error)}`,
                 { cause: error }
             );
         }

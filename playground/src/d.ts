@@ -2,4 +2,4 @@
 /**
  * Return a demo numeric value.
  */
-export const demo = () => 1;
+export const demo = (): number => 1;

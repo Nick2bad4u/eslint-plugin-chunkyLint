@@ -48,6 +48,13 @@ const config = [
             "unicorn/prefer-export-from": "off",
         },
     },
+    {
+        files: ["src/test/logger.test.ts", "src/test/types.test.ts"],
+        name: "chunkylint/logger-debug-tests",
+        rules: {
+            "testing-library/no-debugging-utils": "off",
+        },
+    },
 ];
 
 export default config;
