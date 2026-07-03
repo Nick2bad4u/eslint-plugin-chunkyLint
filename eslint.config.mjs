@@ -40,6 +40,14 @@ const config = [
         },
     },
     {
+        files: ["cliff.toml", "lychee.toml"],
+        name: "chunkylint/tool-specific-toml-config-compatibility",
+        rules: {
+            // Keep these files in the syntax their owning tools accept.
+            "tombi/tombi": "off",
+        },
+    },
+    {
         files: ["src/chunky-lint.ts"],
         name: "chunkylint/public-entrypoint",
         rules: {
