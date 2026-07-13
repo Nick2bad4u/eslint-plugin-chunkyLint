@@ -21,7 +21,9 @@ import { ConsoleLogger } from "./logger.js";
 
 type NormalizedChunkerOptions = Except<
     Required<ChunkerOptions>,
-    "config" | "ignore" | "include"
+    | "config"
+    | "ignore"
+    | "include"
 > & {
     config?: string;
     ignore?: string[];

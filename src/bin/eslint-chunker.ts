@@ -39,7 +39,11 @@ interface CliOptions {
     warnIgnored?: boolean;
 }
 
-type FixType = "directive" | "layout" | "problem" | "suggestion";
+type FixType =
+    | "directive"
+    | "layout"
+    | "problem"
+    | "suggestion";
 type MaxWorkersInput = LiteralUnion<"auto" | "off", string>;
 type ResolvedMaxWorkers = Exclude<ChunkerOptions["maxWorkers"], undefined>;
 

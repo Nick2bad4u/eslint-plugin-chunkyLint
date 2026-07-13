@@ -39,7 +39,7 @@ const /**
     ];
 
 const extractIgnorePatterns = (config: unknown): string[] => {
-    const ignorePatterns: string[] = [];
+    const excludedPatterns: string[] = [];
 
     if (
         config !== null &&
@@ -48,7 +48,7 @@ const extractIgnorePatterns = (config: unknown): string[] => {
     ) {
         const patterns = safeCastTo<UnknownRecord>(config)["ignorePatterns"];
         if (Array.isArray(patterns)) {
-            ignorePatterns.push(
+            excludedPatterns.push(
                 ...patterns.filter(
                     (pattern): pattern is string => typeof pattern === "string"
                 )
@@ -56,7 +56,7 @@ const extractIgnorePatterns = (config: unknown): string[] => {
         }
     }
 
-    return ignorePatterns;
+    return excludedPatterns;
 };
 
 /**

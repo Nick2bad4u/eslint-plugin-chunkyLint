@@ -36,6 +36,8 @@ const config = [
         files: ["eslint.config.mjs"],
         name: "chunkylint/eslint-config-node20",
         rules: {
+            // Git-cliff is configured through the shared package referenced by package scripts.
+            "repo-compliance/require-release-config-file": "off",
             "unicorn/prefer-import-meta-properties": "off",
         },
     },

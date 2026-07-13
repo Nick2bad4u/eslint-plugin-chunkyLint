@@ -19,13 +19,21 @@ export interface ChunkerOptions {
     /** Apply fixes to files */
     fix?: boolean;
     /** Types of fixes to apply */
-    fixTypes?: ("directive" | "layout" | "problem" | "suggestion")[];
+    fixTypes?: (
+        | "directive"
+        | "layout"
+        | "problem"
+        | "suggestion"
+    )[];
     /** Custom ignore patterns */
     ignore?: string[];
     /** Custom include patterns */
     include?: string[];
     /** Number of ESLint worker processes */
-    maxWorkers?: "auto" | "off" | number;
+    maxWorkers?:
+        | "auto"
+        | "off"
+        | number;
     /** Suppress all non-final output */
     quiet?: boolean;
     /** Number of files per chunk */
