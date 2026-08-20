@@ -26,9 +26,10 @@ import type {
     ProgressCallback as ProgressCallbackType,
 } from "./types/chunky-lint-types.js";
 
-import { ESLintChunker } from "./lib/chunker.js";
-
-export { ESLintChunker } from "./lib/chunker.js";
+/**
+ * Default and named chunker exports.
+ */
+export { ESLintChunker as default, ESLintChunker } from "./lib/chunker.js";
 export { FileScanner } from "./lib/file-scanner.js";
 export { ConsoleLogger } from "./lib/logger.js";
 
@@ -61,8 +62,3 @@ export type Logger = LoggerType;
  * Progress callback signature.
  */
 export type ProgressCallback = ProgressCallbackType;
-
-/**
- * Default export for convenience.
- */
-export default ESLintChunker;

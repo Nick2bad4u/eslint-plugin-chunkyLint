@@ -118,7 +118,9 @@ const parseArguments = (argumentList) => {
     /** @type {string | null} */
     let explicitVersion = null;
 
-    for (let index = 0; index < argumentList.length; index += 1) {
+    let index = 0;
+
+    while (index < argumentList.length) {
         const argument = argumentList[index];
 
         if (typeof argument !== "string") {
@@ -135,17 +137,19 @@ const parseArguments = (argumentList) => {
 
         if (versionOverride !== null) {
             explicitVersion = versionOverride.explicitVersion;
-            index = versionOverride.nextIndex;
+            index = versionOverride.nextIndex + 1;
             continue;
         }
 
         if (argument === "--check") {
             checkOnly = true;
+            index += 1;
             continue;
         }
 
         if (argument === "--check-current") {
             checkCurrent = true;
+            index += 1;
             continue;
         }
 
