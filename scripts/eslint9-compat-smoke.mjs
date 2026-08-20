@@ -19,6 +19,52 @@ const compatConfigPath = fileURLToPath(
 );
 
 /**
+ * Parse an expected ESLint major-version argument.
+ *
+ * @param {unknown} value
+ *
+ * @returns {number}
+ *
+ * @throws {TypeError} When the value is missing or is not an integer.
+ */
+const parseExpectedEslintMajor = (value) => {
+    if (typeof value !== "string") {
+        throw new TypeError(
+            "Expected a numeric major version after --expect-eslint-major."
+        );
+    }
+
+    const major = Number.parseInt(value, 10);
+
+    if (!Number.isInteger(major)) {
+        throw new TypeError(
+            "--expect-eslint-major must be an integer (for example: 9)."
+        );
+    }
+
+    return major;
+};
+
+/**
+ * Resolve a consumer-root option to an absolute path.
+ *
+ * @param {string} argument
+ *
+ * @returns {string}
+ *
+ * @throws {TypeError} When the option value is blank.
+ */
+const resolveConsumerRootArgument = (argument) => {
+    const value = argument.slice("--consumer-root=".length).trim();
+
+    if (value === "") {
+        throw new TypeError("Expected a nonblank path after --consumer-root=.");
+    }
+
+    return path.resolve(value);
+};
+
+/**
  * Parse script arguments.
  *
  * Supported options:
@@ -52,50 +98,26 @@ const parseArguments = (argumentList) => {
         }
 
         if (argument === "--expect-eslint-major") {
-            const value = argumentList[index + 1];
-
-            if (typeof value !== "string") {
-                throw new TypeError(
-                    "Expected a numeric major version after --expect-eslint-major."
-                );
-            }
-
-            expectedEslintMajor = Number.parseInt(value, 10);
+            expectedEslintMajor = parseExpectedEslintMajor(
+                argumentList[index + 1]
+            );
             index += 1;
             continue;
         }
 
         if (argument.startsWith("--consumer-root=")) {
-            const value = argument.slice("--consumer-root=".length).trim();
-
-            if (value === "") {
-                throw new TypeError(
-                    "Expected a nonblank path after --consumer-root=."
-                );
-            }
-
-            consumerRoot = path.resolve(value);
+            consumerRoot = resolveConsumerRootArgument(argument);
             continue;
         }
 
         if (argument.startsWith("--expect-eslint-major=")) {
-            expectedEslintMajor = Number.parseInt(
-                argument.slice("--expect-eslint-major=".length),
-                10
+            expectedEslintMajor = parseExpectedEslintMajor(
+                argument.slice("--expect-eslint-major=".length)
             );
             continue;
         }
 
         throw new TypeError(`Unknown argument: ${argument}`);
-    }
-
-    if (
-        expectedEslintMajor !== null &&
-        !Number.isInteger(expectedEslintMajor)
-    ) {
-        throw new TypeError(
-            "--expect-eslint-major must be an integer (for example: 9)."
-        );
     }
 
     return {
