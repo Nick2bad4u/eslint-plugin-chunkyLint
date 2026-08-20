@@ -109,6 +109,7 @@ tsconfig.build.cjs.tsbuildinfo
 .chunky-cache-ts
 .cache/
 lint-report.json
+/test-report.junit.xml
 # Ignore generated doc coverage badges
 docs/docusaurus/static/img/coverage.json
 docs/docusaurus/static/img/coverage.svg

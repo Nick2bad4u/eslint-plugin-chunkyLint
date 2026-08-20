@@ -121,7 +121,7 @@ jobs:
               run: |
                   set -euo pipefail
                   npm_version=$(node -p "require('./package.json').packageManager.replace(/^npm@/, '')")
-                  npm install --global "npm@${npm_version}"
+                  npm install --global --ignore-scripts "npm@${npm_version}"
                   test "$(npm --version)" = "${npm_version}"
 
             - name: "Install native lint tools"

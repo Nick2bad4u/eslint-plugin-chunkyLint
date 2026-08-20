@@ -46,7 +46,7 @@ jobs:
               run: |
                   set -euo pipefail
                   npm_version=$(node -p "require('./package.json').packageManager.replace(/^npm@/, '')")
-                  npm install --global "npm@${npm_version}"
+                  npm install --global --ignore-scripts "npm@${npm_version}"
                   test "$(npm --version)" = "${npm_version}"
 
             - name: "Install native lint tools"
@@ -110,7 +110,7 @@ jobs:
               run: |
                   set -euo pipefail
                   npm_version=$(node -p "require('./package.json').packageManager.replace(/^npm@/, '')")
-                  npm install --global "npm@${npm_version}"
+                  npm install --global --ignore-scripts "npm@${npm_version}"
                   test "$(npm --version)" = "${npm_version}"
 
             - name: "Install dependencies"
@@ -122,8 +122,9 @@ jobs:
             - name: "Upload bundle analysis to Codecov"
               if: "${{ matrix.os == 'ubuntu-latest' && !cancelled() && env.CODECOV_TOKEN != '' }}"
               continue-on-error: true
-              run: >-
-                  npx @codecov/bundle-analyzer ./dist --bundle-name=eslint-plugin-chunkyLint --upload-token="${CODECOV_TOKEN}"
+              run: |
+                  npm install --global --ignore-scripts @codecov/bundle-analyzer@2.0.1
+                  bundle-analyzer ./dist --bundle-name=eslint-plugin-chunkyLint --upload-token="${CODECOV_TOKEN}"
               env:
                   GITHUB_SHA: "${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}"
                   GITHUB_REF: "${{ github.event_name == 'pull_request' && format('refs/heads/{0}', github.head_ref) || github.ref }}"
@@ -132,7 +133,7 @@ jobs:
               run: "npm run typecheck"
 
             - name: "Run tests with coverage and JUnit report"
-              run: "npx vitest run --coverage --reporter=github-actions --reporter=dot --reporter=junit --outputFile=test-report.junit.xml --silent"
+              run: "npm run test:ci"
               env:
                   CI: "true"
                   MAX_THREADS: "1"
@@ -214,7 +215,7 @@ jobs:
               run: |
                   set -euo pipefail
                   npm_version=$(node -p "require('./package.json').packageManager.replace(/^npm@/, '')")
-                  npm install --global "npm@${npm_version}"
+                  npm install --global --ignore-scripts "npm@${npm_version}"
                   test "$(npm --version)" = "${npm_version}"
 
             - name: "Install dependencies"

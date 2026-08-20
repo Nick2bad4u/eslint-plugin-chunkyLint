@@ -131,6 +131,7 @@
         "sync:node-version-files": "node scripts/sync-node-version-files.mjs",
         "sync:peer-eslint-range": "node scripts/sync-peer-eslint-range.mjs",
         "test": "npx vitest",
+        "test:ci": "vitest run --coverage --reporter=github-actions --reporter=dot --reporter=junit --outputFile=test-report.junit.xml --silent",
         "test:coverage": "npx vitest --coverage",
         "test:entrypoints": "node scripts/check-built-entrypoints.mjs",
         "type-check": "npm run typecheck",
