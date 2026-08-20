@@ -1,6 +1,7 @@
 import type { LiteralUnion } from "type-fest";
 
 import { Command } from "commander";
+import { createRequire } from "node:module";
 import {
     arrayJoin,
     isDefined,
@@ -54,6 +55,30 @@ const FIX_TYPES = [
     "suggestion",
 ] as const;
 const FIX_TYPE_SET = new Set<string>(FIX_TYPES);
+const runtimeRequire = createRequire(import.meta.url);
+
+const readPackageVersion = (): string => {
+    const packageMetadata: unknown = runtimeRequire("../../package.json");
+
+    if (typeof packageMetadata !== "object" || packageMetadata === null) {
+        throw new TypeError(
+            "Expected package.json to contain an object-valued root."
+        );
+    }
+
+    const packageVersion: unknown = Reflect.get(packageMetadata, "version");
+
+    if (
+        typeof packageVersion !== "string" ||
+        packageVersion.trim().length === 0
+    ) {
+        throw new TypeError(
+            "Expected package.json to contain a non-empty string version."
+        );
+    }
+
+    return packageVersion;
+};
 
 const isMaxWorkersKeyword = (value: MaxWorkersInput): value is "auto" | "off" =>
     value === "auto" || value === "off";
@@ -323,7 +348,7 @@ const program = new Command();
 program
     .name("eslint-chunker")
     .description("Auto-chunking ESLint runner that updates cache incrementally")
-    .version("1.0.0")
+    .version(readPackageVersion())
     .option("-c, --config <path>", "Path to ESLint config file")
     .option("-s, --size <number>", "Files per chunk", parseIntOption)
     .option("--cache-location <path>", "ESLint cache file location")
