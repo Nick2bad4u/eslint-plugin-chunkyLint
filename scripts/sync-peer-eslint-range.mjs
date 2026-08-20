@@ -70,32 +70,13 @@ const readPackageJson = async () => {
 };
 
 /**
- * Resolve a floor range from an existing peer range when possible. Falls back
- * to repository baseline.
+ * Resolve the repository's supported ESLint floor.
  *
- * @type {(existingPeerRange: unknown) => string}
- *
- * @param {unknown} existingPeerRange
+ * @type {() => string}
  *
  * @returns {string}
  */
-const resolvePeerFloorRange = (existingPeerRange) => {
-    if (typeof existingPeerRange !== "string") {
-        return minimumSupportedEslintRange;
-    }
-
-    /** @type {string[]} */
-    const [floorCandidate] = existingPeerRange
-        .split("||")
-        .map((part) => part.trim());
-
-    if (!floorCandidate) {
-        return minimumSupportedEslintRange;
-    }
-
-    /** @type {string} */
-    return floorCandidate;
-};
+const resolvePeerFloorRange = () => minimumSupportedEslintRange;
 
 /**
  * Check whether an unknown runtime value is a non-null object record.
@@ -140,7 +121,7 @@ const main = async () => {
     }
 
     /** @type {string} */
-    const peerFloorRange = resolvePeerFloorRange(peerDependencies["eslint"]);
+    const peerFloorRange = resolvePeerFloorRange();
     /** @type {string} */
     const nextPeerEslintRange = `${peerFloorRange} || ${devDependencyEslintRange}`;
 

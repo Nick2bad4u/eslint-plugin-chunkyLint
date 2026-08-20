@@ -7,6 +7,7 @@ node_modules/
 # Ignore other common folders that shouldn't be formatted
 build/
 coverage/
+temp/
 *.min.js
 *.min.css
 dist/
@@ -39,3 +40,4 @@ sonar-project.properties
 .taplo.toml
 cliff.toml
 lychee.toml
+tombi.toml

@@ -2,7 +2,6 @@ import type { ESLint as ESLintType } from "eslint";
 import type { Except } from "type-fest";
 
 import { performance } from "node:perf_hooks";
-import pLimit from "p-limit";
 import { isEmpty, isInteger, safeCastTo, stringSplit } from "ts-extras";
 import colors from "yoctocolors";
 
@@ -403,6 +402,9 @@ export class ESLintChunker {
         chunks: readonly (readonly string[])[],
         progressCallback?: ProgressCallback
     ): Promise<ChunkResult[]> {
+        // Keep the ESM-only dependency behind native import() so the externalized
+        // CommonJS build does not transpile it into an incompatible require().
+        const { default: pLimit } = await import("p-limit");
         const limit = pLimit(this.options.concurrency);
         const chunkPromises = chunks.map((chunk, index) =>
             limit(() => this.processChunk(chunk, index))
