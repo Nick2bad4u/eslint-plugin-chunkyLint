@@ -42,6 +42,13 @@ jobs:
                   cache: "npm"
                   cache-dependency-path: "package-lock.json"
 
+            - name: "Install declared npm version"
+              run: |
+                  set -euo pipefail
+                  npm_version=$(node -p "require('./package.json').packageManager.replace(/^npm@/, '')")
+                  npm install --global "npm@${npm_version}"
+                  test "$(npm --version)" = "${npm_version}"
+
             - name: "Install native lint tools"
               run: |
                   set -euo pipefail
@@ -51,7 +58,7 @@ jobs:
                   echo "${HOME}/.local/bin" >> "${GITHUB_PATH}"
 
             - name: "Install dependencies"
-              run: "npm ci --force"
+              run: "npm ci"
 
             - name: "Run release verification"
               run: "npm run release:check"
@@ -99,8 +106,15 @@ jobs:
                   cache: "npm"
                   cache-dependency-path: "package-lock.json"
 
+            - name: "Install declared npm version"
+              run: |
+                  set -euo pipefail
+                  npm_version=$(node -p "require('./package.json').packageManager.replace(/^npm@/, '')")
+                  npm install --global "npm@${npm_version}"
+                  test "$(npm --version)" = "${npm_version}"
+
             - name: "Install dependencies"
-              run: "npm ci --force"
+              run: "npm ci"
 
             - name: "Build package"
               run: "npm run build"
@@ -196,14 +210,55 @@ jobs:
                   cache-dependency-path: "package-lock.json"
                   node-version-file: ".node-version"
 
+            - name: "Install declared npm version"
+              run: |
+                  set -euo pipefail
+                  npm_version=$(node -p "require('./package.json').packageManager.replace(/^npm@/, '')")
+                  npm install --global "npm@${npm_version}"
+                  test "$(npm --version)" = "${npm_version}"
+
             - name: "Install dependencies"
-              run: "npm ci --force"
+              run: "npm ci"
 
             - name: "Build package"
               run: "npm run build"
 
-            - name: "Install ESLint 9 runtime for compatibility smoke checks"
-              run: "npm install --no-save --force eslint@${{ matrix.eslint-version }} @eslint/js@${{ matrix.eslint-js-version }}"
+            - name: "Pack package for the ESLint 9 consumer"
+              id: "pack"
+              run: |
+                  set -euo pipefail
+                  mkdir -p temp
+                  npm pack --json --pack-destination temp > temp/npm-pack.json
+                  # shellcheck disable=SC2016
+                  tarball_path=$(node -e '
+                    const fs = require("node:fs");
+                    const metadata = JSON.parse(fs.readFileSync("temp/npm-pack.json", "utf8"));
+                    const records = Array.isArray(metadata) ? metadata : Object.values(metadata);
+                    if (records.length !== 1 || typeof records[0]?.filename !== "string" || records[0].filename.trim() === "") {
+                      throw new Error("Expected exactly one npm pack record with a nonblank filename.");
+                    }
+                    process.stdout.write(`temp/${records[0].filename}`);
+                  ')
+                  echo "tarball_path=${tarball_path}" >> "${GITHUB_OUTPUT}"
+
+            - name: "Install isolated ESLint 9 consumer"
+              env:
+                  CONSUMER_DIR: "${{ runner.temp }}/eslint9-${{ matrix.label }}"
+                  ESLINT_JS_VERSION: "${{ matrix.eslint-js-version }}"
+                  ESLINT_VERSION: "${{ matrix.eslint-version }}"
+                  TARBALL_PATH: "${{ steps.pack.outputs.tarball_path }}"
+              run: |
+                  set -euo pipefail
+                  mkdir -p "${CONSUMER_DIR}"
+                  npm init --yes --prefix "${CONSUMER_DIR}" >/dev/null
+                  printf 'export const smoke = true;\n' > "${CONSUMER_DIR}/smoke.js"
+                  npm install --prefix "${CONSUMER_DIR}" --ignore-scripts --no-audit --no-fund \
+                    "${GITHUB_WORKSPACE}/${TARBALL_PATH}" \
+                    "eslint@${ESLINT_VERSION}" \
+                    "@eslint/js@${ESLINT_JS_VERSION}"
 
             - name: "Run ESLint 9 compatibility smoke checks"
-              run: "npm run lint:compat:eslint9 -- --expect-eslint-major=9"
+              env:
+                  CONSUMER_DIR: "${{ runner.temp }}/eslint9-${{ matrix.label }}"
+              run: |
+                  node scripts/eslint9-compat-smoke.mjs "--consumer-root=${CONSUMER_DIR}" --expect-eslint-major=9

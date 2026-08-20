@@ -29,6 +29,7 @@ const config = [
         },
         name: "chunkylint/typed-eslint-project",
         rules: {
+            "import-x/no-cycle": "error",
             "unicorn/consistent-class-member-order": "off",
         },
     },

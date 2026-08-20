@@ -117,6 +117,13 @@ jobs:
                   cache: "npm"
                   cache-dependency-path: "package-lock.json"
 
+            - name: "Install declared npm version"
+              run: |
+                  set -euo pipefail
+                  npm_version=$(node -p "require('./package.json').packageManager.replace(/^npm@/, '')")
+                  npm install --global "npm@${npm_version}"
+                  test "$(npm --version)" = "${npm_version}"
+
             - name: "Install native lint tools"
               run: |
                   set -euo pipefail
@@ -126,7 +133,7 @@ jobs:
                   echo "${HOME}/.local/bin" >> "${GITHUB_PATH}"
 
             - name: "Install dependencies"
-              run: "npm ci --force"
+              run: "npm ci"
 
             - name: "Configure Git for release automation"
               if: "github.event_name == 'workflow_dispatch'"
@@ -183,12 +190,11 @@ jobs:
               if: "${{ github.event_name != 'workflow_dispatch' || !inputs.skip_verify }}"
               run: "npm run release:check"
 
-            - name: "Ensure verification did not modify tracked files"
-              if: "startsWith(github.ref, 'refs/tags/v')"
+            - name: "Ensure verification did not modify repository files"
               run: |
                   set -euo pipefail
-                  if ! git diff --quiet || ! git diff --cached --quiet; then
-                    echo "release:check modified files on a tag-triggered release. Ensure main is clean before tagging." >&2
+                  if ! git diff --quiet || ! git diff --cached --quiet || [ -n "$(git ls-files --others --exclude-standard)" ]; then
+                    echo "release:check modified repository files. Verification must be nonmutating." >&2
                     git status --short
                     exit 1
                   fi
@@ -269,7 +275,33 @@ jobs:
                     exit 1
                   fi
 
-                  git add -A
+                  if ! git diff --cached --quiet; then
+                    echo "Unexpected pre-staged changes before release version staging." >&2
+                    git status --short
+                    exit 1
+                  fi
+
+                  if ! git diff --quiet -- . ':(exclude)package.json' ':(exclude)package-lock.json' || [ -n "$(git ls-files --others --exclude-standard)" ]; then
+                    echo "Release versioning changed files outside package.json and package-lock.json." >&2
+                    git status --short
+                    exit 1
+                  fi
+
+                  changed_version_files=$(git diff --name-only -- package.json package-lock.json | sort)
+                  if [ "$changed_version_files" != $'package-lock.json\npackage.json' ]; then
+                    echo "Expected both package.json and package-lock.json to change during versioning." >&2
+                    printf 'Changed version files:\n%s\n' "$changed_version_files" >&2
+                    exit 1
+                  fi
+
+                  git add -- package.json package-lock.json
+                  staged_files=$(git diff --cached --name-only | sort)
+                  if [ "$staged_files" != $'package-lock.json\npackage.json' ] || ! git diff --quiet; then
+                    echo "Release staging must contain only package.json and package-lock.json with no unstaged changes." >&2
+                    git status --short
+                    exit 1
+                  fi
+
                   if git diff --cached --quiet; then
                     echo "No staged changes found for release commit." >&2
                     exit 1
@@ -344,8 +376,12 @@ jobs:
                   tarball_filename=$(
                     node -e "
                       const fs = require('node:fs');
-                      const packMetadata = JSON.parse(fs.readFileSync(process.argv[1], 'utf8'));
-                      process.stdout.write(packMetadata[0].filename);
+                      const metadata = JSON.parse(fs.readFileSync(process.argv[1], 'utf8'));
+                      const records = Array.isArray(metadata) ? metadata : Object.values(metadata);
+                      if (records.length !== 1 || typeof records[0]?.filename !== 'string' || records[0].filename.trim() === '') {
+                        throw new Error('Expected exactly one npm pack record with a nonblank filename.');
+                      }
+                      process.stdout.write(records[0].filename);
                     " "$pack_metadata_path"
                   )
                   tarball_path="${assets_dir}/${tarball_filename}"
