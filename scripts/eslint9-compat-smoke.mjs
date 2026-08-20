@@ -138,6 +138,40 @@ const resolveInstalledEslintVersion = (runtimeRequire) => {
 };
 
 /**
+ * Resolve the package entrypoint that must execute in the smoke test.
+ *
+ * @param {string | null} consumerRoot
+ * @param {ReturnType<typeof createRequire>} runtimeRequire
+ *
+ * @returns {URL}
+ */
+const resolveRuntimeEntryUrl = (consumerRoot, runtimeRequire) =>
+    consumerRoot === null
+        ? distEntryUrl
+        : pathToFileURL(runtimeRequire.resolve("eslint-plugin-chunkylint"));
+
+/**
+ * Resolve the working directory and source file for a local or consumer test.
+ *
+ * @param {string | null} consumerRoot
+ *
+ * @returns {{ cwd: string; include: string[] }}
+ */
+const resolveSmokeTarget = (consumerRoot) => {
+    if (consumerRoot === null) {
+        return {
+            cwd: fileURLToPath(new URL("..", import.meta.url)),
+            include: ["scripts/eslint9-compat-smoke.mjs"],
+        };
+    }
+
+    return {
+        cwd: consumerRoot,
+        include: ["smoke.js"],
+    };
+};
+
+/**
  * Run a minimal chunker execution to validate runtime integration.
  *
  * @param {string | null} consumerRoot
@@ -146,9 +180,11 @@ const resolveInstalledEslintVersion = (runtimeRequire) => {
  * @returns {Promise<string>} The runtime entrypoint used for the smoke test.
  */
 const runChunkerSmoke = async (consumerRoot, runtimeRequire) => {
-    const runtimeEntryUrl = consumerRoot
-        ? pathToFileURL(runtimeRequire.resolve("eslint-plugin-chunkylint"))
-        : distEntryUrl;
+    const runtimeEntryUrl = resolveRuntimeEntryUrl(
+        consumerRoot,
+        runtimeRequire
+    );
+    const smokeTarget = resolveSmokeTarget(consumerRoot);
     const runtimeModule =
         // eslint-disable-next-line no-unsanitized/method -- Controlled file:// URL resolved from static relative path.
         await import(runtimeEntryUrl.href);
@@ -164,12 +200,8 @@ const runChunkerSmoke = async (consumerRoot, runtimeRequire) => {
         chunkLogs: false,
         config: compatConfigPath,
         continueOnError: false,
-        cwd: consumerRoot ?? fileURLToPath(new URL("..", import.meta.url)),
-        include: [
-            consumerRoot === null
-                ? "scripts/eslint9-compat-smoke.mjs"
-                : "smoke.js",
-        ],
+        cwd: smokeTarget.cwd,
+        include: smokeTarget.include,
         quiet: true,
         size: 1,
         warnIgnored: false,
