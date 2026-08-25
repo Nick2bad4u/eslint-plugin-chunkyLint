@@ -4,6 +4,8 @@
 
 🚀 **Auto-chunking ESLint runner that updates cache incrementally based on your ESLint config.**
 
+> **Oxlint:** Not compatible as a JavaScript plugin (verified with Oxlint 1.80.0); despite its package name, chunkyLint is an ESLint runner and exports no ESLint rules or presets for Oxlint to load.
+
 <div align="center">
   <img src="ChunkyLintMascot.png" alt="ChunkyLint">
 </div>
