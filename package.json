@@ -182,7 +182,7 @@
         "tsx": "^4.23.1",
         "typescript": "^6.0.3",
         "typescript-eslint": "^8.63.0",
-        "vitest": "^4.1.10",
+        "vitest": "^5.0.0",
         "yamllint-config-nick2bad4u": "^1.1.1"
     },
     "peerDependencies": {
